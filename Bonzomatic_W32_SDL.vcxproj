@@ -40,9 +40,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;$(IncludePath)</IncludePath>
+    <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;$(IncludePath)</IncludePath>
+    <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -55,6 +58,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>bass.lib;sdl.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -72,6 +76,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>bass.lib;sdl.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -215,6 +220,11 @@
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="external\scintilla\include\ILexer.h" />
+    <ClInclude Include="external\scintilla\include\Platform.h" />
+    <ClInclude Include="external\scintilla\include\SciLexer.h" />
+    <ClInclude Include="external\scintilla\include\Scintilla.h" />
+    <ClInclude Include="external\scintilla\include\ScintillaWidget.h" />
     <ClInclude Include="external\scintilla\lexlib\Accessor.h" />
     <ClInclude Include="external\scintilla\lexlib\CharacterCategory.h" />
     <ClInclude Include="external\scintilla\lexlib\CharacterSet.h" />
