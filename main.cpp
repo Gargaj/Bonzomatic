@@ -6,15 +6,16 @@
 #include "Timer.h"
 
 
-char fragmentSource[65536] = "#version 430 core\n"
+char fragmentSource[65536] = 
+  "#version 430 core\n"
   "\n"
   "///////////////////////////////////////////////////////////////////////////////\n"
   "// shader inputs/outputs\n"
   "///////////////////////////////////////////////////////////////////////////////\n"
   "uniform float fGlobalTime; // in seconds\n"
   "uniform vec2 v2Resolution; // viewport resolution (in pixels) (1080p or 720p)\n"
-  "uniform mat4 iMidiPad; // 16 buttons of midi controller\n"
-  "uniform float iMidiPadValue; // sum of all elements in iMidiPad/16\n"
+//   "uniform mat4 iMidiPad; // 16 buttons of midi controller\n"
+//   "uniform float iMidiPadValue; // sum of all elements in iMidiPad/16\n"
   "\n"
   "// all samplers have linear filtering applied, wraping set to repeat\n"
   "//\n"
