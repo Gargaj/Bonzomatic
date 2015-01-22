@@ -26,6 +26,8 @@
 using namespace Scintilla;
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+
 ColourDesired MakeRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a=0xFF)
 {
   return a<<24|b<<16|g<<8|r;
@@ -61,7 +63,26 @@ void Platform::Assert(const char *c, const char *file, int line) {
   strcat(buffer, "\r\n");
   assert(false);
 }
+int Platform::Minimum(int a, int b) { return a<b ? a : b; }
+int Platform::Maximum(int a, int b) { return a>b ? a : b; }
+int Platform::Clamp(int val, int minVal, int maxVal) { return Minimum( maxVal, Maximum( val, minVal ) ); }
 
+#ifdef TRACE
+void Platform::DebugPrintf(const char *format, ...) {
+  char buffer[2000];
+  va_list pArguments;
+  va_start(pArguments, format);
+  vsprintf(buffer,format,pArguments);
+  va_end(pArguments);
+  Platform::DebugDisplay(buffer);
+}
+#else
+void Platform::DebugPrintf(const char *, ...) {
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// PLATFORM
 
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
@@ -606,4 +627,144 @@ void SurfaceImpl::SetDBCSMode( int _codePage )
 Surface *Surface::Allocate(int technology) 
 {
   return new SurfaceImpl;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dynamic libraries
+
+class DynamicLibraryImpl : public DynamicLibrary {
+protected:
+  HMODULE h;
+public:
+  explicit DynamicLibraryImpl(const char *modulePath) {
+    h = ::LoadLibraryA(modulePath);
+  }
+
+  virtual ~DynamicLibraryImpl() {
+    if (h != NULL)
+      ::FreeLibrary(h);
+  }
+
+  // Use GetProcAddress to get a pointer to the relevant function.
+  virtual Function FindFunction(const char *name) {
+    if (h != NULL) {
+      // C++ standard doesn't like casts betwen function pointers and void pointers so use a union
+      union {
+        FARPROC fp;
+        Function f;
+      } fnConv;
+      fnConv.fp = ::GetProcAddress(h, name);
+      return fnConv.f;
+    } else {
+      return NULL;
+    }
+  }
+
+  virtual bool IsValid() {
+    return h != NULL;
+  }
+};
+
+DynamicLibrary *DynamicLibrary::Load(const char *modulePath) {
+  return static_cast<DynamicLibrary *>(new DynamicLibraryImpl(modulePath));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Window
+
+Window::~Window() {
+}
+
+void Window::Destroy() {
+}
+
+bool Window::HasFocus() {
+  return false;
+}
+
+PRectangle Window::GetPosition() {
+  return PRectangle();
+}
+
+void Window::SetPosition(PRectangle rc) {
+}
+
+void Window::SetPositionRelative(PRectangle rc, Window w) {
+}
+
+PRectangle Window::GetClientPosition() {
+  return PRectangle();
+}
+
+void Window::Show(bool show) {
+}
+
+void Window::InvalidateAll() {
+}
+
+void Window::InvalidateRectangle(PRectangle rc) {
+}
+
+void Window::SetFont(Font &font) {
+}
+
+void Window::SetCursor(Cursor curs) 
+{
+  switch (curs) {
+  case cursorText:
+    ::SetCursor(::LoadCursor(NULL,IDC_IBEAM));
+    break;
+  case cursorUp:
+    ::SetCursor(::LoadCursor(NULL,IDC_UPARROW));
+    break;
+  case cursorWait:
+    ::SetCursor(::LoadCursor(NULL,IDC_WAIT));
+    break;
+  case cursorHoriz:
+    ::SetCursor(::LoadCursor(NULL,IDC_SIZEWE));
+    break;
+  case cursorVert:
+    ::SetCursor(::LoadCursor(NULL,IDC_SIZENS));
+    break;
+  case cursorHand:
+    ::SetCursor(::LoadCursor(NULL,IDC_HAND));
+    break;
+  case cursorReverseArrow:
+    //::SetCursor(GetReverseArrowCursor());
+    break;
+  case cursorArrow:
+  case cursorInvalid:	// Should not occur, but just in case.
+    ::SetCursor(::LoadCursor(NULL,IDC_ARROW));
+    break;
+  }
+}
+
+PRectangle Window::GetMonitorRect(Point pt) {
+  return PRectangle();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Menus
+
+Menu::Menu() : mid(0) {
+  assert(0);
+}
+
+void Menu::CreatePopUp() {
+  assert(0);
+}
+
+void Menu::Destroy() {
+  assert(0);
+}
+
+void Menu::Show(Point pt, Window &w) {
+  assert(0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ListBox implementation
+
+ListBox *ListBox::Allocate() {
+  return NULL;
 }
