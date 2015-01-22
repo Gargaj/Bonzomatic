@@ -1,4 +1,5 @@
 #include <bass.h>
+#include <stdio.h>
 #include "../FFT.h"
 
 namespace FFT
@@ -27,7 +28,7 @@ namespace FFT
 
     const int channels = 1;
 
-    hRecord = BASS_RecordStart( freq, 1, BASS_SAMPLE_8BITS, 0, 0 );
+    hRecord = BASS_RecordStart( freq, channels, BASS_SAMPLE_8BITS, 0, 0 );
     if (!hRecord)
     {
       return false;
@@ -36,7 +37,7 @@ namespace FFT
   }
   bool GetFFT( float * samples )
   {
-    unsigned len = 0;
+    unsigned int len = 0;
 
     switch( FFT_SIZE*2 ) // for 256 fft, only 128 values will contain DC in our case
     {
@@ -67,7 +68,7 @@ namespace FFT
     }
 
     const int numBytes = BASS_ChannelGetData( hRecord, samples, len | BASS_DATA_FFT_REMOVEDC );
-    if( numBytes == -1 )
+    if( numBytes <= 0 )
       return false;
 
     return true;

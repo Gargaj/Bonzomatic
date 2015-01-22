@@ -19,17 +19,17 @@ char fragmentSource[65536] = "#version 430 core\n"
   "// all samplers have linear filtering applied, wraping set to repeat\n"
   "//\n"
   "uniform sampler1D texFFT; // 1024\n"
-  "uniform float iFFT[8]; // latest frame\n"
-  "uniform float iFFTs[8]; // smoothed latest frame\n"
-  "uniform sampler2D iFFTsHistory; // smoothed fft history, 8x1024, x coord = bin, y coord n-frames earlier, y=0 is latest frame\n"
+//  "uniform float iFFT[8]; // latest frame\n"
+//  "uniform float iFFTs[8]; // smoothed latest frame\n"
+//  "uniform sampler2D iFFTsHistory; // smoothed fft history, 8x1024, x coord = bin, y coord n-frames earlier, y=0 is latest frame\n"
   "\n"
   "// predefined textures\n"
   "//\n"
-  "uniform sampler2D iTex1;\n"
-  "uniform sampler2D iTex2;\n"
-  "uniform sampler2D iTex3;\n"
-  "uniform sampler2D iTex4;\n"
-  "uniform sampler2D iNoise;\n"
+  "uniform sampler2D texTex1;\n"
+  "uniform sampler2D texTex2;\n"
+  "uniform sampler2D texTex3;\n"
+  "uniform sampler2D texTex4;\n"
+  "uniform sampler2D texNoise;\n"
   "uniform sampler2D texChecker;\n"
   "\n"
   "// out_color must be written in order to see anything\n"
@@ -65,6 +65,14 @@ void main()
     return;
 
   Renderer::Texture * texChecker = Renderer::CreateRGBA8TextureFromFile("textures/checker.png");
+  Renderer::Texture * texNoise = Renderer::CreateRGBA8TextureFromFile("textures/noise.png");
+  Renderer::Texture * tex[4];
+  for(int i=0; i<4; i++)
+  {
+    char sz[] = "textures/tex1.png";
+    sz[12] = '1' + i;
+    tex[i] = Renderer::CreateRGBA8TextureFromFile(sz);
+  }
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
 
@@ -87,12 +95,20 @@ void main()
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
     Renderer::SetShaderTexture( "texChecker", texChecker );
+    Renderer::SetShaderTexture( "texNoise", texNoise );
 
     static float fftData[FFT_SIZE];
-    FFT::GetFFT(fftData);
-    Renderer::UpdateR32Texture( texFFT, fftData );
+    if (FFT::GetFFT(fftData))
+      Renderer::UpdateR32Texture( texFFT, fftData );
 
     Renderer::SetShaderTexture( "texFFT", texFFT );
+
+    for(int i=0; i<4; i++)
+    {
+      char sz[] = "texTex1";
+      sz[6] = '1' + i;
+      Renderer::SetShaderTexture( sz, tex[i] );
+    }
 
     Renderer::RenderFullscreenQuad();
 
