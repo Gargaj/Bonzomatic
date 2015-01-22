@@ -13,6 +13,8 @@ typedef struct
 
 namespace Renderer
 {
+  extern char defaultShader[65536];
+
   bool Open( RENDERER_SETTINGS * settings );
   
   void StartFrame();
