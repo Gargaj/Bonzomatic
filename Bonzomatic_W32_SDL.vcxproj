@@ -215,11 +215,13 @@
     <ClCompile Include="external\scintilla\src\UniConversion.cxx" />
     <ClCompile Include="external\scintilla\src\ViewStyle.cxx" />
     <ClCompile Include="external\scintilla\src\XPM.cxx" />
+    <ClCompile Include="external\stb_image.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="platform_sdl\Platform.cpp" />
     <ClCompile Include="platform_sdl\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
+    <ClCompile Include="platform_w32_common\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\include\ILexer.h" />
@@ -277,6 +279,7 @@
     <ClInclude Include="FFT.h" />
     <ClInclude Include="MIDI.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties" />
