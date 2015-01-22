@@ -39,12 +39,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -219,6 +219,7 @@
     <ClCompile Include="platform_sdl\Platform.cpp" />
     <ClCompile Include="platform_sdl\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
+    <ClCompile Include="platform_w32_common\FFT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\include\ILexer.h" />
@@ -273,8 +274,8 @@
     <ClInclude Include="external\scintilla\src\UniConversion.h" />
     <ClInclude Include="external\scintilla\src\ViewStyle.h" />
     <ClInclude Include="external\scintilla\src\XPM.h" />
-    <ClInclude Include="fft.h" />
-    <ClInclude Include="midi.h" />
+    <ClInclude Include="FFT.h" />
+    <ClInclude Include="MIDI.h" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>

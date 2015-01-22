@@ -1,11 +1,8 @@
-class CFFT
+#define FFT_SIZE 1024
+
+namespace FFT
 {
-  CFFT();
-  ~CFFT();
-  
-  bool Init();
-  bool Deinit();
-  
+  bool Open();
   bool GetFFT( float * samples );
-  
+  void Close();
 }
