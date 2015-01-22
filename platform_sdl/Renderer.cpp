@@ -290,6 +290,9 @@ namespace Renderer
 
   void SetShaderTexture( char * szTextureName, Texture * tex )
   {
+    if (!tex)
+      return;
+
     GLint location = glGetUniformLocation( theShader, szTextureName );
     if ( location != -1 )
     {

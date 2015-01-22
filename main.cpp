@@ -49,7 +49,6 @@
 #include <ExternalLexer.h>
 #endif
 
-
 #include "Renderer.h"
 #include "FFT.h"
 #include "Timer.h"
@@ -86,7 +85,7 @@ void main()
   Renderer::Texture * tex[8];
   for(int i=0; i<8; i++)
   {
-    char sz[] = "textures/tex1.png";
+    char sz[] = "textures/tex1.jpg";
     sz[12] = '1' + i;
     printf("* %s...\n",sz);
     tex[i] = Renderer::CreateRGBA8TextureFromFile(sz);
