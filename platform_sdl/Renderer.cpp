@@ -56,7 +56,6 @@ namespace Renderer
     return true;
   }
 
-  int textureUnit = 0;
   void StartFrame()
   {
     SDL_Event	E;
@@ -90,8 +89,6 @@ namespace Renderer
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
-    textureUnit = 1;
   }
   void EndFrame()
   {
@@ -173,6 +170,12 @@ namespace Renderer
     }
   }
 
+  struct GLTexture : public Texture
+  {
+    int unit;
+  };
+
+  int textureUnit = 0;
   Texture * CreateRGBA8TextureFromFile( char * szFilename )
   {
     int comp = 0;
@@ -197,11 +200,12 @@ namespace Renderer
 
     stbi_image_free(c);
 
-    Texture * tex = new Texture();
+    GLTexture * tex = new GLTexture();
     tex->width = width;
     tex->height = height;
     tex->ID = (void *)glTexId;
     tex->type = TEXTURETYPE_2D;
+    tex->unit = textureUnit++;
     return tex;
   }
 
@@ -225,11 +229,12 @@ namespace Renderer
 
     glBindTexture( GL_TEXTURE_1D, 0 );
 
-    Texture * tex = new Texture();
+    GLTexture * tex = new GLTexture();
     tex->width = w;
     tex->height = 1;
     tex->ID = (void *)glTexId;
     tex->type = TEXTURETYPE_1D;
+    tex->unit = textureUnit++;
     return tex;
   }
 
@@ -238,21 +243,19 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szTextureName );
     if ( location != -1 )
     {
-      glProgramUniform1iEXT( theShader, location, textureUnit );
-      glActiveTexture( GL_TEXTURE0 + textureUnit );
+      glProgramUniform1iEXT( theShader, location, ((GLTexture*)tex)->unit );
+      glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {
         case TEXTURETYPE_1D: glBindTexture( GL_TEXTURE_1D, (GLuint)tex->ID ); break;
         case TEXTURETYPE_2D: glBindTexture( GL_TEXTURE_2D, (GLuint)tex->ID ); break;
       }
-      textureUnit++;
     }
   }
 
   bool UpdateR32Texture( Texture * tex, float * data )
   {
-    int unit = 1; // FIXME
-    glActiveTexture( GL_TEXTURE0 + unit );
+    glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
     glBindTexture( GL_TEXTURE_1D, (GLuint)tex->ID );
     glTexSubImage1D( GL_TEXTURE_1D, 0, 0, tex->width, GL_RED, GL_FLOAT, data );
 
