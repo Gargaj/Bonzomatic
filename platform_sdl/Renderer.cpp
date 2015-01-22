@@ -222,6 +222,7 @@ namespace Renderer
 
   struct GLTexture : public Texture
   {
+    GLuint ID;
     int unit;
   };
 
@@ -253,7 +254,7 @@ namespace Renderer
     GLTexture * tex = new GLTexture();
     tex->width = width;
     tex->height = height;
-    tex->ID = (void *)glTexId;
+    tex->ID = glTexId;
     tex->type = TEXTURETYPE_2D;
     tex->unit = textureUnit++;
     return tex;
@@ -282,7 +283,7 @@ namespace Renderer
     GLTexture * tex = new GLTexture();
     tex->width = w;
     tex->height = 1;
-    tex->ID = (void *)glTexId;
+    tex->ID = glTexId;
     tex->type = TEXTURETYPE_1D;
     tex->unit = textureUnit++;
     return tex;
@@ -300,8 +301,8 @@ namespace Renderer
       glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {
-        case TEXTURETYPE_1D: glBindTexture( GL_TEXTURE_1D, (GLuint)tex->ID ); break;
-        case TEXTURETYPE_2D: glBindTexture( GL_TEXTURE_2D, (GLuint)tex->ID ); break;
+        case TEXTURETYPE_1D: glBindTexture( GL_TEXTURE_1D, ((GLTexture*)tex)->ID ); break;
+        case TEXTURETYPE_2D: glBindTexture( GL_TEXTURE_2D, ((GLTexture*)tex)->ID ); break;
       }
     }
   }
@@ -309,7 +310,7 @@ namespace Renderer
   bool UpdateR32Texture( Texture * tex, float * data )
   {
     glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
-    glBindTexture( GL_TEXTURE_1D, (GLuint)tex->ID );
+    glBindTexture( GL_TEXTURE_1D, ((GLTexture*)tex)->ID );
     glTexSubImage1D( GL_TEXTURE_1D, 0, 0, tex->width, GL_RED, GL_FLOAT, data );
 
     return true;

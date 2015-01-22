@@ -39,7 +39,6 @@ namespace Renderer
   {
     int width;
     int height;
-    void * ID;
     TEXTURETYPE type;
   };
 
