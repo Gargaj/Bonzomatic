@@ -279,6 +279,7 @@
     <ClInclude Include="FFT.h" />
     <ClInclude Include="MIDI.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
