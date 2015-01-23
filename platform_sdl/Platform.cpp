@@ -1,8 +1,3 @@
-// ScintillaGL source code edit control
-// PlatGTK.cxx - implementation of platform facilities on GTK+/Linux
-// Copyright 2011 by Mykhailo Parfeniuk
-// The License.txt file describes the conditions under which this software may be distributed.
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
