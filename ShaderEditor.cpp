@@ -29,6 +29,92 @@ const int markersArray[][NB_FOLDER_STATE] = {
   {SC_MARK_CIRCLEMINUS,   SC_MARK_CIRCLEPLUS,SC_MARK_VLINE,        SC_MARK_LCORNERCURVE,  SC_MARK_CIRCLEPLUSCONNECTED, SC_MARK_CIRCLEMINUSCONNECTED, SC_MARK_TCORNERCURVE},
   {SC_MARK_BOXMINUS,      SC_MARK_BOXPLUS,   SC_MARK_VLINE,        SC_MARK_LCORNER,       SC_MARK_BOXPLUSCONNECTED,    SC_MARK_BOXMINUSCONNECTED,    SC_MARK_TCORNER}
 };
+const char glslKeyword[] =
+  "discard struct if else switch case default break goto return for while do continue";
+
+const char glslType[] = 
+  "attribute const in inout out uniform varying invariant "
+  "centroid flat smooth noperspective layout patch sample "
+  "subroutine lowp mediump highp precision "
+  "void float vec2 vec3 vec4 bvec2 bvec3 bvec4 ivec2 ivec3 ivec4 "
+  "uvec2 uvec3 uvec4 dvec2 dvec3 dvec4 "
+  "sampler1D sampler2D sampler3D isampler2D isampler1D isampler3D "
+  "usampler1D usampler2D usampler3D "
+  "sampler1DShadow sampler2DShadow sampler1DArray sampler2DArray "
+  "sampler1DArrayShadow sampler2DArrayShadow "
+  "samplerCube samperCubeShadow samperCubeArrayShadow ";
+
+const char glslBuiltin[] = 
+  "radians degrees sin cos tan asin acos atan sinh "
+  "cosh tanh asinh acosh atanh pow exp log exp2 "
+  "log2 sqrt inversesqrt abs sign floor trunc round "
+  "roundEven ceil fract mod modf min max clamp mix "
+  "step smoothstep isnan isinf floatBitsToInt floatBitsToUint "
+  "intBitsToFloat uintBitsToFloat fma frexp ldexp packUnorm2x16 "
+  "packUnorm4x8 packSnorm4x8 unpackUnorm2x16 unpackUnorm4x8 "
+  "unpackSnorm4x8 packDouble2x32 unpackDouble2x32 length distance "
+  "dot cross normalize ftransform faceforward reflect "
+  "refract matrixCompMult outerProduct transpose determinant "
+  "inverse lessThan lessThanEqual greaterThan greaterThanEqual "
+  "equal notEqual any all not uaddCarry usubBorrow "
+  "umulExtended imulExtended bitfieldExtract bitfildInsert "
+  "bitfieldReverse bitCount findLSB findMSB textureSize "
+  "textureQueryLOD texture textureProj textureLod textureOffset "
+  "texelFetch texelFetchOffset textureProjOffset textureLodOffset "
+  "textureProjLod textureProjLodOffset textureGrad textureGradOffset "
+  "textureProjGrad textureProjGradOffset textureGather "
+  "textureGatherOffset texture1D texture2D texture3D texture1DProj "
+  "texture2DProj texture3DProj texture1DLod texture2DLod "
+  "texture3DLod texture1DProjLod texture2DProjLod texture3DProjLod "
+  "textureCube textureCubeLod shadow1D shadow2D shadow1DProj "
+  "shadow2DProj shadow1DLod shadow2DLod shadow1DProjLod "
+  "shadow2DProjLod dFdx dFdy fwidth interpolateAtCentroid "
+  "interpolateAtSample interpolateAtOffset noise1 noise2 noise3 "
+  "noise4 EmitStreamVertex EndStreamPrimitive EmitVertex "
+  "EndPrimitive barrier "
+  "gl_VertexID gl_InstanceID gl_Position gl_PointSize "
+  "gl_ClipDistance gl_PrimitiveIDIn gl_InvocationID gl_PrimitiveID "
+  "gl_Layer gl_PatchVerticesIn gl_TessLevelOuter gl_TessLevelInner "
+  "gl_TessCoord gl_FragCoord gl_FrontFacing gl_PointCoord "
+  "gl_SampleID gl_SamplePosition gl_FragColor gl_FragData "
+  "gl_FragDepth gl_SampleMask gl_ClipVertex gl_FrontColor "
+  "gl_BackColor gl_FrontSecondaryColor gl_BackSecondaryColor "
+  "gl_TexCoord gl_FogFragCoord gl_Color gl_SecondaryColor "
+  "gl_Normal gl_Vertex gl_MultiTexCoord0 gl_MultiTexCoord1 "
+  "gl_MultiTexCoord2 gl_MultiTexCoord3 gl_MultiTexCoord4 "
+  "gl_MultiTexCoord5 gl_MultiTexCoord6 gl_MultiTexCoord7 gl_FogCoord "
+  "gl_MaxVertexAttribs gl_MaxVertexUniformComponents gl_MaxVaryingFloats "
+  "gl_MaxVaryingComponents gl_MaxVertexOutputComponents "
+  "gl_MaxGeometryInputComponents gl_MaxGeometryOutputComponents "
+  "gl_MaxFragmentInputComponents gl_MaxVertexTextureImageUnits "
+  "gl_MaxCombinedTextureImageUnits gl_MaxTextureImageUnits "
+  "gl_MaxFragmentUniformComponents gl_MaxDrawBuffers gl_MaxClipDistances "
+  "gl_MaxGeometryTextureImageUnits gl_MaxGeometryOutputVertices "
+  "gl_MaxGeometryTotalOutputComponents gl_MaxGeometryUniformComponents "
+  "gl_MaxGeometryVaryingComponents gl_MaxTessControlInputComponents "
+  "gl_MaxTessControlOutputComponents gl_MaxTessControlTextureImageUnits "
+  "gl_MaxTessControlUniformComponents "
+  "gl_MaxTessControlTotalOutputComponents "
+  "gl_MaxTessEvaluationInputComponents gl_MaxTessEvaluationOutputComponents "
+  "gl_MaxTessEvaluationTextureImageUnits "
+  "gl_MaxTessEvaluationUniformComponents gl_MaxTessPatchComponents "
+  "gl_MaxPatchVertices gl_MaxTessGenLevel gl_MaxTextureUnits "
+  "gl_MaxTextureCoords gl_MaxClipPlanes "
+  "gl_DepthRange gl_ModelViewMatrix gl_ProjectionMatrix "
+  "gl_ModelViewProjectionMatrix gl_TextureMatrix gl_NormalMatrix "
+  "gl_ModelViewMatrixInverse gl_ProjectionMatrixInverse "
+  "gl_ModelViewProjectionMatrixInverse gl_TextureMatrixInverse "
+  "gl_ModelViewMatrixTranspose gl_ProjectionMatrixTranspose "
+  "gl_ModelViewProjectionMatrixTranspose gl_TextureMatrixTranspose "
+  "gl_ModelViewMatrixInverseTranspose gl_ProjectionMatrixInverseTranspose "
+  "gl_ModelViewProjectionMatrixInverseTranspose "
+  "gl_TextureMatrixInverseTranspose gl_NormalScale gl_ClipPlane "
+  "gl_Point gl_FrontMaterial gl_BackMaterial gl_LightSource "
+  "gl_LightModel gl_FrontLightModelProduct gl_BackLightModelProduct "
+  "gl_FrontLightProduct gl_BackLightProduct gl_TextureEnvColor "
+  "gl_EyePlaneS gl_EyePlaneT gl_EyePlaneR gl_EyePlaneQ "
+  "gl_ObjectPlaneS gl_ObjectPlaneT gl_ObjectPlaneR gl_ObjectPlaneQ "
+  "gl_Fog";
 
 using namespace Scintilla;
 class Scintilla::LexState : public LexInterface {
@@ -109,6 +195,9 @@ void ShaderEditor::Initialise()
   WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
 
   lexState->SetLexer( SCLEX_CPP );
+  lexState->SetWordList(0, glslKeyword);
+  lexState->SetWordList(1, glslType);
+  lexState->SetWordList(4, glslBuiltin);
 
   SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), 16, font);
   SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
