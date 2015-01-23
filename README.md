@@ -18,6 +18,7 @@ Live-coding battle tool for the Revision demoscene party.
 - BASS.DLL by Ian Luck (http://www.un4seen.com/)
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - Simple DirectMedia Layer by the SDL dev team (https://www.libsdl.org/)
+- ProFont by Tobias Jung (http://tobiasjung.name/profont/)
  
 These software are available in their respective licenses.
 
