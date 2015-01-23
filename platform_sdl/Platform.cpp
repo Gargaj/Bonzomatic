@@ -467,7 +467,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
   glColor3ubv((GLubyte*)&fore);
   glBegin(GL_QUADS);
   float x = rc.left, y=ybase;
-  while (len--) 
+  while (len-- > 0) 
   {
     //if (*s >= 32 && *s < 128) 
     unsigned int c = *s;
@@ -511,9 +511,10 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, float *posi
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   //TODO: implement proper UTF-8 handling
   float position = 0;
-  while (len--) 
+  char * p = (char*)s;
+  while (len-- > 0) 
   {
-    unsigned int c = *s;
+    unsigned int c = *p;
     unsigned int l = UTF8CharLength(c);
     if (l > 1)
     {
@@ -526,9 +527,10 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, float *posi
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     
     position     += advance;//TODO: +Kerning
-    *positions++  = position*realFont->scale;
+    for (int i=0; i<l; i++)
+      *positions++  = position*realFont->scale;
 
-    s += l;
+    p += l;
     len -= l - 1;
   }
 }
@@ -537,7 +539,7 @@ float SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   //TODO: implement proper UTF-8 handling
   float position = 0;
-  while (len--) 
+  while (len-- > 0) 
   {
     unsigned int c = *s;
     unsigned int l = UTF8CharLength(c);
