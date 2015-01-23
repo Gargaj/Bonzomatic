@@ -167,7 +167,7 @@ void ShaderEditor::Initialise()
 
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
 
-  char * font = "Input-Regular_(InputMono-Medium).ttf";
+  char * font = "ProFontWindows.ttf";
   int fontSize = 16;
   SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), fontSize, font);
   WndProc( SCI_STYLECLEARALL, NULL, NULL );
@@ -298,16 +298,15 @@ void ShaderEditor::Paint()
 
 void ShaderEditor::SetText( char * buf )
 {
-  //char * buf = "test test test";
   WndProc( SCI_SETREADONLY, false, NULL );
   WndProc( SCI_CLEARALL, false, NULL );
   WndProc( SCI_SETUNDOCOLLECTION, 0, NULL);
   WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
   WndProc( SCI_SETUNDOCOLLECTION, 1, NULL);
   WndProc( SCI_SETREADONLY, bReadOnly, NULL );
+  WndProc( SCI_GOTOPOS, 0, NULL );
   if (!bReadOnly)
     SetFocusState( true );
-  //GoToLine( 0 );
 }
 
 void ShaderEditor::Tick()
@@ -378,4 +377,12 @@ void ShaderEditor::SetReadOnly( bool b )
     WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, NULL);
     WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, NULL);
   }
+}
+
+void ShaderEditor::ButtonDown( Scintilla::Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt )
+{
+  Scintilla::PRectangle rect = wMain.GetPosition();
+  pt.x -= rect.left;
+  pt.y -= rect.top;
+  Scintilla::Editor::ButtonDown( pt, curTime, shift, ctrl, alt );
 }

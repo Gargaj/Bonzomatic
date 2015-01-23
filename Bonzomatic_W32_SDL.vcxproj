@@ -221,6 +221,7 @@
     <ClCompile Include="platform_sdl\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
+    <ClCompile Include="platform_w32_common\SetupDialog.cpp" />
     <ClCompile Include="platform_w32_common\Timer.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
   </ItemGroup>
@@ -281,12 +282,16 @@
     <ClInclude Include="FFT.h" />
     <ClInclude Include="MIDI.h" />
     <ClInclude Include="platform_sdl\SurfaceImpl.h" />
+    <ClInclude Include="platform_w32_common\resource.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="platform_w32_common\SetupDialog.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

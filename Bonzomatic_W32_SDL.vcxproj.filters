@@ -433,6 +433,7 @@
     </ClCompile>
     <ClCompile Include="platform_w32_common\Timer.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
+    <ClCompile Include="platform_w32_common\SetupDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
@@ -598,10 +599,14 @@
     <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="platform_sdl\SurfaceImpl.h" />
     <ClInclude Include="Clipboard.h" />
+    <ClInclude Include="platform_w32_common\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties">
       <Filter>Externals\Scintilla</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="platform_w32_common\SetupDialog.rc" />
   </ItemGroup>
 </Project>

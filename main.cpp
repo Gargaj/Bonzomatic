@@ -11,9 +11,17 @@
 void main()
 {
   RENDERER_SETTINGS settings;
+#ifdef _DEBUG
   settings.nWidth = 1280;
   settings.nHeight = 720;
   settings.windowMode = RENDERER_WINDOWMODE_WINDOWED;
+#else
+  settings.nWidth = 1920;
+  settings.nHeight = 1080;
+  settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+  if (!Renderer::OpenSetupDialog( &settings ))
+    return;
+#endif
 
   if (!Renderer::Open( &settings ))
     return;
@@ -85,7 +93,14 @@ void main()
   float fNextTick = 0.1;
   while (!Renderer::WantsToQuit())
   {
+    float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::StartFrame();
+
+    for(int i=0; i<Renderer::mouseEventBufferCount; i++)
+    {
+      mShaderEditor.ButtonDown( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false, false, false );
+    }
+    Renderer::mouseEventBufferCount = 0;
 
     for(int i=0; i<Renderer::keyEventBufferCount; i++)
     {
@@ -129,9 +144,7 @@ void main()
       }
     }
     Renderer::keyEventBufferCount = 0;
-    //mShaderEditor.KeyDown();
 
-    float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::SetShaderConstant( "fGlobalTime", time );
 
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );

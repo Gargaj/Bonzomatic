@@ -79,6 +79,7 @@ public:
   void SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back=0xFFFFFFFF, int size=-1, const char *face=0);
   void Tick();
   int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
+  void ButtonDown( Scintilla::Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt );
   void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
   void NotifyStyleToNeeded(int endStyleNeeded);
 

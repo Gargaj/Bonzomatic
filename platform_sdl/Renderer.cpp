@@ -17,39 +17,32 @@ namespace Renderer
     "\n"
     "///////////////////////////////////////////////////////////////////////////////\n"
     "// shader inputs/outputs\n"
-    "///////////////////////////////////////////////////////////////////////////////\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels) (1080p or 720p)\n"
     //   "uniform mat4 iMidiPad; // 16 buttons of midi controller\n"
     //   "uniform float iMidiPadValue; // sum of all elements in iMidiPad/16\n"
     "\n"
     "// all samplers have linear filtering applied, wraping set to repeat\n"
-    "//\n"
     "uniform sampler1D texFFT; // 1024\n"
     //  "uniform float iFFT[8]; // latest frame\n"
     //  "uniform float iFFTs[8]; // smoothed latest frame\n"
     //  "uniform sampler2D iFFTsHistory; // smoothed fft history, 8x1024, x coord = bin, y coord n-frames earlier, y=0 is latest frame\n"
     "\n"
     "// predefined textures\n"
-    "//\n"
     "uniform sampler2D texTex1;\n"
     "uniform sampler2D texTex2;\n"
-/*
     "uniform sampler2D texTex3;\n"
     "uniform sampler2D texTex4;\n"
     "uniform sampler2D texTex5;\n"
     "uniform sampler2D texTex6;\n"
     "uniform sampler2D texTex7;\n"
     "uniform sampler2D texTex8;\n"
-*/
     "uniform sampler2D texNoise;\n"
     "uniform sampler2D texChecker;\n"
     "\n"
     "// out_color must be written in order to see anything\n"
-    "//\n"
     "layout(location = 0) out vec4 out_color;\n"
     "///////////////////////////////////////////////////////////////////////////////\n"
-//    "///////////////////////////////////////////////////////////////////////////////\n"
     "\n"
     "void main(void)\n"
     "{\n"
@@ -115,9 +108,12 @@ namespace Renderer
 
   KeyEvent keyEventBuffer[512];
   int keyEventBufferCount = 0;
+  MouseEvent mouseEventBuffer[512];
+  int mouseEventBufferCount = 0;
   void StartFrame()
   {
     keyEventBufferCount = 0;
+    mouseEventBufferCount = 0;
     SDL_Event	E;
     while (SDL_PollEvent(&E))
     {
@@ -184,6 +180,16 @@ namespace Renderer
       }
       else if (E.type == SDL_MOUSEBUTTONDOWN)
       {
+        mouseEventBuffer[mouseEventBufferCount].x = E.button.x;
+        mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
+        switch(E.button.button)
+        {
+          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+          case SDL_BUTTON_LEFT:   
+          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+        }
+        mouseEventBufferCount++;
       }
     }
     glClearColor(0.08f, 0.18f, 0.18f, 1.0f);

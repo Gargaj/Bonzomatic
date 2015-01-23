@@ -20,6 +20,7 @@ namespace Renderer
   extern int nWidth;
   extern int nHeight;
 
+  bool OpenSetupDialog( RENDERER_SETTINGS * settings );
   bool Open( RENDERER_SETTINGS * settings );
   
   void StartFrame();
@@ -55,6 +56,7 @@ namespace Renderer
   Texture * Create1DR32Texture( int w );
   bool UpdateR32Texture( Texture * tex, float * data );
   void SetShaderTexture( char * szTextureName, Texture * tex );
+
   struct KeyEvent
   {
     int character;
@@ -65,4 +67,19 @@ namespace Renderer
   };
   extern KeyEvent keyEventBuffer[512];
   extern int keyEventBufferCount;
+
+  enum MOUSEBUTTON
+  {
+    MOUSEBUTTON_LEFT = 0,
+    MOUSEBUTTON_RIGHT,
+    MOUSEBUTTON_MIDDLE,
+  };
+  struct MouseEvent
+  {
+    int x;
+    int y;
+    MOUSEBUTTON button;
+  };
+  extern MouseEvent mouseEventBuffer[512];
+  extern int mouseEventBufferCount;
 }
