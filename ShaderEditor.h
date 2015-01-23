@@ -48,5 +48,27 @@
 
 class ShaderEditor : public Scintilla::Editor
 {
-  // TODO: override abstracts
+  Scintilla::Surface *surfaceWindow;
+public:
+  ShaderEditor(Scintilla::Surface *surfaceWindow);
+
+  void Initialise();
+  void SetVerticalScrollPos();
+  void SetHorizontalScrollPos();
+  bool ModifyScrollBars(int nMax, int nPage);
+  void Copy();
+  void Paste();
+  void ClaimSelection();
+  void NotifyChange();
+  void NotifyParent(Scintilla::SCNotification scn);
+  void CopyToClipboard(const Scintilla::SelectionText &selectedText);
+  void SetMouseCapture(bool on);
+  bool HaveMouseCapture();
+  sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+  void SetTicking(bool on);
+
+  void Paint();
+  void SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back=0xFFFFFFFF, int size=-1, const char *face=0);
+  void SetText( char * );
+  void Tick();
 };

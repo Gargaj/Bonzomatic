@@ -171,7 +171,7 @@ void SurfaceImpl::Init( SurfaceID sid, WindowID wid )
 
 void SurfaceImpl::InitPixMap( int width, int height, Surface *surface_, WindowID wid )
 {
-
+  initialised = true;
 }
 
 void SurfaceImpl::Release() {
@@ -319,7 +319,10 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
     assert(!"Implemented");
 }
 
-void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) {
+void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
+{
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   for (int i=0; i<8; i++)
   {
     glActiveTexture( GL_TEXTURE0 + i );
@@ -364,7 +367,7 @@ void SurfaceImpl::Ellipse(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesir
 
 void SurfaceImpl::Copy( PRectangle rc, Point from, Surface &surfaceSource )
 {
-  assert(0);
+  //assert(0);
 }
 
 struct stbtt_Font
@@ -397,19 +400,22 @@ void Font::Create(const FontParameters &fp)
   len = ftell(f);
   fseek(f, 0, SEEK_SET);
 
+  int texSize = 1024;
   unsigned char* buf = (unsigned char*)malloc(len);
-  unsigned char* bmp = new unsigned char[1024*1024];
+  unsigned char* bmp = new unsigned char[texSize*texSize];
   fread(buf, 1, len, f);
-  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, 1024, 1024, 0, 512, newFont->cdata); // no guarantee this fits!
+  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, 512, newFont->cdata); // no guarantee this fits!
 
+#ifdef _DEBUG
   FILE* dump = fopen("font.raw", "wb");
   fwrite(bmp,1024,1024,dump);
   fclose(dump);
+#endif // _DEBUG
 
   // can free ttf_buffer at this point
   glGenTextures(1, &newFont->ftex);
   glBindTexture(GL_TEXTURE_2D, newFont->ftex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1024, 1024, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texSize, texSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
   // can free temp_bitmap at this point
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   fclose(f);
@@ -682,18 +688,23 @@ bool Window::HasFocus() {
   return false;
 }
 
-PRectangle Window::GetPosition() {
-  return PRectangle();
+PRectangle w;
+
+PRectangle Window::GetPosition() 
+{
+  return w;
 }
 
-void Window::SetPosition(PRectangle rc) {
+void Window::SetPosition(PRectangle rc) 
+{
+  w = rc;
 }
 
 void Window::SetPositionRelative(PRectangle rc, Window w) {
 }
 
 PRectangle Window::GetClientPosition() {
-  return PRectangle();
+  return PRectangle(0,0,1280,720);
 }
 
 void Window::Show(bool show) {

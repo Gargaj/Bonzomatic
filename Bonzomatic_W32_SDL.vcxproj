@@ -221,6 +221,7 @@
     <ClCompile Include="platform_sdl\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
+    <ClCompile Include="platform_w32_common\ShaderEditor.cpp" />
     <ClCompile Include="platform_w32_common\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -8,8 +8,6 @@
 
 void main()
 {
-  //ShaderEditor mShaderEditor;
-
   RENDERER_SETTINGS settings;
   settings.nWidth = 1280;
   settings.nHeight = 720;
@@ -49,8 +47,14 @@ void main()
 #ifdef SCI_LEXER
   Scintilla_LinkLexers();
 #endif
+  Scintilla::Surface * surface = Scintilla::Surface::Allocate( SC_TECHNOLOGY_DEFAULT );
+
+  ShaderEditor mShaderEditor( surface );
+  mShaderEditor.Initialise();
+  mShaderEditor.SetText( Renderer::defaultShader );
 
   Timer::Start();
+  float fNextTick = 0.1;
   while (!Renderer::WantsToQuit())
   {
     Renderer::StartFrame();
@@ -78,8 +82,18 @@ void main()
 
     Renderer::RenderFullscreenQuad();
 
+    if (time > fNextTick)
+    {
+      mShaderEditor.Tick();
+      fNextTick = time + 0.1;
+    }
+
+    mShaderEditor.Paint( );
+
     Renderer::EndFrame();
   }
+
+  delete surface;
 
   FFT::Close();
 

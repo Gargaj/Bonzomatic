@@ -66,6 +66,8 @@ namespace Renderer
 
   GLuint theShader = NULL;
 
+  int nWidth = 0;
+  int nHeight = 0;
   bool Open( RENDERER_SETTINGS * settings )
   {
     theShader = NULL;
@@ -86,6 +88,8 @@ namespace Renderer
     SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, true );
 
+    nWidth = settings->nWidth;
+    nHeight = settings->nHeight;
     mScreen = SDL_SetVideoMode( settings->nWidth, settings->nHeight, 32, flags );
     if (!mScreen)
     {
@@ -314,6 +318,25 @@ namespace Renderer
     glTexSubImage1D( GL_TEXTURE_1D, 0, 0, tex->width, GL_RED, GL_FLOAT, data );
 
     return true;
+  }
+
+  void SwitchToTextRenderingMode()
+  {
+    glUseProgram(0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glOrtho(0, nWidth, 0, nHeight, 0, 500);
+    glTranslatef(0, nHeight, 0);
+    glScalef(1, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
 }

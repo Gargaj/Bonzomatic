@@ -27,6 +27,8 @@ namespace Renderer
   void SetShaderConstant( char * szConstName, float x );
   void SetShaderConstant( char * szConstName, float x, float y );
 
+  void SwitchToTextRenderingMode();
+
   void Close();
 
   enum TEXTURETYPE
