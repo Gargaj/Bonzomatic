@@ -73,6 +73,7 @@ void main()
   mShaderEditor.Initialise();
   mShaderEditor.SetText( szShader );
 
+  bool bShowGui = true;
   Timer::Start();
   float fNextTick = 0.1;
   while (!Renderer::WantsToQuit())
@@ -94,6 +95,10 @@ void main()
         {
           // show error
         }
+      }
+      else if (Renderer::keyEventBuffer[i].scanCode == 292) // F11
+      {
+        bShowGui = !bShowGui;
       }
       else
       {
@@ -140,13 +145,16 @@ void main()
 
     Renderer::RenderFullscreenQuad();
 
-    if (time > fNextTick)
+    if (bShowGui)
     {
-      mShaderEditor.Tick();
-      fNextTick = time + 0.1;
-    }
+      if (time > fNextTick)
+      {
+        mShaderEditor.Tick();
+        fNextTick = time + 0.1;
+      }
 
-    mShaderEditor.Paint( );
+      mShaderEditor.Paint( );
+    }
 
     Renderer::EndFrame();
   }

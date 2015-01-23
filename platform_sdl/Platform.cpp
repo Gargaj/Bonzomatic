@@ -708,7 +708,7 @@ void Window::SetPositionRelative(PRectangle rc, Window w) {
 }
 
 PRectangle Window::GetClientPosition() {
-  int m = 10;
+  int m = 0;
   return PRectangle( m, m, 1280 - m, 720 - m );
 }
 
