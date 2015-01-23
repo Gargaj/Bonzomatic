@@ -94,6 +94,7 @@ class SurfaceImpl : public Surface {
   bool unicodeMode;
   int codePage;
   bool initialised;
+  PRectangle clipRect;
 public:
   SurfaceImpl();
   virtual ~SurfaceImpl();
@@ -340,8 +341,9 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back)
   glEnd();
 }
 
-void SurfaceImpl::FillRectangle(PRectangle /*rc*/, Surface &/*surfacePattern*/) {
-  assert(0);
+void SurfaceImpl::FillRectangle(PRectangle rc, Surface & surfacePattern) {
+  //assert(0);
+  FillRectangle( rc, 0 );
 }
 
 void SurfaceImpl::RoundedRectangle(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) {
@@ -604,7 +606,9 @@ void SurfaceImpl::LineTo( int x_, int y_ )
   assert(0);
 }
 
-void SurfaceImpl::SetClip(PRectangle rc) {
+void SurfaceImpl::SetClip(PRectangle rc) 
+{
+  clipRect = rc;
   double plane[][4] = {
     { 1,  0, 0, -rc.left  },
     {-1,  0, 0,  rc.right },
@@ -704,7 +708,8 @@ void Window::SetPositionRelative(PRectangle rc, Window w) {
 }
 
 PRectangle Window::GetClientPosition() {
-  return PRectangle(0,0,1280,720);
+  int m = 10;
+  return PRectangle( m, m, 1280 - m, 720 - m );
 }
 
 void Window::Show(bool show) {

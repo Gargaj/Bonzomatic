@@ -8,6 +8,7 @@
 
 #define STBI_HEADER_FILE_ONLY
 #include <stb_image.c>
+#include "../external/scintilla/include/Scintilla.h"
 
 namespace Renderer
 {
@@ -33,12 +34,14 @@ namespace Renderer
     "//\n"
     "uniform sampler2D texTex1;\n"
     "uniform sampler2D texTex2;\n"
+/*
     "uniform sampler2D texTex3;\n"
     "uniform sampler2D texTex4;\n"
     "uniform sampler2D texTex5;\n"
     "uniform sampler2D texTex6;\n"
     "uniform sampler2D texTex7;\n"
     "uniform sampler2D texTex8;\n"
+*/
     "uniform sampler2D texNoise;\n"
     "uniform sampler2D texChecker;\n"
     "\n"
@@ -46,7 +49,7 @@ namespace Renderer
     "//\n"
     "layout(location = 0) out vec4 out_color;\n"
     "///////////////////////////////////////////////////////////////////////////////\n"
-    "///////////////////////////////////////////////////////////////////////////////\n"
+//    "///////////////////////////////////////////////////////////////////////////////\n"
     "\n"
     "void main(void)\n"
     "{\n"
@@ -110,8 +113,11 @@ namespace Renderer
     return true;
   }
 
+  KeyEvent keyEventBuffer[512];
+  int keyEventBufferCount = 0;
   void StartFrame()
   {
+    keyEventBufferCount = 0;
     SDL_Event	E;
     while (SDL_PollEvent(&E))
     {
@@ -125,15 +131,59 @@ namespace Renderer
         {
           run = false;
         }
+        int sciKey;
+        switch(E.key.keysym.sym)
+        {
+          case SDLK_DOWN:         sciKey = SCK_DOWN;      break;
+          case SDLK_UP:           sciKey = SCK_UP;        break;
+          case SDLK_LEFT:         sciKey = SCK_LEFT;      break;
+          case SDLK_RIGHT:        sciKey = SCK_RIGHT;     break;
+          case SDLK_HOME:         sciKey = SCK_HOME;      break;
+          case SDLK_END:          sciKey = SCK_END;       break;
+          case SDLK_PAGEUP:       sciKey = SCK_PRIOR;     break;
+          case SDLK_PAGEDOWN:     sciKey = SCK_NEXT;      break;
+          case SDLK_DELETE:       sciKey = SCK_DELETE;    break;
+          case SDLK_INSERT:       sciKey = SCK_INSERT;    break;
+          case SDLK_ESCAPE:       sciKey = SCK_ESCAPE;    break;
+          case SDLK_BACKSPACE:    sciKey = SCK_BACK;      break;
+          case SDLK_TAB:          sciKey = SCK_TAB;       break;
+          case SDLK_RETURN:       sciKey = SCK_RETURN;    break;
+          case SDLK_KP_PLUS:      sciKey = SCK_ADD;       break;
+          case SDLK_KP_MINUS:     sciKey = SCK_SUBTRACT;  break;
+          case SDLK_KP_DIVIDE:    sciKey = SCK_DIVIDE;    break;
+          case SDLK_LSUPER:       sciKey = SCK_WIN;       break;
+          case SDLK_RSUPER:       sciKey = SCK_RWIN;      break;
+          case SDLK_MENU:         sciKey = SCK_MENU;      break;
+          case SDLK_SLASH:        sciKey = '/';           break;
+          case SDLK_ASTERISK:     sciKey = '`';           break;
+          case SDLK_LEFTBRACKET:  sciKey = '[';           break;
+          case SDLK_BACKSLASH:    sciKey = '\\';          break;
+          case SDLK_RIGHTBRACKET: sciKey = ']';           break;
+          case SDLK_LSHIFT:
+          case SDLK_RSHIFT:
+          case SDLK_LALT:
+          case SDLK_RALT:
+          case SDLK_LCTRL:
+          case SDLK_RCTRL:
+            sciKey = 0;
+            break;
+          default:
+            sciKey = E.key.keysym.sym;
+        }
 
-//         if (E.key.keysym.sym==SDLK_F11)
-//         {
-//           visible = !visible;
-//        app.handleKeyDown(E.key);
+        if (sciKey)
+        {
+          keyEventBuffer[keyEventBufferCount].ctrl  = E.key.keysym.mod & KMOD_LCTRL  || E.key.keysym.mod & KMOD_RCTRL;
+          keyEventBuffer[keyEventBufferCount].alt   = E.key.keysym.mod & KMOD_LALT   || E.key.keysym.mod & KMOD_RALT;
+          keyEventBuffer[keyEventBufferCount].shift = E.key.keysym.mod & KMOD_LSHIFT || E.key.keysym.mod & KMOD_RSHIFT;
+          keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
+          keyEventBuffer[keyEventBufferCount].character = E.key.keysym.unicode;
+          keyEventBufferCount++;
+        }
+
       }
       else if (E.type == SDL_MOUSEBUTTONDOWN)
       {
-//        app.handleMouseDown(E.button);
       }
     }
     glClearColor(0.08f, 0.18f, 0.18f, 1.0f);

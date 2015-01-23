@@ -67,8 +67,12 @@ public:
   sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
   void SetTicking(bool on);
 
+  void SetText( char * buf );
+  void GetText( char * buf, int len );
+
   void Paint();
   void SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back=0xFFFFFFFF, int size=-1, const char *face=0);
-  void SetText( char * );
   void Tick();
+  int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
+  void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
 };

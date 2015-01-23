@@ -18,8 +18,21 @@ void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla
 
 #define BACKGROUND(x) ( (x) | 0xC0000000 )
 
+const size_t NB_FOLDER_STATE = 7;
+const size_t FOLDER_TYPE = 0;
+
+const int markersArray[][NB_FOLDER_STATE] = {
+  {SC_MARKNUM_FOLDEROPEN, SC_MARKNUM_FOLDER, SC_MARKNUM_FOLDERSUB, SC_MARKNUM_FOLDERTAIL, SC_MARKNUM_FOLDEREND,        SC_MARKNUM_FOLDEROPENMID,     SC_MARKNUM_FOLDERMIDTAIL},
+  {SC_MARK_MINUS,         SC_MARK_PLUS,      SC_MARK_EMPTY,        SC_MARK_EMPTY,         SC_MARK_EMPTY,               SC_MARK_EMPTY,                SC_MARK_EMPTY},
+  {SC_MARK_ARROWDOWN,     SC_MARK_ARROW,     SC_MARK_EMPTY,        SC_MARK_EMPTY,         SC_MARK_EMPTY,               SC_MARK_EMPTY,                SC_MARK_EMPTY},
+  {SC_MARK_CIRCLEMINUS,   SC_MARK_CIRCLEPLUS,SC_MARK_VLINE,        SC_MARK_LCORNERCURVE,  SC_MARK_CIRCLEPLUSCONNECTED, SC_MARK_CIRCLEMINUSCONNECTED, SC_MARK_TCORNERCURVE},
+  {SC_MARK_BOXMINUS,      SC_MARK_BOXPLUS,   SC_MARK_VLINE,        SC_MARK_LCORNER,       SC_MARK_BOXPLUSCONNECTED,    SC_MARK_BOXMINUSCONNECTED,    SC_MARK_TCORNER}
+};
+
 void ShaderEditor::Initialise()
 {
+  wMain = (Scintilla::WindowID)1;
+
   WndProc( SCI_SETBUFFEREDDRAW, NULL, NULL );
 
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
@@ -36,10 +49,22 @@ void ShaderEditor::Initialise()
   WndProc(SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ));
   WndProc(SCI_SETSELBACK,            1, BACKGROUND( 0xCC9966 ));
 
+  WndProc(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
+  WndProc(SCI_SETMARGINWIDTHN, 1, 20);//Calculate correct width
+  WndProc(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
+
   WndProc( SCI_SETCARETFORE,          0xFFFFFFFF, 0);
   WndProc( SCI_SETCARETLINEVISIBLE,   1, NULL);
   WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, NULL);
   WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, NULL);
+
+  for (int i = 0 ; i < NB_FOLDER_STATE ; i++)
+  {
+    WndProc(SCI_MARKERDEFINE, markersArray[FOLDER_TYPE][i], markersArray[4][i]);
+    WndProc(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
+    WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
+  }
+  WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
 
   SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), 16, font);
   SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
@@ -118,10 +143,9 @@ sptr_t ShaderEditor::DefWndProc( unsigned int iMessage, uptr_t wParam, sptr_t lP
 void ShaderEditor::Paint()
 {
   Renderer::SwitchToTextRenderingMode();
-  int m = 5;
-  Scintilla::Editor::Paint( surfaceWindow, Scintilla::PRectangle(m,m,1280-m,720-m) );
-  //Scintilla::Editor::FormatRange( true, NULL );
-  //view.FormatRange( true, NULL, surfaceWindow
+  int m = 10;
+  Scintilla::Editor::Paint( surfaceWindow, GetClientRectangle() );
+//  view.FormatRange( true, NULL, surfaceWindow, surfaceWindow, *this, &vs );
 }
 
 void ShaderEditor::SetText( char * buf )
@@ -129,6 +153,7 @@ void ShaderEditor::SetText( char * buf )
   //char * buf = "test test test";
   WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
   SetFocusState( true );
+  //GoToLine( 0 );
 }
 
 void ShaderEditor::Tick()
@@ -139,4 +164,28 @@ void ShaderEditor::Tick()
 void ShaderEditor::SetTicking( bool on )
 {
 
+}
+
+int ShaderEditor::KeyDown( int key, bool shift, bool ctrl, bool alt, bool *consumed )
+{
+  return Scintilla::Editor::KeyDown( key, shift, ctrl, alt, consumed );
+}
+
+void ShaderEditor::AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS )
+{
+  Scintilla::Editor::AddCharUTF( s, len, treatAsDBCS );
+}
+
+void ShaderEditor::GetText( char * buf, int len )
+{
+  memset( buf, 0, len );
+
+  int lengthDoc = WndProc( SCI_GETLENGTH, NULL, NULL );
+
+  Scintilla::TextRange tr;
+  tr.chrg.cpMin = 0;
+  tr.chrg.cpMax = Scintilla::Platform::Minimum( len - 1, lengthDoc );
+  tr.lpstrText  = buf;
+
+  WndProc(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
 }

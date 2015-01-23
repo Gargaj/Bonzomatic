@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
 #include "Timer.h"
+#include "external\scintilla\src\UniConversion.h"
 
 void main()
 {
@@ -38,16 +40,33 @@ void main()
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
 
+  bool shaderInitSuccessful = false;
+  char szShader[65535];
   char szError[4096];
-  if (!Renderer::ReloadShader( Renderer::defaultShader, strlen(Renderer::defaultShader), szError, 4096 ))
+  FILE * f = fopen("shader.fs","rb");
+  if (f)
   {
-    return;
+    memset( szShader, 0, 65535 );
+    int n = fread( szShader, 1, 65535, f );
+    fclose(f);
+    if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+    {
+      shaderInitSuccessful = true;
+    }
+  }
+  if (!shaderInitSuccessful)
+  {
+    if (!Renderer::ReloadShader( Renderer::defaultShader, strlen(Renderer::defaultShader), szError, 4096 ))
+    {
+      assert(0);
+    }
   }
 
 #ifdef SCI_LEXER
   Scintilla_LinkLexers();
 #endif
   Scintilla::Surface * surface = Scintilla::Surface::Allocate( SC_TECHNOLOGY_DEFAULT );
+  surface->Init(0);
 
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise();
@@ -58,6 +77,44 @@ void main()
   while (!Renderer::WantsToQuit())
   {
     Renderer::StartFrame();
+
+    for(int i=0; i<Renderer::keyEventBufferCount; i++)
+    {
+      if (Renderer::keyEventBuffer[i].scanCode == 286) // F5
+      {
+        mShaderEditor.GetText(szShader,65535);
+        if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+        {
+          FILE * f = fopen("shader.fs","wt");
+          fwrite( szShader, strlen(szShader), 1, f );
+          fclose(f);
+        }
+        else
+        {
+          // show error
+        }
+      }
+      else
+      {
+        bool consumed = false;
+        mShaderEditor.KeyDown(
+          Renderer::keyEventBuffer[i].scanCode,
+          Renderer::keyEventBuffer[i].shift,
+          Renderer::keyEventBuffer[i].ctrl, 
+          Renderer::keyEventBuffer[i].alt,
+          &consumed);
+        if (!consumed)
+        {
+          char    utf8[5] = {0,0,0,0,0};
+          wchar_t utf16[2] = {Renderer::keyEventBuffer[i].character, 0};
+          Scintilla::UTF8FromUTF16(utf16, 1, utf8, 4 * sizeof(char));
+          mShaderEditor.AddCharUTF(utf8, strlen(utf8));
+        }
+
+      }
+    }
+    Renderer::keyEventBufferCount = 0;
+    //mShaderEditor.KeyDown();
 
     float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::SetShaderConstant( "fGlobalTime", time );

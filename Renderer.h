@@ -48,4 +48,15 @@ namespace Renderer
   Texture * Create1DR32Texture( int w );
   bool UpdateR32Texture( Texture * tex, float * data );
   void SetShaderTexture( char * szTextureName, Texture * tex );
+
+  struct KeyEvent
+  {
+    int character;
+    int scanCode;
+    bool ctrl;
+    bool shift;
+    bool alt;
+  };
+  extern KeyEvent keyEventBuffer[512];
+  extern int keyEventBufferCount;
 }
