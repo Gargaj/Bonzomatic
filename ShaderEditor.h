@@ -41,6 +41,8 @@
 #include <MarginView.h>
 #include <EditView.h>
 #include <Editor.h>
+#include <AutoComplete.h>
+#include <ScintillaBase.h>
 
 #ifdef SCI_LEXER
 #include <ExternalLexer.h>
@@ -49,6 +51,7 @@
 class ShaderEditor : public Scintilla::Editor
 {
   Scintilla::Surface *surfaceWindow;
+  Scintilla::LexState * lexState;
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 
@@ -75,4 +78,5 @@ public:
   void Tick();
   int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
   void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
+  void NotifyStyleToNeeded(int endStyleNeeded);
 };

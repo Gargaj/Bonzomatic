@@ -1,5 +1,6 @@
 #include "../ShaderEditor.h"
 #include "../Renderer.h"
+#include "external/scintilla/lexlib/PropSetSimple.h"
 
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
@@ -29,9 +30,48 @@ const int markersArray[][NB_FOLDER_STATE] = {
   {SC_MARK_BOXMINUS,      SC_MARK_BOXPLUS,   SC_MARK_VLINE,        SC_MARK_LCORNER,       SC_MARK_BOXPLUSCONNECTED,    SC_MARK_BOXMINUSCONNECTED,    SC_MARK_TCORNER}
 };
 
+using namespace Scintilla;
+class Scintilla::LexState : public LexInterface {
+  const LexerModule *lexCurrent;
+  void SetLexerModule(const LexerModule *lex);
+  PropSetSimple props;
+  int interfaceVersion;
+public:
+  int lexLanguage;
+
+  explicit LexState(Document *pdoc_);
+  virtual ~LexState();
+  void SetLexer(uptr_t wParam);
+  void SetLexerLanguage(const char *languageName);
+  const char *DescribeWordListSets();
+  void SetWordList(int n, const char *wl);
+  const char *GetName() const;
+  void *PrivateCall(int operation, void *pointer);
+  const char *PropertyNames();
+  int PropertyType(const char *name);
+  const char *DescribeProperty(const char *name);
+  void PropSet(const char *key, const char *val);
+  const char *PropGet(const char *key) const;
+  int PropGetInt(const char *key, int defaultValue=0) const;
+  int PropGetExpanded(const char *key, char *result) const;
+
+  int LineEndTypesSupported();
+  int AllocateSubStyles(int styleBase, int numberStyles);
+  int SubStylesStart(int styleBase);
+  int SubStylesLength(int styleBase);
+  int StyleFromSubStyle(int subStyle);
+  int PrimaryStyleFromStyle(int style);
+  void FreeSubStyles();
+  void SetIdentifiers(int style, const char *identifiers);
+  int DistanceToSecondaryStyles();
+  const char *GetSubStyleBases();
+};
+
 void ShaderEditor::Initialise()
 {
   wMain = (Scintilla::WindowID)1234;
+
+  lexState = new Scintilla::LexState( pdoc );
 
   WndProc( SCI_SETBUFFEREDDRAW, NULL, NULL );
 
@@ -64,7 +104,11 @@ void ShaderEditor::Initialise()
     WndProc(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
     WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
   }
+  WndProc(SCI_SETUSETABS, 1, NULL);
+  WndProc(SCI_SETTABWIDTH, 4, NULL);
   WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
+
+  lexState->SetLexer( SCLEX_CPP );
 
   SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), 16, font);
   SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
@@ -74,6 +118,8 @@ void ShaderEditor::Initialise()
   SetAStyle(SCE_C_OPERATOR,     0xFF00CCFF, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_COMMENT,      0xFF00FF00, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_COMMENTLINE,  0xFF00FF00, BACKGROUND( 0x000000 ));
+
+  lexState->Colourise( 0, -1 );
 
   //WndProc( SCI_COLOURISE, NULL, NULL );
 
@@ -188,4 +234,16 @@ void ShaderEditor::GetText( char * buf, int len )
   tr.lpstrText  = buf;
 
   WndProc(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
+}
+
+void ShaderEditor::NotifyStyleToNeeded(int endStyleNeeded) {
+#ifdef SCI_LEXER
+  if (lexState->lexLanguage != SCLEX_CONTAINER) {
+    int lineEndStyled = pdoc->LineFromPosition(pdoc->GetEndStyled());
+    int endStyled = pdoc->LineStart(lineEndStyled);
+    lexState->Colourise(endStyled, endStyleNeeded);
+    return;
+  }
+#endif
+  Scintilla::Editor::NotifyStyleToNeeded(endStyleNeeded);
 }
