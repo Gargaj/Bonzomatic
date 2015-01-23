@@ -7,6 +7,15 @@ Live-coding battle tool for the Revision demoscene party.
 - F11: hide shader overlay
 - Alt-F4: exbobolate your planet
 
+## Building
+Please use Visual C++ 2010 - nothing else is needed right now.
+
+## Future features / todo / etc.
+- Config file support for fonts/colors/textures/etc (maybe use https://github.com/hjiang/jsonxx for that)
+- DX9/DX11/etc versions
+- Key to adjust editor background opacity?
+- Texture preview?
+
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
@@ -23,3 +32,6 @@ Live-coding battle tool for the Revision demoscene party.
 These software are available in their respective licenses.
 
 The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
+
+## Contact / discussion forum
+If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881
