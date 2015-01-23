@@ -31,7 +31,7 @@ const int markersArray[][NB_FOLDER_STATE] = {
 
 void ShaderEditor::Initialise()
 {
-  wMain = (Scintilla::WindowID)1;
+  wMain = (Scintilla::WindowID)1234;
 
   WndProc( SCI_SETBUFFEREDDRAW, NULL, NULL );
 

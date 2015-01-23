@@ -56,7 +56,8 @@ void main()
   }
   if (!shaderInitSuccessful)
   {
-    if (!Renderer::ReloadShader( Renderer::defaultShader, strlen(Renderer::defaultShader), szError, 4096 ))
+    memcpy( szShader, Renderer::defaultShader, 65535 );
+    if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
       assert(0);
     }
@@ -66,11 +67,11 @@ void main()
   Scintilla_LinkLexers();
 #endif
   Scintilla::Surface * surface = Scintilla::Surface::Allocate( SC_TECHNOLOGY_DEFAULT );
-  surface->Init(0);
+  surface->Init( NULL );
 
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise();
-  mShaderEditor.SetText( Renderer::defaultShader );
+  mShaderEditor.SetText( szShader );
 
   Timer::Start();
   float fNextTick = 0.1;
@@ -85,7 +86,7 @@ void main()
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
-          FILE * f = fopen("shader.fs","wt");
+          FILE * f = fopen("shader.fs","wb");
           fwrite( szShader, strlen(szShader), 1, f );
           fclose(f);
         }
@@ -98,7 +99,7 @@ void main()
       {
         bool consumed = false;
         mShaderEditor.KeyDown(
-          Renderer::keyEventBuffer[i].scanCode,
+          iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
           Renderer::keyEventBuffer[i].shift,
           Renderer::keyEventBuffer[i].ctrl, 
           Renderer::keyEventBuffer[i].alt,
