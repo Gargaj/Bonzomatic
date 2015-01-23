@@ -368,19 +368,8 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
 {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
-//   GLint prevActiveTexUnit;
-//   glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveTexUnit
-  for (int i=0; i<8; i++)
-  {
-    glActiveTexture( GL_TEXTURE0 + i );
-    glBindTexture(GL_TEXTURE_2D, NULL);
-  }
-  glActiveTexture( GL_TEXTURE0 );
-
   glEnable(GL_TEXTURE_2D);
 
-  //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // assume orthographic projection with units = screen pixels, origin at top left
   glBindTexture(GL_TEXTURE_2D, realFont->ftex);
   glColor3ubv((GLubyte*)&fore);
@@ -532,22 +521,7 @@ void SurfaceImpl::LineTo( int x_, int y_ )
 
 void SurfaceImpl::SetClip(PRectangle rc) 
 {
-//   glEnable(GL_SCISSOR_TEST);
-//   glScissor( rc.left, Renderer::nHeight - (rc.bottom - rc.top), rc.right - rc.left, rc.bottom - rc.top );
-  clipRect = rc;
-/*
-  double plane[][4] = {
-    { 1,  0, 0, -rc.left  },
-    {-1,  0, 0,  rc.right },
-    { 0,  1, 0, -rc.top   },
-    { 0, -1, 0,  rc.bottom},
-  };
-  glClipPlane(GL_CLIP_PLANE0, plane[0]);
-  glClipPlane(GL_CLIP_PLANE1, plane[1]);
-  glClipPlane(GL_CLIP_PLANE2, plane[2]);
-  glClipPlane(GL_CLIP_PLANE3, plane[3]);
-*/
-  //assert(0);
+  // we deal with this in the renderer
 }
 
 void SurfaceImpl::FlushCachedState() {}

@@ -597,6 +597,7 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="platform_sdl\SurfaceImpl.h" />
+    <ClInclude Include="Clipboard.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties">

@@ -1,6 +1,7 @@
 #include "../ShaderEditor.h"
 #include "../Renderer.h"
 #include "external/scintilla/lexlib/PropSetSimple.h"
+#include "Clipboard.h"
 
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
@@ -235,12 +236,23 @@ bool ShaderEditor::ModifyScrollBars( int nMax, int nPage )
 
 void ShaderEditor::Copy()
 {
-
+  if (!sel.Empty()) {
+    SelectionText selectedText;
+    CopySelectionRange(&selectedText);
+    CopyToClipboard(selectedText);
+  }
 }
 
 void ShaderEditor::Paste()
 {
+  int n = Clipboard::GetContentsLength();
+  char * p = new char[n + 1];
+  memset(p,0,n+1);
+  Clipboard::GetContents( p, n );
 
+  InsertPasteShape(p, n, pasteStream);
+
+  delete[] p;
 }
 
 void ShaderEditor::ClaimSelection()
@@ -260,7 +272,7 @@ void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
 
 void ShaderEditor::CopyToClipboard( const Scintilla::SelectionText &selectedText )
 {
-
+  Clipboard::Copy( selectedText.Data(), selectedText.Length() );
 }
 
 void ShaderEditor::SetMouseCapture( bool on )
@@ -289,7 +301,9 @@ void ShaderEditor::SetText( char * buf )
   //char * buf = "test test test";
   WndProc( SCI_SETREADONLY, false, NULL );
   WndProc( SCI_CLEARALL, false, NULL );
+  WndProc( SCI_SETUNDOCOLLECTION, 0, NULL);
   WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
+  WndProc( SCI_SETUNDOCOLLECTION, 1, NULL);
   WndProc( SCI_SETREADONLY, bReadOnly, NULL );
   if (!bReadOnly)
     SetFocusState( true );

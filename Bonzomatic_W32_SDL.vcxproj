@@ -225,6 +225,7 @@
     <ClCompile Include="ShaderEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Clipboard.h" />
     <ClInclude Include="external\scintilla\include\ILexer.h" />
     <ClInclude Include="external\scintilla\include\Platform.h" />
     <ClInclude Include="external\scintilla\include\SciLexer.h" />

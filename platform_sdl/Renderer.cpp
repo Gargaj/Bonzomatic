@@ -384,6 +384,13 @@ namespace Renderer
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
 
+    for (int i=0; i<8; i++)
+    {
+      glActiveTexture( GL_TEXTURE0 + i );
+      glBindTexture(GL_TEXTURE_2D, NULL);
+    }
+    glActiveTexture( GL_TEXTURE0 );
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
