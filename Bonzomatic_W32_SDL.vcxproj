@@ -279,6 +279,7 @@
     <ClInclude Include="external\scintilla\src\XPM.h" />
     <ClInclude Include="FFT.h" />
     <ClInclude Include="MIDI.h" />
+    <ClInclude Include="platform_sdl\SurfaceImpl.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="Timer.h" />

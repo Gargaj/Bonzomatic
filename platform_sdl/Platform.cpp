@@ -21,6 +21,7 @@
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
+#include "..\Renderer.h"
 
 #ifdef SCI_NAMESPACE
 using namespace Scintilla;
@@ -82,7 +83,82 @@ void Platform::DebugPrintf(const char *, ...) {
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// PLATFORM
+// FONT
+
+
+struct stbtt_Font
+{
+  stbtt_fontinfo	fontinfo;
+  stbtt_bakedchar cdata[512]; // ASCII 32..126 is 95 glyphs
+  GLuint ftex;
+  float scale;
+  int w;
+  int h;
+};
+
+Font::Font() : fid(0)
+{
+}
+
+Font::~Font()
+{
+}
+
+void Font::Create(const FontParameters &fp)
+{
+  stbtt_Font* newFont = new stbtt_Font;
+
+  FILE* f = fopen(fp.faceName, "rb");
+
+  assert(f);
+
+  fseek(f, 0, SEEK_END);
+  size_t len = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  int texSize = 512;
+  unsigned char* buf = (unsigned char*)malloc(len);
+  unsigned char* bmp = new unsigned char[texSize*texSize];
+  fread(buf, 1, len, f);
+  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, 512, newFont->cdata); // no guarantee this fits!
+
+  newFont->w = texSize;
+  newFont->h = texSize;
+#ifdef _DEBUG
+  FILE* dump = fopen("font.raw", "wb");
+  fwrite(bmp,texSize,texSize,dump);
+  fclose(dump);
+#endif // _DEBUG
+
+  // can free ttf_buffer at this point
+  glGenTextures(1, &newFont->ftex);
+  glBindTexture(GL_TEXTURE_2D, newFont->ftex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texSize, texSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
+  // can free temp_bitmap at this point
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  fclose(f);
+
+  stbtt_InitFont(&newFont->fontinfo, buf, 0);
+
+  newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
+
+  delete [] bmp;
+
+  fid = newFont;
+}
+
+void Font::Release()
+{
+  if (fid)
+  {
+    free(((stbtt_Font*)fid)->fontinfo.data);
+    glDeleteTextures(1, &((stbtt_Font*)fid)->ftex);
+    delete (stbtt_Font*)fid;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// SURFACE
 
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
@@ -237,87 +313,9 @@ struct pixmap_t
   bool initialised;
 };
 
-/*
-Pixmap	CreatePixmap()
-{
-  Pixmap pm = new pixmap_t;
-  pm->scalex = 0;
-  pm->scaley = 0;
-  pm->initialised = false;
-
-  return pm;
-}
-
-bool	IsPixmapInitialised(Pixmap pixmap)
-{
-  return pixmap->initialised;
-}
-
-void	DestroyPixmap(Pixmap pixmap)
-{
-  glDeleteTextures(1, &pixmap->tex);
-  delete pixmap;
-}
-
-void	UpdatePixmap(Pixmap pixmap, int w, int h, int* data)
-{
-  if (!pixmap->initialised)
-  {
-    glGenTextures(1, &pixmap->tex);
-    glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  }
-  else
-  {
-    glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-  }
-
-  pixmap->initialised = true;
-  pixmap->scalex = 1.0f/w;
-  pixmap->scaley = 1.0f/h;
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-}
-*/
-
-/*
-void SurfaceImpl::DrawPixmap(PRectangle rc, Point offset, Pixmap pixmap)
-{
-  float w = (rc.right-rc.left)*pixmap->scalex, h=(rc.bottom-rc.top)*pixmap->scaley;
-  float u1 = offset.x*pixmap->scalex, v1 = offset.y*pixmap->scaley, u2 = u1+w, v2 = v1+h;
-
-  for (int i=0; i<8; i++)
-  {
-    glActiveTexture( GL_TEXTURE0 + i );
-    glBindTexture(GL_TEXTURE_2D, NULL);
-  }
-  glActiveTexture( GL_TEXTURE0 );
-
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, pixmap->tex);
-  glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-  glBegin(GL_QUADS);
-  glTexCoord2f(u1, v1);
-  glVertex2f(rc.left,  rc.top);
-  glTexCoord2f(u2, v1);
-  glVertex2f(rc.right, rc.top);
-  glTexCoord2f(u2, v2);
-  glVertex2f(rc.right, rc.bottom);
-  glTexCoord2f(u1, v2);
-  glVertex2f(rc.left,  rc.bottom);
-  glEnd();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glDisable(GL_TEXTURE_2D);
-}
-*/
-
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage)
 {
-    assert(!"Implemented");
+  assert(!"Implemented");
 }
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
@@ -343,7 +341,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back)
 
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface & surfacePattern) {
   //assert(0);
-  FillRectangle( rc, 0 );
+  FillRectangle( rc, 0xd0000000 );
 }
 
 void SurfaceImpl::RoundedRectangle(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) {
@@ -351,16 +349,10 @@ void SurfaceImpl::RoundedRectangle(PRectangle /*rc*/, ColourDesired /*fore*/, Co
 }
 
 void SurfaceImpl::AlphaRectangle(PRectangle rc, int /*cornerSize*/, ColourDesired fill, int alphaFill,
-    ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) {
+    ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) 
+{
   unsigned int back = fill.AsLong()&0xFFFFFF | ((alphaFill&0xFF)<<24);
-  glDisable(GL_TEXTURE_2D);
-  glColor4ubv((GLubyte*)&back);
-  glBegin(GL_QUADS);
-  glVertex2f(rc.left,  rc.top);
-  glVertex2f(rc.right, rc.top);
-  glVertex2f(rc.right, rc.bottom);
-  glVertex2f(rc.left,  rc.bottom);
-  glEnd();
+  FillRectangle(rc, back);
 }
 
 void SurfaceImpl::Ellipse(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) {
@@ -372,81 +364,8 @@ void SurfaceImpl::Copy( PRectangle rc, Point from, Surface &surfaceSource )
   //assert(0);
 }
 
-struct stbtt_Font
+void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore) 
 {
-  stbtt_fontinfo	fontinfo;
-  stbtt_bakedchar cdata[512]; // ASCII 32..126 is 95 glyphs
-  GLuint ftex;
-  float scale;
-  int w;
-  int h;
-};
-
-Font::Font() : fid(0)
-{
-}
-
-Font::~Font()
-{
-}
-
-
-void Font::Create(const FontParameters &fp)
-{
-  stbtt_Font* newFont = new stbtt_Font;
-  
-  FILE* f = fopen(fp.faceName, "rb");
-
-  assert(f);
-
-  fseek(f, 0, SEEK_END);
-  size_t len = ftell(f);
-  fseek(f, 0, SEEK_SET);
-
-  int texSize = 512;
-  unsigned char* buf = (unsigned char*)malloc(len);
-  unsigned char* bmp = new unsigned char[texSize*texSize];
-  fread(buf, 1, len, f);
-  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, 512, newFont->cdata); // no guarantee this fits!
-
-  newFont->w = texSize;
-  newFont->h = texSize;
-#ifdef _DEBUG
-  FILE* dump = fopen("font.raw", "wb");
-  fwrite(bmp,texSize,texSize,dump);
-  fclose(dump);
-#endif // _DEBUG
-
-  // can free ttf_buffer at this point
-  glGenTextures(1, &newFont->ftex);
-  glBindTexture(GL_TEXTURE_2D, newFont->ftex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texSize, texSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
-  // can free temp_bitmap at this point
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  fclose(f);
-
-  stbtt_InitFont(&newFont->fontinfo, buf, 0);
-
-  newFont->scale = stbtt_ScaleForPixelHeight(&newFont->fontinfo, fp.size);
-
-
-  delete [] bmp;
-
-  fid = newFont;
-}
-
-void Font::Release()
-{
-  if (fid)
-  {
-    free(((stbtt_Font*)fid)->fontinfo.data);
-    glDeleteTextures(1, &((stbtt_Font*)fid)->ftex);
-    delete (stbtt_Font*)fid;
-  }
-}
-
-void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *s, int len,
-                                 ColourDesired fore) {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
 //   GLint prevActiveTexUnit;
@@ -613,7 +532,10 @@ void SurfaceImpl::LineTo( int x_, int y_ )
 
 void SurfaceImpl::SetClip(PRectangle rc) 
 {
+//   glEnable(GL_SCISSOR_TEST);
+//   glScissor( rc.left, Renderer::nHeight - (rc.bottom - rc.top), rc.right - rc.left, rc.bottom - rc.top );
   clipRect = rc;
+/*
   double plane[][4] = {
     { 1,  0, 0, -rc.left  },
     {-1,  0, 0,  rc.right },
@@ -624,6 +546,7 @@ void SurfaceImpl::SetClip(PRectangle rc)
   glClipPlane(GL_CLIP_PLANE1, plane[1]);
   glClipPlane(GL_CLIP_PLANE2, plane[2]);
   glClipPlane(GL_CLIP_PLANE3, plane[3]);
+*/
   //assert(0);
 }
 
@@ -697,24 +620,23 @@ bool Window::HasFocus() {
   return false;
 }
 
-PRectangle w;
-
+std::map<Scintilla::WindowID,Scintilla::PRectangle> rects;
 PRectangle Window::GetPosition() 
 {
-  return w;
+  return rects[wid];
 }
 
 void Window::SetPosition(PRectangle rc) 
 {
-  w = rc;
+  rects[wid] = rc;
 }
 
 void Window::SetPositionRelative(PRectangle rc, Window w) {
 }
 
-PRectangle Window::GetClientPosition() {
-  int m = 0;
-  return PRectangle( m, m, 1280 - m, 720 - m );
+PRectangle Window::GetClientPosition() 
+{
+  return PRectangle( 0, 0, rects[wid].Width(), rects[wid].Height() );
 }
 
 void Window::Show(bool show) {
@@ -761,7 +683,7 @@ void Window::SetCursor(Cursor curs)
 }
 
 PRectangle Window::GetMonitorRect(Point pt) {
-  return PRectangle();
+  return PRectangle( 0, 0, Renderer::nWidth, Renderer::nHeight );
 }
 
 //////////////////////////////////////////////////////////////////////////

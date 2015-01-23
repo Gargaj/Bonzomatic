@@ -432,6 +432,7 @@
       <Filter>Externals</Filter>
     </ClCompile>
     <ClCompile Include="platform_w32_common\Timer.cpp" />
+    <ClCompile Include="ShaderEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
@@ -595,6 +596,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ShaderEditor.h" />
+    <ClInclude Include="platform_sdl\SurfaceImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties">

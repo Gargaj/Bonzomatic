@@ -52,10 +52,12 @@ class ShaderEditor : public Scintilla::Editor
 {
   Scintilla::Surface *surfaceWindow;
   Scintilla::LexState * lexState;
+  bool bReadOnly;
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 
   void Initialise();
+  void Initialise(Scintilla::PRectangle rect);
   void SetVerticalScrollPos();
   void SetHorizontalScrollPos();
   bool ModifyScrollBars(int nMax, int nPage);
@@ -79,4 +81,6 @@ public:
   int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
   void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
   void NotifyStyleToNeeded(int endStyleNeeded);
+
+  void SetReadOnly( bool );
 };

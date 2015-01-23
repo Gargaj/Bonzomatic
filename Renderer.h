@@ -1,3 +1,5 @@
+#include <Platform.h>
+
 typedef enum {
   RENDERER_WINDOWMODE_WINDOWED = 0,
   RENDERER_WINDOWMODE_FULLSCREEN,
@@ -15,6 +17,9 @@ namespace Renderer
 {
   extern char defaultShader[65536];
 
+  extern int nWidth;
+  extern int nHeight;
+
   bool Open( RENDERER_SETTINGS * settings );
   
   void StartFrame();
@@ -27,7 +32,9 @@ namespace Renderer
   void SetShaderConstant( char * szConstName, float x );
   void SetShaderConstant( char * szConstName, float x, float y );
 
-  void SwitchToTextRenderingMode();
+  void StartTextRendering();
+  void SetTextRenderingViewport( Scintilla::PRectangle rect );
+  void EndTextRendering();
 
   void Close();
 
@@ -48,7 +55,6 @@ namespace Renderer
   Texture * Create1DR32Texture( int w );
   bool UpdateR32Texture( Texture * tex, float * data );
   void SetShaderTexture( char * szTextureName, Texture * tex );
-
   struct KeyEvent
   {
     int character;

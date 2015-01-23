@@ -370,7 +370,7 @@ namespace Renderer
     return true;
   }
 
-  void SwitchToTextRenderingMode()
+  void StartTextRendering()
   {
     glUseProgram(0);
     glMatrixMode(GL_PROJECTION);
@@ -381,12 +381,24 @@ namespace Renderer
     glScalef(1, -1, 1);
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+  void SetTextRenderingViewport( Scintilla::PRectangle rect )
+  {
+    glEnable(GL_SCISSOR_TEST);
+    glScissor( rect.left, nHeight - rect.bottom, rect.right - rect.left, rect.bottom - rect.top );
+    glLoadIdentity();
+    glTranslatef( rect.left, rect.top, 0.0 );
+  }
+  void EndTextRendering()
+  {
+    glPopAttrib();
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_BLEND);
   }
 
 }

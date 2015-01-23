@@ -4,6 +4,7 @@
 
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
+  bReadOnly = false;
   surfaceWindow = s;
 }
 
@@ -153,9 +154,10 @@ public:
   const char *GetSubStyleBases();
 };
 
+static unsigned int wndID = 1;
 void ShaderEditor::Initialise()
 {
-  wMain = (Scintilla::WindowID)1234;
+  wMain = (Scintilla::WindowID)(wndID++);
 
   lexState = new Scintilla::LexState( pdoc );
 
@@ -177,14 +179,7 @@ void ShaderEditor::Initialise()
   WndProc(SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ));
   WndProc(SCI_SETSELBACK,            1, BACKGROUND( 0xCC9966 ));
 
-  WndProc(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
-  WndProc(SCI_SETMARGINWIDTHN, 1, 20);//Calculate correct width
-  WndProc(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
-
-  WndProc( SCI_SETCARETFORE,          0xFFFFFFFF, 0);
-  WndProc( SCI_SETCARETLINEVISIBLE,   1, NULL);
-  WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, NULL);
-  WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, NULL);
+  SetReadOnly(false);
 
   for (int i = 0 ; i < NB_FOLDER_STATE ; i++)
   {
@@ -215,6 +210,12 @@ void ShaderEditor::Initialise()
   //WndProc( SCI_COLOURISE, NULL, NULL );
 
   vs.Refresh( *surfaceWindow, 4 );
+}
+
+void ShaderEditor::Initialise( PRectangle rect )
+{
+  Initialise();
+  wMain.SetPosition(rect);
 }
 
 void ShaderEditor::SetVerticalScrollPos()
@@ -279,17 +280,19 @@ sptr_t ShaderEditor::DefWndProc( unsigned int iMessage, uptr_t wParam, sptr_t lP
 
 void ShaderEditor::Paint()
 {
-  Renderer::SwitchToTextRenderingMode();
-  int m = 10;
+  Renderer::SetTextRenderingViewport( wMain.GetPosition() );
   Scintilla::Editor::Paint( surfaceWindow, GetClientRectangle() );
-//  view.FormatRange( true, NULL, surfaceWindow, surfaceWindow, *this, &vs );
 }
 
 void ShaderEditor::SetText( char * buf )
 {
   //char * buf = "test test test";
+  WndProc( SCI_SETREADONLY, false, NULL );
+  WndProc( SCI_CLEARALL, false, NULL );
   WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
-  SetFocusState( true );
+  WndProc( SCI_SETREADONLY, bReadOnly, NULL );
+  if (!bReadOnly)
+    SetFocusState( true );
   //GoToLine( 0 );
 }
 
@@ -337,4 +340,28 @@ void ShaderEditor::NotifyStyleToNeeded(int endStyleNeeded) {
   }
 #endif
   Scintilla::Editor::NotifyStyleToNeeded(endStyleNeeded);
+}
+
+void ShaderEditor::SetReadOnly( bool b )
+{
+  bReadOnly = b;
+  WndProc( SCI_SETREADONLY, bReadOnly, NULL );
+  if (bReadOnly)
+  {
+    WndProc(SCI_SETMARGINWIDTHN, 0, 0);
+    WndProc(SCI_SETMARGINWIDTHN, 1, 0);
+    WndProc( SCI_SETCARETLINEVISIBLE,   0, NULL);
+    WndProc( SCI_SETCARETFORE,          0, 0);
+  }
+  else
+  {
+    WndProc(SCI_SETMARGINWIDTHN, 0, 44);//Calculate correct width
+    WndProc(SCI_SETMARGINWIDTHN, 1, 20);//Calculate correct width
+    WndProc(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
+
+    WndProc( SCI_SETCARETFORE,          0xFFFFFFFF, 0);
+    WndProc( SCI_SETCARETLINEVISIBLE,   1, NULL);
+    WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, NULL);
+    WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, NULL);
+  }
 }

@@ -69,9 +69,16 @@ void main()
   Scintilla::Surface * surface = Scintilla::Surface::Allocate( SC_TECHNOLOGY_DEFAULT );
   surface->Init( NULL );
 
+  int nMargin = 20;
+
   ShaderEditor mShaderEditor( surface );
-  mShaderEditor.Initialise();
+  mShaderEditor.Initialise( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - 200 ) );
   mShaderEditor.SetText( szShader );
+
+  ShaderEditor mDebugOutput( surface );
+  mDebugOutput.Initialise( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - 200, settings.nWidth - nMargin, settings.nHeight - nMargin ) );
+  mDebugOutput.SetText( "" );
+  mDebugOutput.SetReadOnly(true);
 
   bool bShowGui = true;
   Timer::Start();
@@ -90,10 +97,12 @@ void main()
           FILE * f = fopen("shader.fs","wb");
           fwrite( szShader, strlen(szShader), 1, f );
           fclose(f);
+          mDebugOutput.SetText( "" );
         }
         else
         {
           // show error
+          mDebugOutput.SetText( szError );
         }
       }
       else if (Renderer::keyEventBuffer[i].scanCode == 292) // F11
@@ -145,16 +154,22 @@ void main()
 
     Renderer::RenderFullscreenQuad();
 
+    Renderer::StartTextRendering();
+
     if (bShowGui)
     {
       if (time > fNextTick)
       {
         mShaderEditor.Tick();
+        mDebugOutput.Tick();
         fNextTick = time + 0.1;
       }
 
-      mShaderEditor.Paint( );
+      mShaderEditor.Paint();
+      mDebugOutput.Paint();
     }
+
+    Renderer::EndTextRendering();
 
     Renderer::EndFrame();
   }
