@@ -64,8 +64,8 @@ void main()
   }
   if (!shaderInitSuccessful)
   {
-    memcpy( szShader, Renderer::defaultShader, 65535 );
-    if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+    strncpy( szShader, Renderer::defaultShader, 65535 );
+    if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
       assert(0);
     }
