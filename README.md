@@ -32,7 +32,7 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 - Simple DirectMedia Layer by the SDL dev team (https://www.libsdl.org/)
 - ProFont by Tobias Jung (http://tobiasjung.name/profont/)
  
-These software are available in their respective licenses.
+These software are available under their respective licenses.
 
 The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
 
