@@ -165,12 +165,13 @@ void ShaderEditor::Initialise()
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
 
   char * font = "Input-Regular_(InputMono-Medium).ttf";
-  SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), 16, font);
+  int fontSize = 16;
+  SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), fontSize, font);
   WndProc( SCI_STYLECLEARALL, NULL, NULL );
-  SetAStyle( STYLE_LINENUMBER,  0xFFC0C0C0, BACKGROUND( 0x000000 ), 16, font);
-  SetAStyle( STYLE_BRACELIGHT,  0xFF00FF00, BACKGROUND( 0x000000 ), 16, font);
-  SetAStyle( STYLE_BRACEBAD,    0xFF0000FF, BACKGROUND( 0x000000 ), 16, font);
-  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), 16, font);
+  SetAStyle( STYLE_LINENUMBER,  0xFFC0C0C0, BACKGROUND( 0x000000 ), fontSize, font);
+  SetAStyle( STYLE_BRACELIGHT,  0xFF00FF00, BACKGROUND( 0x000000 ), fontSize, font);
+  SetAStyle( STYLE_BRACEBAD,    0xFF0000FF, BACKGROUND( 0x000000 ), fontSize, font);
+  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), fontSize, font);
 
   WndProc(SCI_SETFOLDMARGINCOLOUR,   1, BACKGROUND( 0x1A1A1A ));
   WndProc(SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ));
@@ -187,7 +188,7 @@ void ShaderEditor::Initialise()
 
   for (int i = 0 ; i < NB_FOLDER_STATE ; i++)
   {
-    WndProc(SCI_MARKERDEFINE, markersArray[FOLDER_TYPE][i], markersArray[4][i]);
+    WndProc(SCI_MARKERDEFINE,  markersArray[FOLDER_TYPE][i], markersArray[4][i]);
     WndProc(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
     WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
   }
