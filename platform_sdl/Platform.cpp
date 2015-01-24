@@ -177,15 +177,15 @@ public:
 
   void Init(WindowID wid);
   void Init(SurfaceID sid, WindowID wid);
-  void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
+  void InitPixMap(int width, int height, Surface *surface, WindowID wid);
 
   void Release();
   bool Initialised();
   void PenColour(ColourDesired fore);
   int LogPixelsY();
   int DeviceHeightFont(int points);
-  void MoveTo(float x_, float y_);
-  void LineTo(float x_, float y_);
+  void MoveTo(float x, float y);
+  void LineTo(float x, float y);
   void Polygon(Point *pts, int npts, ColourDesired fore, ColourDesired back);
   void RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back);
   void FillRectangle(PRectangle rc, ColourDesired back);
@@ -199,22 +199,22 @@ public:
   //virtual void DrawPixmap(PRectangle rc, Point from, Pixmap pixmap);
   virtual void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage);
 
-  void DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore);
-  void DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-  void DrawTextClipped(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
-  void DrawTextTransparent(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore);
-  void MeasureWidths(Font &font_, const char *s, int len, float *positions);
-  float WidthText(Font &font_, const char *s, int len);
-  float WidthChar(Font &font_, char ch);
-  float Ascent(Font &font_);
-  float Descent(Font &font_);
-  float InternalLeading(Font &font_);
-  float ExternalLeading(Font &font_);
-  float Height(Font &font_);
-  float AverageCharWidth(Font &font_);
+  void DrawTextBase(PRectangle rc, Font &font, float ybase, const char *s, int len, ColourDesired fore);
+  void DrawTextNoClip(PRectangle rc, Font &font, float ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+  void DrawTextClipped(PRectangle rc, Font &font, float ybase, const char *s, int len, ColourDesired fore, ColourDesired back);
+  void DrawTextTransparent(PRectangle rc, Font &font, float ybase, const char *s, int len, ColourDesired fore);
+  void MeasureWidths(Font &font, const char *s, int len, float *positions);
+  float WidthText(Font &font, const char *s, int len);
+  float WidthChar(Font &font, char ch);
+  float Ascent(Font &font);
+  float Descent(Font &font);
+  float InternalLeading(Font &font);
+  float ExternalLeading(Font &font);
+  float Height(Font &font);
+  float AverageCharWidth(Font &font);
 
-  void MoveTo(int x_, int y_);
-  void LineTo(int x_, int y_);
+  void MoveTo(int x, int y);
+  void LineTo(int x, int y);
 
   void SetClip(PRectangle rc);
   void FlushCachedState();
@@ -249,7 +249,7 @@ void SurfaceImpl::Init( SurfaceID sid, WindowID wid )
   initialised = true;
 }
 
-void SurfaceImpl::InitPixMap( int width, int height, Surface *surface_, WindowID wid )
+void SurfaceImpl::InitPixMap( int width, int height, Surface *surface, WindowID wid )
 {
   initialised = true;
 }
@@ -376,9 +376,9 @@ void SurfaceImpl::Copy( PRectangle rc, Point from, Surface &surfaceSource )
   // however, we don't support it right now
 }
 
-void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *str, int len, ColourDesired fore) 
+void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font, float ybase, const char *str, int len, ColourDesired fore) 
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
 
   glEnable(GL_TEXTURE_2D);
 
@@ -408,27 +408,27 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
   glEnd();
 }
 
-void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char *s, int len,
+void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font, float ybase, const char *s, int len,
                                  ColourDesired fore, ColourDesired /*back*/)
 {
-  DrawTextBase(rc, font_, ybase, s, len, fore);
+  DrawTextBase(rc, font, ybase, s, len, fore);
 }
 
-void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, float ybase, const char *s, int len,
+void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font, float ybase, const char *s, int len,
                                   ColourDesired fore, ColourDesired /*back*/)
 {
-  DrawTextBase(rc, font_, ybase, s, len, fore);
+  DrawTextBase(rc, font, ybase, s, len, fore);
 }
 
-void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, float ybase, const char *s, int len,
+void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font, float ybase, const char *s, int len,
                                   ColourDesired fore)
 {
-  DrawTextBase(rc, font_, ybase, s, len, fore);
+  DrawTextBase(rc, font, ybase, s, len, fore);
 }
 
-void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *positions)
+void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *positions)
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   
   float position = 0;
   char * p = (char*)str;
@@ -455,9 +455,9 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *po
   }
 }
 
-float SurfaceImpl::WidthText(Font &font_, const char *str, int len)
+float SurfaceImpl::WidthText(Font & font, const char *str, int len)
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   
   float position = 0;
   while (len-- > 0) 
@@ -479,25 +479,25 @@ float SurfaceImpl::WidthText(Font &font_, const char *str, int len)
   return position;
 }
 
-float SurfaceImpl::WidthChar(Font &font_, char ch)
+float SurfaceImpl::WidthChar(Font &font, char ch)
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int advance, leftBearing;
   stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
   return advance*realFont->scale;
 }
 
-float SurfaceImpl::Ascent(Font &font_)
+float SurfaceImpl::Ascent(Font &font)
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
   return ascent*realFont->scale;
 }
 
-float SurfaceImpl::Descent(Font &font_)
+float SurfaceImpl::Descent(Font &font)
 {
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
   return -descent*realFont->scale;
@@ -509,23 +509,23 @@ float SurfaceImpl::InternalLeading(Font &)
   return 0;
 }
 
-float SurfaceImpl::ExternalLeading(Font& font_)
+float SurfaceImpl::ExternalLeading(Font& font)
 {
   //WTF is this?????
-  stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
+  stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
   return lineGap*realFont->scale;
 }
 
-float SurfaceImpl::Height(Font &font_)
+float SurfaceImpl::Height(Font &font)
 {
-  return Ascent(font_) + Descent(font_);
+  return Ascent(font) + Descent(font);
 }
 
-float SurfaceImpl::AverageCharWidth(Font &font_) 
+float SurfaceImpl::AverageCharWidth(Font &font) 
 {
-  return WidthChar(font_, 'n');
+  return WidthChar(font, 'n');
 }
 
 void SurfaceImpl::SetClip(PRectangle rc) 
@@ -536,14 +536,14 @@ void SurfaceImpl::SetClip(PRectangle rc)
 void SurfaceImpl::FlushCachedState()
 {}
 
-void SurfaceImpl::SetUnicodeMode( bool unicodeMode_ )
+void SurfaceImpl::SetUnicodeMode( bool mode )
 {
-  unicodeMode = unicodeMode_;
+  unicodeMode = mode;
 }
 
-void SurfaceImpl::SetDBCSMode( int _codePage )
+void SurfaceImpl::SetDBCSMode( int cp )
 {
-  codePage = _codePage;
+  codePage = cp;
 }
 
 Surface *Surface::Allocate(int technology) 
