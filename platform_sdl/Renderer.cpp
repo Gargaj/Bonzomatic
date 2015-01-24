@@ -1,9 +1,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include <sdl.h>
+#include <SDL.h>
 #include <GLee.h>
-#include <gl\glu.h>
+#include <GL/glu.h>
 #include "../Renderer.h"
 
 #define STBI_HEADER_FILE_ONLY
@@ -183,7 +183,7 @@ namespace Renderer
       return false;
     }
 
-    SDL_EnableUNICODE(TRUE);
+    SDL_EnableUNICODE(true);
     SDL_EnableKeyRepeat(250, 20);
 
     run = true;
@@ -530,7 +530,7 @@ namespace Renderer
     glBindTexture(GL_TEXTURE_2D, tex ? ((GLTexture*)tex)->ID : NULL );
   }
 
-  void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d )
+  void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d )
   {
     glBegin(GL_QUADS);
     glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
@@ -540,7 +540,7 @@ namespace Renderer
     glEnd();
   }
 
-  void RenderLine( Vertex & a, Vertex & b )
+  void RenderLine( const Vertex & a, const Vertex & b )
   {
     glBegin(GL_LINES);
     glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
