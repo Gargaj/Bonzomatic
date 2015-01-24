@@ -1,3 +1,6 @@
+// Some of this code was originally written for the ScintillaGL project by:
+// Copyright 2011 by Mykhailo Parfeniuk
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,8 +157,8 @@ namespace Scintilla {
 #endif
 class SurfaceImpl : public Surface {
   ColourDesired penColour;
-  float x;
-  float y;
+  float currentX;
+  float currentY;
   bool unicodeMode;
   int codePage;
   bool initialised;
@@ -216,7 +219,7 @@ public:
 }
 #endif
 
-SurfaceImpl::SurfaceImpl() : x(0), y(0) {
+SurfaceImpl::SurfaceImpl() : currentX(0), currentY(0) {
   unicodeMode = false;
   codePage = 0;
   initialised = false;
@@ -261,23 +264,25 @@ int SurfaceImpl::DeviceHeightFont(int points) {
   return (points * logPix + logPix / 2) / 72;
 }
 
-void SurfaceImpl::MoveTo(float x_, float y_) {
-  x = x_;
-  y = y_;
+void SurfaceImpl::MoveTo(float x, float y) 
+{
+  currentX = x;
+  currentY = y;
 }
 
-void SurfaceImpl::LineTo(float x_, float y_) {
+void SurfaceImpl::LineTo(float targetX, float targetY) 
+{
   glColor4ubv((GLubyte*)&penColour);
   glBegin(GL_LINES);
-  glVertex2f(x+0.5f,  y+0.5f);
-  glVertex2f(x_+0.5f, y_+0.5f);
+  glVertex2f(currentX+0.5f, currentY+0.5f);
+  glVertex2f(targetX+0.5f, targetY+0.5f);
   glEnd();
-  x = x_;
-  y = y_;
+  currentX = targetX;
+  currentY = targetY;
 }
 
-void SurfaceImpl::Polygon(Point* /*pts*/, int /*npts*/, ColourDesired /*fore*/,
-                          ColourDesired /*back*/) {
+void SurfaceImpl::Polygon(Point* /*pts*/, int /*npts*/, ColourDesired /*fore*/, ColourDesired /*back*/) 
+{
   assert(0);
 }
 
@@ -306,11 +311,10 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
 {
-  glActiveTexture( GL_TEXTURE0 );
-  glBindTexture(GL_TEXTURE_2D, NULL);
+  Renderer::BindTexture(NULL);
+  glDisable(GL_TEXTURE_2D);
 
   glColor4ubv((GLubyte*)&back);
-  glDisable(GL_TEXTURE_2D);
   glBegin(GL_QUADS);
   glVertex2f(rc.left,  rc.top);
   glVertex2f(rc.right, rc.top);
@@ -331,7 +335,7 @@ void SurfaceImpl::RoundedRectangle(PRectangle /*rc*/, ColourDesired /*fore*/, Co
 void SurfaceImpl::AlphaRectangle(PRectangle rc, int /*cornerSize*/, ColourDesired fill, int alphaFill,
     ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) 
 {
-  unsigned int back = fill.AsLong()&0xFFFFFF | ((alphaFill&0xFF)<<24);
+  unsigned int back = fill.AsLong() & 0xFFFFFF | ((alphaFill & 0xFF)<<24);
   FillRectangle(rc, back);
 }
 
@@ -344,40 +348,36 @@ void SurfaceImpl::Copy( PRectangle rc, Point from, Surface &surfaceSource )
   //assert(0);
 }
 
-void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *s, int len, ColourDesired fore) 
+void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *str, int len, ColourDesired fore) 
 {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
 
   glEnable(GL_TEXTURE_2D);
 
-  // assume orthographic projection with units = screen pixels, origin at top left
-  //glBindTexture(GL_TEXTURE_2D, realFont->texture);
   Renderer::BindTexture( realFont->texture );
   glColor3ubv((GLubyte*)&fore);
   glBegin(GL_QUADS);
   float x = rc.left, y=ybase;
   while (len-- > 0) 
   {
-    //if (*s >= 32 && *s < 128) 
-    unsigned int c = *s;
-    unsigned int l = UTF8CharLength(c);
-    if (l > 1)
+    unsigned int c = *str;
+    unsigned int charLength = UTF8CharLength(c);
+    if (charLength > 1)
     {
       c = 0;
-      UTF16FromUTF8( s, l, (wchar_t*)&c, sizeof(unsigned int) );
+      UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
-    stbtt_aligned_quad q;
-    stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &q, 1 );//1=opengl,0=old d3d
-    //x = floor(x);
-    glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y0);
-    glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y0);
-    glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y1);
-    glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y1);
-    s += l;
-    len -= l - 1;
+    stbtt_aligned_quad quad;
+    stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &quad, 1 );
+    
+    glTexCoord2f(quad.s0,quad.t0); glVertex2f(quad.x0,quad.y0);
+    glTexCoord2f(quad.s1,quad.t0); glVertex2f(quad.x1,quad.y0);
+    glTexCoord2f(quad.s1,quad.t1); glVertex2f(quad.x1,quad.y1);
+    glTexCoord2f(quad.s0,quad.t1); glVertex2f(quad.x0,quad.y1);
+    str += charLength;
+    len -= charLength - 1;
   }
   glEnd();
-  glDisable(GL_TEXTURE_2D);
 }
 
 void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char *s, int len,
@@ -395,53 +395,53 @@ void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, float ybase, c
   DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
-void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, float *positions) {
+void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *positions) {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   //TODO: implement proper UTF-8 handling
   float position = 0;
-  char * p = (char*)s;
+  char * p = (char*)str;
   while (len-- > 0) 
   {
     unsigned int c = *p;
-    unsigned int l = UTF8CharLength(c);
-    if (l > 1)
+    unsigned int charLength = UTF8CharLength(c);
+    if (charLength > 1)
     {
       c = 0;
-      UTF16FromUTF8( s, l, (wchar_t*)&c, sizeof(unsigned int) );
+      UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
 
     int advance, leftBearing;
     
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     
-    position     += advance;//TODO: +Kerning
-    for (int i=0; i<l; i++)
+    position     += advance;
+    for (int i=0; i<charLength; i++) // we need to loop here because UTF8 characters count as multiple unless their position is the same
       *positions++  = position*realFont->scale;
 
-    p += l;
-    len -= l - 1;
+    p += charLength;
+    len -= charLength - 1;
   }
 }
 
-float SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
+float SurfaceImpl::WidthText(Font &font_, const char *str, int len) {
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   //TODO: implement proper UTF-8 handling
   float position = 0;
   while (len-- > 0) 
   {
-    unsigned int c = *s;
-    unsigned int l = UTF8CharLength(c);
-    if (l > 1)
+    unsigned int c = *str;
+    unsigned int charLength = UTF8CharLength(c);
+    if (charLength > 1)
     {
       c = 0;
-      UTF16FromUTF8( s, l, (wchar_t*)&c, sizeof(unsigned int) );
+      UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
     int advance, leftBearing;
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     position += advance*realFont->scale;//TODO: +Kerning
 
-    s += l;
-    len -= l - 1;
+    str += charLength;
+    len -= charLength - 1;
   }
   return position;
 }

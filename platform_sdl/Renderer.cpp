@@ -398,6 +398,7 @@ namespace Renderer
       glBindTexture(GL_TEXTURE_2D, NULL);
     }
     glActiveTexture( GL_TEXTURE0 );
+    glEnable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -441,7 +442,7 @@ namespace Renderer
 
   void BindTexture( Texture * tex )
   {
-    glBindTexture(GL_TEXTURE_2D, ((GLTexture*)tex)->ID );
+    glBindTexture(GL_TEXTURE_2D, tex ? ((GLTexture*)tex)->ID : NULL );
   }
 
 }
