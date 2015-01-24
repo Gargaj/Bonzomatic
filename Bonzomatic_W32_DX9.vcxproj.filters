@@ -13,9 +13,6 @@
     <Filter Include="Externals\Scintilla\LexLib">
       <UniqueIdentifier>{7df248ba-a39f-453f-bc71-0b055987e525}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Externals\GLee">
-      <UniqueIdentifier>{213b61dc-5b70-4d50-8aa7-10b961aa6c04}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\scintilla\src\AutoComplete.cxx">
@@ -422,9 +419,6 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
-    <ClCompile Include="external\glee\GLee.c">
-      <Filter>Externals\GLee</Filter>
-    </ClCompile>
     <ClCompile Include="platform_w32_dx9\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
     <ClCompile Include="external\stb_image.c">

@@ -2,6 +2,7 @@
 #include <windows.h>
 #endif
 #include <d3d9.h>
+#include <d3dx9.h>
 #include "../Renderer.h"
 
 #define STBI_HEADER_FILE_ONLY
@@ -11,18 +12,24 @@
 namespace Renderer
 {
   char defaultShader[65536] = 
+    "float2 v2Resolution\n"
+    "texture1D texFFT;\n"
+    "texture2D texNoise;\n"
+    "texture2D texChecker;\n"
+    "texture2D texTex1;\n"
+    "texture2D texTex2;\n"
+    "\n"
     "float4 ps_main( float2 TexCoord : TEXCOORD0 )\n"
     "{\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
-    "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);\n"
     "\n"
     "  float2 m;\n"
     "  m.x = atan(uv.x / uv.y) / 3.14;\n"
     "  m.y = 1 / length(uv) * .2;\n"
     "  float d = m.y;\n"
     "\n"
-    "  float f = tex2D( texFFT, d ).r * 100;\n"
+    "  float f = tex1D( texFFT, d ).r * 100;\n"
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
@@ -32,10 +39,21 @@ namespace Renderer
 
   bool run = true;
 
+  LPDIRECT3D9 pD3D = NULL;
+  LPDIRECT3DDEVICE9 pDevice = NULL;
+
   int nWidth = 0;
   int nHeight = 0;
   bool Open( RENDERER_SETTINGS * settings )
   {
+    // TODO: create window
+
+    pD3D = Direct3DCreate9( D3D9b_SDK_VERSION );
+    if (!pD3D)
+      return false;
+
+    // TODO: create device
+
     return true;
   }
 
@@ -45,9 +63,13 @@ namespace Renderer
   int mouseEventBufferCount = 0;
   void StartFrame()
   {
+    pDevice->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , 0xFF808080, 1.0f, 0 );
+    pDevice->BeginScene();
   }
   void EndFrame()
   {
+    pDevice->EndScene();
+    pDevice->Present( NULL, NULL, NULL, NULL );
   }
   bool WantsToQuit()
   {
@@ -55,6 +77,8 @@ namespace Renderer
   }
   void Close()
   {
+    if (pDevice) pDevice->Release();
+    if (pD3D) pD3D->Release();
   }
 
   void RenderFullscreenQuad()
@@ -76,6 +100,7 @@ namespace Renderer
 
   struct DX9Texture : public Texture
   {
+    LPDIRECT3DTEXTURE9 pTexture;
   };
 
   int textureUnit = 0;
