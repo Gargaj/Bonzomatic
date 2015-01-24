@@ -437,6 +437,7 @@
       <Filter>Externals</Filter>
     </ClCompile>
     <ClCompile Include="Platform.cpp" />
+    <ClCompile Include="platform_w32_common\Platform_DynamicLoad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
