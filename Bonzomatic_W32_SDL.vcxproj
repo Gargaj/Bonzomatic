@@ -82,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="external\glee\GLee.c" />
+    <ClCompile Include="external\jsonxx\jsonxx.cc" />
     <ClCompile Include="external\scintilla\lexers\LexA68k.cxx" />
     <ClCompile Include="external\scintilla\lexers\LexAbaqus.cxx" />
     <ClCompile Include="external\scintilla\lexers\LexAda.cxx" />
@@ -228,6 +229,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clipboard.h" />
+    <ClInclude Include="external\jsonxx\jsonxx.h" />
     <ClInclude Include="external\scintilla\include\ILexer.h" />
     <ClInclude Include="external\scintilla\include\Platform.h" />
     <ClInclude Include="external\scintilla\include\SciLexer.h" />

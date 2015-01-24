@@ -10,11 +10,29 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 - F11: hide shader overlay
 - Alt-F4: exbobolate your planet
 
+## Configuration
+Create a ```config.json``` with e.g. the following contents: (all fields are optional)
+``` javascript
+{
+  "font":{
+    "file":"Input-Regular_(InputMono-Medium).ttf",
+    "size":16,
+  },
+  "textures":{ /* the keys below will become the shader variable names */
+    "texChecker":"textures/checker.png",
+    "texNoise":"textures/noise.png",
+    "texTex1":"textures/tex1.jpg",
+  }
+  "gui":{
+    "outputHeight": 200,
+  }
+}
+```
+
 ## Building
 Please use Visual C++ 2010 - nothing else is needed right now.
 
 ## Future features / todo / etc.
-- Config file support for fonts/colors/textures/etc (maybe use https://github.com/hjiang/jsonxx for that)
 - DX9/DX11/etc versions
 - Key to adjust editor background opacity?
 - Texture preview?
@@ -31,6 +49,7 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - Simple DirectMedia Layer by the SDL dev team (https://www.libsdl.org/)
 - ProFont by Tobias Jung (http://tobiasjung.name/profont/)
+- JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
  
 These software are available under their respective licenses.
 

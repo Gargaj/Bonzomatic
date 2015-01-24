@@ -434,6 +434,9 @@
     <ClCompile Include="platform_w32_common\Timer.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
     <ClCompile Include="platform_w32_common\SetupDialog.cpp" />
+    <ClCompile Include="external\jsonxx\jsonxx.cc">
+      <Filter>Externals</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
@@ -600,6 +603,9 @@
     <ClInclude Include="platform_sdl\SurfaceImpl.h" />
     <ClInclude Include="Clipboard.h" />
     <ClInclude Include="platform_w32_common\resource.h" />
+    <ClInclude Include="external\jsonxx\jsonxx.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="external\scintilla\src\SciTE.properties">

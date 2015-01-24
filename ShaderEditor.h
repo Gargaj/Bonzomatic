@@ -48,16 +48,24 @@
 #include <ExternalLexer.h>
 #endif
 
+struct SHADEREDITOR_OPTIONS {
+  std::string sFontPath;
+  int nFontSize;
+  Scintilla::PRectangle rect;
+};
+
 class ShaderEditor : public Scintilla::Editor
 {
   Scintilla::Surface *surfaceWindow;
   Scintilla::LexState * lexState;
   bool bReadOnly;
+  std::string sFontFile;
+  int nFontSize;
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 
   void Initialise();
-  void Initialise(Scintilla::PRectangle rect);
+  void Initialise(SHADEREDITOR_OPTIONS &options);
   void SetVerticalScrollPos();
   void SetHorizontalScrollPos();
   bool ModifyScrollBars(int nMax, int nPage);

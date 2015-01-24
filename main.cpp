@@ -7,6 +7,7 @@
 #include "FFT.h"
 #include "Timer.h"
 #include "external\scintilla\src\UniConversion.h"
+#include "external\jsonxx\jsonxx.h";
 
 void main()
 {
@@ -29,21 +30,50 @@ void main()
   if (!FFT::Open())
     return;
 
-  printf("Loading textures...\n");
+  std::map<std::string,Renderer::Texture*> textures;
 
-  printf("* textures/checker.png...\n");
-  Renderer::Texture * texChecker = Renderer::CreateRGBA8TextureFromFile("textures/checker.png");
+  int nFontSize = 16;
+#ifdef _WIN32
+  std::string sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+#endif
 
-  printf("* textures/noise.png...\n");
-  Renderer::Texture * texNoise = Renderer::CreateRGBA8TextureFromFile("textures/noise.png");
+  int nDebugOutputHeight = 200;
 
-  Renderer::Texture * tex[8];
-  for(int i=0; i<8; i++)
+  char szConfig[65535];
+  FILE * fConf = fopen("config.json","rb");
+  if (fConf)
   {
-    char sz[] = "textures/tex1.jpg";
-    sz[12] = '1' + i;
-    printf("* %s...\n",sz);
-    tex[i] = Renderer::CreateRGBA8TextureFromFile(sz);
+    memset( szConfig, 0, 65535 );
+    int n = fread( szConfig, 1, 65535, fConf );
+    fclose(fConf);
+
+    jsonxx::Object o;
+    o.parse( szConfig );
+
+    if (o.has<jsonxx::Object>("textures"))
+    {
+      printf("Loading textures...\n");
+      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
+      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+      {
+        char * fn = (char*)it->second->string_value_->c_str();
+        printf("* %s...\n",fn);
+        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        textures.insert( std::make_pair( it->first, tex ) );
+      }
+    }
+    if (o.has<jsonxx::Object>("font"))
+    {
+      if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
+        nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
+      if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
+        sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+    }
+    if (o.has<jsonxx::Object>("gui"))
+    {
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
+        nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+    }
   }
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -79,12 +109,17 @@ void main()
 
   int nMargin = 20;
 
+  SHADEREDITOR_OPTIONS options;
+  options.sFontPath = sFontPath;
+  options.nFontSize = nFontSize;
+  options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
-  mShaderEditor.Initialise( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - 200 ) );
+  mShaderEditor.Initialise( options );
   mShaderEditor.SetText( szShader );
 
+  options.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin, settings.nHeight - nMargin );
   ShaderEditor mDebugOutput( surface );
-  mDebugOutput.Initialise( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - 200, settings.nWidth - nMargin, settings.nHeight - nMargin ) );
+  mDebugOutput.Initialise( options );
   mDebugOutput.SetText( "" );
   mDebugOutput.SetReadOnly(true);
 
@@ -116,7 +151,6 @@ void main()
         }
         else
         {
-          // show error
           mDebugOutput.SetText( szError );
         }
       }
@@ -149,8 +183,6 @@ void main()
 
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
-    Renderer::SetShaderTexture( "texChecker", texChecker );
-    Renderer::SetShaderTexture( "texNoise", texNoise );
 
     static float fftData[FFT_SIZE];
     if (FFT::GetFFT(fftData))
@@ -158,11 +190,9 @@ void main()
 
     Renderer::SetShaderTexture( "texFFT", texFFT );
 
-    for(int i=0; i<8; i++)
+    for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
     {
-      char sz[] = "texTex1";
-      sz[6] = '1' + i;
-      Renderer::SetShaderTexture( sz, tex[i] );
+      Renderer::SetShaderTexture( (char*)it->first.c_str(), it->second );
     }
 
     Renderer::RenderFullscreenQuad();

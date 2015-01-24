@@ -7,6 +7,8 @@ ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
   bReadOnly = false;
   surfaceWindow = s;
+  sFontFile = "";
+  nFontSize = 16;
 }
 
 void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back, int size, const char *face)
@@ -167,14 +169,12 @@ void ShaderEditor::Initialise()
 
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
 
-  char * font = "ProFontWindows.ttf";
-  int fontSize = 16;
-  SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), fontSize, font);
+  SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
   WndProc( SCI_STYLECLEARALL, NULL, NULL );
-  SetAStyle( STYLE_LINENUMBER,  0xFFC0C0C0, BACKGROUND( 0x000000 ), fontSize, font);
-  SetAStyle( STYLE_BRACELIGHT,  0xFF00FF00, BACKGROUND( 0x000000 ), fontSize, font);
-  SetAStyle( STYLE_BRACEBAD,    0xFF0000FF, BACKGROUND( 0x000000 ), fontSize, font);
-  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), fontSize, font);
+  SetAStyle( STYLE_LINENUMBER,  0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_BRACELIGHT,  0xFF00FF00, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_BRACEBAD,    0xFF0000FF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
 
   WndProc(SCI_SETFOLDMARGINCOLOUR,   1, BACKGROUND( 0x1A1A1A ));
   WndProc(SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ));
@@ -197,7 +197,7 @@ void ShaderEditor::Initialise()
   lexState->SetWordList(1, glslType);
   lexState->SetWordList(4, glslBuiltin);
 
-  SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), 16, font);
+  SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
   SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_WORD2,        0xFFFFFF00, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, BACKGROUND( 0x000000 ));
@@ -213,10 +213,12 @@ void ShaderEditor::Initialise()
   vs.Refresh( *surfaceWindow, 4 );
 }
 
-void ShaderEditor::Initialise( PRectangle rect )
+void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
 {
+  nFontSize = options.nFontSize;
+  sFontFile = options.sFontPath;
   Initialise();
-  wMain.SetPosition(rect);
+  wMain.SetPosition(options.rect);
 }
 
 void ShaderEditor::SetVerticalScrollPos()
