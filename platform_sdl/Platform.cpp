@@ -623,33 +623,6 @@ void Window::SetFont(Font &font) {
 
 void Window::SetCursor(Cursor curs) 
 {
-  switch (curs) {
-  case cursorText:
-    ::SetCursor(::LoadCursor(NULL,IDC_IBEAM));
-    break;
-  case cursorUp:
-    ::SetCursor(::LoadCursor(NULL,IDC_UPARROW));
-    break;
-  case cursorWait:
-    ::SetCursor(::LoadCursor(NULL,IDC_WAIT));
-    break;
-  case cursorHoriz:
-    ::SetCursor(::LoadCursor(NULL,IDC_SIZEWE));
-    break;
-  case cursorVert:
-    ::SetCursor(::LoadCursor(NULL,IDC_SIZENS));
-    break;
-  case cursorHand:
-    ::SetCursor(::LoadCursor(NULL,IDC_HAND));
-    break;
-  case cursorReverseArrow:
-    //::SetCursor(GetReverseArrowCursor());
-    break;
-  case cursorArrow:
-  case cursorInvalid:	// Should not occur, but just in case.
-    ::SetCursor(::LoadCursor(NULL,IDC_ARROW));
-    break;
-  }
 }
 
 PRectangle Window::GetMonitorRect(Point pt) {
