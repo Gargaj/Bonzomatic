@@ -97,6 +97,7 @@ void main()
     strncpy( szShader, Renderer::defaultShader, 65535 );
     if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
+      puts(szError);
       assert(0);
     }
   }
