@@ -88,12 +88,24 @@ namespace Renderer
     "  float4 t = tex2D( texTex2, m.xy ) * d; // or /d\n"
     "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
     "}";
+  char defaultVertexShader[65536] = 
+    "struct VS_INPUT_PP { float3 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"
+    "struct VS_OUTPUT_PP { float4 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"
+    "\n"
+    "VS_OUTPUT_PP main( VS_INPUT_PP In )\n"
+    "{\n"
+    "  VS_OUTPUT_PP Out;\n"
+    "  Out.Pos = float4( In.Pos, 1.0 );\n"
+    "  Out.TexCoord = In.TexCoord;\n"
+    "  return Out;\n"
+    "}\n";
 
   bool run = true;
 
   LPDIRECT3D9 pD3D = NULL;
   LPDIRECT3DDEVICE9 pDevice = NULL;
   LPD3DXCONSTANTTABLE pConstantTable = NULL;
+  LPDIRECT3DVERTEXSHADER9 pVertexShader = NULL;
   LPDIRECT3DPIXELSHADER9 theShader = NULL;
 
   int nWidth = 0;
@@ -373,7 +385,7 @@ namespace Renderer
     {
       pDevice->SetSamplerState( x, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       pDevice->SetSamplerState( x, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-      pDevice->SetSamplerState( x, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+      pDevice->SetSamplerState( x, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
     }
     return 1;
   }
@@ -381,7 +393,6 @@ namespace Renderer
   LPDIRECT3DVERTEXBUFFER9 pFullscreenQuadVB = NULL;
   LPDIRECT3DVERTEXBUFFER9 pGUIQuadVB = NULL;
   LPDIRECT3DVERTEXDECLARATION9 pPostProcessVertexDecl = NULL;
-  LPDIRECT3DVERTEXDECLARATION9 pGUIVertexDecl = NULL;
 
 #define GUIQUADVB_SIZE (128*6)
 
@@ -417,16 +428,22 @@ namespace Renderer
 
     //////////////////////////////////////////////////////////////////////////
 
-    static D3DVERTEXELEMENT9 pGUIQuadElements[] = 
-    {
-      { 0, 0*sizeof(float), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-      { 0, 3*sizeof(float), D3DDECLTYPE_UBYTE4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-      { 0, 4*sizeof(float), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-      D3DDECL_END()
-    };
-
     pDevice->CreateVertexBuffer( GUIQUADVB_SIZE * 6 * sizeof(float), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &pGUIQuadVB, NULL);
-    //pDevice->CreateVertexDeclaration( pGUIQuadElements, &pGUIVertexDecl );
+
+    //////////////////////////////////////////////////////////////////////////
+
+    LPD3DXBUFFER pShader = NULL;
+    LPD3DXBUFFER pErrors = NULL;
+
+    if (D3DXCompileShader( defaultVertexShader, strlen(defaultVertexShader), NULL, NULL, "main", "vs_3_0", NULL, &pShader, &pErrors, NULL ) != D3D_OK)
+    {
+      return false;
+    }
+
+    if (pDevice->CreateVertexShader( (DWORD*)pShader->GetBufferPointer(), &pVertexShader ) != D3D_OK)
+    {
+      return false;
+    }
 
     return true;
   }
@@ -475,7 +492,7 @@ namespace Renderer
     //D3DXMatrixOrthoOffCenterLH( &mat, -1.0, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f );
     pDevice->SetTransform( D3DTS_PROJECTION, &mat );
 
-    pDevice->SetVertexShader( NULL );
+    pDevice->SetVertexShader( pVertexShader );
     pDevice->SetPixelShader( theShader );
     
     pDevice->SetVertexDeclaration( pPostProcessVertexDecl );
@@ -488,7 +505,7 @@ namespace Renderer
     LPD3DXBUFFER pShader = NULL;
     LPD3DXBUFFER pErrors = NULL;
 
-    if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_2_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
+    if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_3_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
       strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
@@ -534,7 +551,7 @@ namespace Renderer
       szFilename,
       D3DX_DEFAULT,
       D3DX_DEFAULT,
-      D3DX_DEFAULT,
+      0,
       NULL,
       D3DFMT_FROM_FILE,
       D3DPOOL_DEFAULT,
@@ -581,7 +598,12 @@ namespace Renderer
   {
     int idx = pConstantTable->GetSamplerIndex( szTextureName );
     if (idx >= 0)
+    {
+      pDevice->SetSamplerState( idx, D3DSAMP_SRGBTEXTURE, TRUE );
+      pDevice->SetSamplerState( idx, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP );
+      pDevice->SetSamplerState( idx, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP );
       pDevice->SetTexture( idx, ((DX9Texture *)tex)->pTexture );
+    }
   }
 
   bool UpdateR32Texture( Texture * tex, float * data )
