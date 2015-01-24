@@ -36,7 +36,7 @@ int main()
 #ifdef _WIN32
   std::string sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
 #else
-  std::string sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
+  std::string sFontPath = "ProFontWindows.ttf";
 #endif
 
   int nDebugOutputHeight = 200;
