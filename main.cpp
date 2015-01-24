@@ -81,7 +81,7 @@ void main()
   bool shaderInitSuccessful = false;
   char szShader[65535];
   char szError[4096];
-  FILE * f = fopen("shader.fs","rb");
+  FILE * f = fopen(Renderer::defaultShaderFilename,"rb");
   if (f)
   {
     memset( szShader, 0, 65535 );
@@ -147,7 +147,7 @@ void main()
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
-          FILE * f = fopen("shader.fs","wb");
+          FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
           fwrite( szShader, strlen(szShader), 1, f );
           fclose(f);
           mDebugOutput.SetText( "" );

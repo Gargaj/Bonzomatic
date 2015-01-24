@@ -10,8 +10,53 @@
 
 #define DEVTYPE D3DDEVTYPE_HAL
 
+const char * shaderKeyword =
+  "BlendState break Buffer cbuffer class compile const continue DepthStencilState"
+  " DepthStencilView discard do else extern false for GeometryShader if in inline"
+  " inout interface namespace linear centroid nointerpolation noperspective sample"
+  " out pass PixelShader precise RasterizerState RenderTargetView return register"
+  " Sampler Sampler1D Sampler2D Sampler3D SamplerCUBE SamplerState"
+  " SamplerComparisonState shared Stateblock StateblockState static struct switch"
+  " tbuffer technique technique10 technique11 texture Texture1D Texture1DArray"
+  " Texture2D Texture2DArray Texture2DMS Texture2DMSArray Texture3D TextureCube"
+  " TextureCubeArray true typedef uniform VertexShader void volatile while";
+
+const char * shaderType = 
+  "AppendStructuredBuffer bool bool2 bool3 bool4 Buffer ByteAddressBuffer"
+  " ConsumeStructuredBuffer double double2 double3 double4 float float1x1"
+  " float1x2 float1x3 float1x4 float2 float2x1 float2x2 float2x3 float2x4"
+  " float3 float3x1 float3x2 float3x3 float3x4 float4 float4x1 float4x2"
+  " float4x3 float4x4 half half2 half3 half4 InputPatch int int2 int3 int4 line"
+  " lineadj LineStream matrix OutputPatch point PointStream RWBuffer"
+  " RWByteAddressBuffer RWStructuredBuffer RWTexture1D RWTexture1DArray"
+  " RWTexture2D RWTexture2DArray RWTexture3D string StructuredBuffer Texture1D"
+  " Texture1DArray Texture2D Texture2DArray Texture2DMS Texture2DMSArray"
+  " Texture3D triangle triangleadj TriangleStream uint uint2 uint3 uint4 vector";
+
+const char * shaderBuiltin =
+  "abs acos all AllMemoryBarrier AllMemoryBarrierWithGroupSync any asdouble"
+  " asfloat asin asint asuint atan atan2 ceil clamp clip cos cosh countbits"
+  " cross D3DCOLORtoUBYTE4 ddx ddx_coarse ddx_fine ddy ddy_coarse ddy_fine"
+  " degrees determinant DeviceMemoryBarrier DeviceMemoryBarrierWithGroupSync"
+  " distance dot dst EvaluateAttributeAtCentroid EvaluateAttributeAtSample"
+  " EvaluateAttributeSnapped exp exp2 f16tof32 f32tof16 faceforward firstbithigh"
+  " firstbitlow floor fmod frac frexp fwidth GetRenderTargetSampleCount"
+  " GetRenderTargetSamplePosition GroupMemoryBarrier GroupMemoryBarrierWithGroupSync"
+  " InterlockedAdd InterlockedAnd InterlockedCompareExchange InterlockedCompareStore"
+  " InterlockedExchange InterlockedMax InterlockedMin InterlockedOr InterlockedXor"
+  " isfinite isinf isnan ldexp length lerp lit log log10 log2 mad max min modf mul"
+  " noise normalize pow Process2DQuadTessFactorsAvg Process2DQuadTessFactorsMax"
+  " Process2DQuadTessFactorsMin ProcessIsolineTessFactors ProcessQuadTessFactorsAvg"
+  " ProcessQuadTessFactorsMax ProcessQuadTessFactorsMin ProcessTriTessFactorsAvg"
+  " ProcessTriTessFactorsMax ProcessTriTessFactorsMin radians rcp reflect refract"
+  " reversebits round rsqrt saturate sign sin sincos sinh smoothstep sqrt step"
+  " tan tanh tex1D tex1Dbias tex1Dgrad tex1Dlod tex1Dproj tex2D tex2Dbias"
+  " tex2Dgrad tex2Dlod tex2Dproj tex3D tex3Dbias tex3Dgrad tex3Dlod tex3Dproj"
+  " texCUBE texCUBEbias texCUBEgrad texCUBElod texCUBEproj transpose trunc";
+
 namespace Renderer
 {
+  char * defaultShaderFilename = "shader.dx9.hlsl";
   char defaultShader[65536] = 
     "texture texTFFT; sampler1D texFFT = sampler_state { SRGBTexture = FALSE; Texture = <texTFFT>; }; \n"
     "texture texTNoise; sampler2D texNoise = sampler_state { SRGBTexture = TRUE; Texture = <texTNoise>; };\n"
@@ -224,7 +269,7 @@ namespace Renderer
     RECT wr={0,0,pSetup->nWidth,pSetup->nHeight};
     AdjustWindowRectEx(&wr, wStyle, FALSE, wExStyle);
 
-    hWnd = CreateWindowEx(wExStyle,_T("fwzwnd"),_T("ümlaüt design"),wStyle,
+    hWnd = CreateWindowEx(wExStyle,_T("fwzwnd"),_T("BONZOMATIC - Direct3D 9.0c edition"),wStyle,
       (GetSystemMetrics(SM_CXSCREEN) - pSetup->nWidth )/2,
       (GetSystemMetrics(SM_CYSCREEN) - pSetup->nHeight)/2,
       wr.right-wr.left, wr.bottom-wr.top,
