@@ -442,7 +442,27 @@ namespace Renderer
 
   void BindTexture( Texture * tex )
   {
+    if (tex) glEnable(GL_TEXTURE_2D);
+    else glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, tex ? ((GLTexture*)tex)->ID : NULL );
+  }
+
+  void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d )
+  {
+    glBegin(GL_QUADS);
+    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
+    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
+    glColor4ubv( (GLubyte*)&c.c ); glTexCoord2f( c.u, c.v ); glVertex2f( c.x, c.y );
+    glColor4ubv( (GLubyte*)&d.c ); glTexCoord2f( d.u, d.v ); glVertex2f( d.x, d.y );
+    glEnd();
+  }
+
+  void RenderLine( Vertex & a, Vertex & b )
+  {
+    glBegin(GL_LINES);
+    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
+    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
+    glEnd();
   }
 
 }

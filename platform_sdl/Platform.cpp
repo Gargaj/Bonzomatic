@@ -92,11 +92,12 @@ void Platform::DebugPrintf(const char *, ...)
 //////////////////////////////////////////////////////////////////////////
 // FONT
 
+#define CHARACTER_COUNT 512 // first 512 chars of unicode should be sufficient
 
 struct stbtt_Font
 {
   stbtt_fontinfo fontinfo;
-  stbtt_bakedchar cdata[512]; // ASCII 32..126 is 95 glyphs
+  stbtt_bakedchar cdata[CHARACTER_COUNT];
   float scale;
   Renderer::Texture * texture;
 };
@@ -128,7 +129,7 @@ void Font::Create(const FontParameters &fp)
 
   unsigned char* bmp = new unsigned char[texSize*texSize];
 
-  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, 512, newFont->cdata); // no guarantee this fits!
+  stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, CHARACTER_COUNT, newFont->cdata); // no guarantee this fits!
 
 #ifdef _DEBUG
   FILE* dump = fopen("font.raw", "wb");
@@ -287,11 +288,10 @@ void SurfaceImpl::MoveTo(float x, float y)
 
 void SurfaceImpl::LineTo(float targetX, float targetY) 
 {
-  glColor4ubv((GLubyte*)&penColour);
-  glBegin(GL_LINES);
-  glVertex2f(currentX+0.5f, currentY+0.5f);
-  glVertex2f(targetX+0.5f, targetY+0.5f);
-  glEnd();
+  Renderer::RenderLine(
+    Renderer::Vertex( currentX+0.5f, currentY+0.5f, penColour.AsLong() ),
+    Renderer::Vertex(  targetX+0.5f,  targetY+0.5f, penColour.AsLong() )
+  );
   currentX = targetX;
   currentY = targetY;
 }
@@ -325,15 +325,13 @@ void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
 {
   Renderer::BindTexture(NULL);
-  glDisable(GL_TEXTURE_2D);
-
-  glColor4ubv((GLubyte*)&back);
-  glBegin(GL_QUADS);
-  glVertex2f(rc.left,  rc.top);
-  glVertex2f(rc.right, rc.top);
-  glVertex2f(rc.right, rc.bottom);
-  glVertex2f(rc.left,  rc.bottom);
-  glEnd();
+  
+  Renderer::RenderQuad(
+    Renderer::Vertex( rc.left , rc.top, back.AsLong() ),
+    Renderer::Vertex( rc.right, rc.top, back.AsLong() ),
+    Renderer::Vertex( rc.right, rc.bottom, back.AsLong() ),
+    Renderer::Vertex( rc.left , rc.bottom, back.AsLong() )
+    );
 }
 
 void SurfaceImpl::FillRectangle(PRectangle rc, Surface & surfacePattern) 
@@ -373,11 +371,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font, float ybase, const cha
 {
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
 
-  glEnable(GL_TEXTURE_2D);
-
   Renderer::BindTexture( realFont->texture );
-  glColor3ubv((GLubyte*)&fore);
-  glBegin(GL_QUADS);
   float x = rc.left, y = ybase;
   while (len-- > 0) 
   {
@@ -391,14 +385,15 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font, float ybase, const cha
     stbtt_aligned_quad quad;
     stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &quad, 1 );
     
-    glTexCoord2f(quad.s0,quad.t0); glVertex2f(quad.x0,quad.y0);
-    glTexCoord2f(quad.s1,quad.t0); glVertex2f(quad.x1,quad.y0);
-    glTexCoord2f(quad.s1,quad.t1); glVertex2f(quad.x1,quad.y1);
-    glTexCoord2f(quad.s0,quad.t1); glVertex2f(quad.x0,quad.y1);
+    Renderer::RenderQuad(
+      Renderer::Vertex( quad.x0, quad.y0, fore.AsLong(), quad.s0, quad.t0 ),
+      Renderer::Vertex( quad.x1, quad.y0, fore.AsLong(), quad.s1, quad.t0 ),
+      Renderer::Vertex( quad.x1, quad.y1, fore.AsLong(), quad.s1, quad.t1 ),
+      Renderer::Vertex( quad.x0, quad.y1, fore.AsLong(), quad.s0, quad.t1 )
+    );
     str += charLength;
     len -= charLength - 1;
   }
-  glEnd();
 }
 
 void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font, float ybase, const char *s, int len,

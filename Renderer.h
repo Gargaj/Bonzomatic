@@ -59,6 +59,16 @@ namespace Renderer
   void SetShaderTexture( char * szTextureName, Texture * tex );
   void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
   void ReleaseTexture( Texture * tex );
+  struct Vertex
+  {
+    Vertex( float _x, float _y, unsigned int _c = 0xFFFFFFFF, float _u = 0.0, float _v = 0.0) : 
+      x(_x), y(_y), c(_c), u(_u), v(_v) {}
+    float x, y;
+    float u, v;
+    unsigned int c;
+  };
+  void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d );
+  void RenderLine( Vertex & a, Vertex & b );
 
   struct KeyEvent
   {
