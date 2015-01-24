@@ -13,18 +13,23 @@
 namespace Renderer
 {
   char defaultShader[65536] = 
-    "float2 v2Resolution;\n"
-    "sampler1D texFFT;\n"
-    "sampler2D texNoise;\n"
-    "sampler2D texChecker;\n"
-    "sampler2D texTex1;\n"
-    "sampler2D texTex2;\n"
+    "texture texTFFT; sampler1D texFFT = sampler_state { SRGBTexture = FALSE; Texture = <texTFFT>; }; \n"
+    "texture texTNoise; sampler2D texNoise = sampler_state { SRGBTexture = TRUE; Texture = <texTNoise>; };\n"
+    "texture texTChecker; sampler2D texChecker = sampler_state { SRGBTexture = TRUE; Texture = <texTChecker>; };\n"
+    "texture texTTex1; sampler2D texTex1 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex1>; };\n"
+    "texture texTTex2; sampler2D texTex2 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex2>; };\n"
+    "texture texTTex3; sampler2D texTex3 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex3>; };\n"
+    "texture texTTex4; sampler2D texTex4 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex4>; };\n"
+    "\n"
     "float fGlobalTime;\n"
+    "float2 v2Resolution;\n"
     "\n"
     "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
     "{\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
+    "  uv *= 2;\n"
+    "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
     "\n"
     "  float2 m;\n"
     "  m.x = atan(uv.x / uv.y) / 3.14;\n"
@@ -254,9 +259,8 @@ namespace Renderer
       }
     }
 
-    pDevice->SetRenderState(D3DRS_ZENABLE , D3DZB_TRUE);
-    pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-    pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+    pDevice->SetRenderState( D3DRS_ZENABLE , D3DZB_FALSE );
+    pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 
     for (int x=0; x<4; x++) 
     {
@@ -267,6 +271,9 @@ namespace Renderer
     return 1;
   }
 
+  LPDIRECT3DVERTEXBUFFER9 pFullscreenQuadVB = NULL;
+  LPDIRECT3DVERTEXDECLARATION9 pPostProcessVertexDecl = NULL;
+
   bool Open( RENDERER_SETTINGS * settings )
   {
     if (!InitWindow(settings))
@@ -274,6 +281,28 @@ namespace Renderer
 
     if (!InitDirect3D(settings))
       return false;
+
+    static D3DVERTEXELEMENT9 pVertexElements[] = 
+    {
+      { 0, 0*sizeof(float), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+      { 0, 3*sizeof(float), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+      D3DDECL_END()
+    };
+
+    static float pQuad[] = {
+      -1.0, -1.0,  0.0, 0.0, 0.0,
+       1.0, -1.0,  0.0, 1.0, 0.0,
+      -1.0,  1.0,  0.0, 0.0, 1.0,
+       1.0,  1.0,  0.0, 1.0, 1.0,
+    };
+
+    pDevice->CreateVertexBuffer( 4 * 5 * sizeof(float), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &pFullscreenQuadVB, NULL);
+    void * v;
+    pFullscreenQuadVB->Lock( 0, 4 * 5 * sizeof(float), &v, NULL );
+    CopyMemory( v, pQuad, 4 * 5 * sizeof(float) );
+    pFullscreenQuadVB->Unlock();
+
+    pDevice->CreateVertexDeclaration( pVertexElements, &pPostProcessVertexDecl );
 
     return true;
   }
@@ -312,6 +341,22 @@ namespace Renderer
 
   void RenderFullscreenQuad()
   {
+    pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
+
+    D3DXMATRIX mat;
+    D3DXMatrixIdentity( &mat );
+    pDevice->SetTransform( D3DTS_VIEW, &mat );
+    pDevice->SetTransform( D3DTS_WORLD, &mat );
+    //D3DXMatrixOrthoOffCenterLH( (D3DXMATRIX*)&mat, -1.0f, -1.0, 1.0f, 1.0f, -1.0f, 1.0f );
+    //D3DXMatrixOrthoOffCenterLH( &mat, -1.0, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f );
+    pDevice->SetTransform( D3DTS_PROJECTION, &mat );
+
+    pDevice->SetVertexShader( NULL );
+    pDevice->SetPixelShader( theShader );
+    
+    pDevice->SetVertexDeclaration( pPostProcessVertexDecl );
+    pDevice->SetStreamSource( 0, pFullscreenQuadVB, 0, sizeof(float) * 5 ); 
+    pDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
   }
 
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
@@ -319,7 +364,7 @@ namespace Renderer
     LPD3DXBUFFER pShader = NULL;
     LPD3DXBUFFER pErrors = NULL;
 
-    if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_3_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
+    if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_2_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
       strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
@@ -411,7 +456,8 @@ namespace Renderer
   void SetShaderTexture( char * szTextureName, Texture * tex )
   {
     int idx = pConstantTable->GetSamplerIndex( szTextureName );
-    pDevice->SetTexture( idx, ((DX9Texture *)tex)->pTexture );
+    if (idx >= 0)
+      pDevice->SetTexture( idx, ((DX9Texture *)tex)->pTexture );
   }
 
   bool UpdateR32Texture( Texture * tex, float * data )
