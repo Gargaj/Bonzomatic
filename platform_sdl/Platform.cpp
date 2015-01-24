@@ -84,12 +84,10 @@ void Platform::DebugPrintf(const char *, ...) {
 
 struct stbtt_Font
 {
-  stbtt_fontinfo	fontinfo;
+  stbtt_fontinfo fontinfo;
   stbtt_bakedchar cdata[512]; // ASCII 32..126 is 95 glyphs
-  GLuint ftex;
   float scale;
-  int w;
-  int h;
+  Renderer::Texture * texture;
 };
 
 Font::Font() : fid(0)
@@ -114,25 +112,20 @@ void Font::Create(const FontParameters &fp)
 
   int texSize = 512;
   unsigned char* buf = (unsigned char*)malloc(len);
-  unsigned char* bmp = new unsigned char[texSize*texSize];
   fread(buf, 1, len, f);
+  fclose(f);
+
+  unsigned char* bmp = new unsigned char[texSize*texSize];
+
   stbtt_BakeFontBitmap(buf, 0, fp.size, bmp, texSize, texSize, 0, 512, newFont->cdata); // no guarantee this fits!
 
-  newFont->w = texSize;
-  newFont->h = texSize;
 #ifdef _DEBUG
   FILE* dump = fopen("font.raw", "wb");
   fwrite(bmp,texSize,texSize,dump);
   fclose(dump);
 #endif // _DEBUG
 
-  // can free ttf_buffer at this point
-  glGenTextures(1, &newFont->ftex);
-  glBindTexture(GL_TEXTURE_2D, newFont->ftex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texSize, texSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bmp);
-  // can free temp_bitmap at this point
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  fclose(f);
+  newFont->texture = Renderer::CreateA8TextureFromData( texSize, texSize, bmp );
 
   stbtt_InitFont(&newFont->fontinfo, buf, 0);
 
@@ -148,7 +141,7 @@ void Font::Release()
   if (fid)
   {
     free(((stbtt_Font*)fid)->fontinfo.data);
-    glDeleteTextures(1, &((stbtt_Font*)fid)->ftex);
+    Renderer::ReleaseTexture( ((stbtt_Font*)fid)->texture );
     delete (stbtt_Font*)fid;
   }
 }
@@ -291,15 +284,12 @@ void SurfaceImpl::Polygon(Point* /*pts*/, int /*npts*/, ColourDesired /*fore*/,
 void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back) 
 {
   FillRectangle(rc, back);
-  glColor4ubv((GLubyte*)&fore);
-  glDisable(GL_TEXTURE_2D);
-  glBegin(GL_LINE_STRIP);
-  glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-  glVertex2f(rc.right-0.5f, rc.top+0.5f);
-  glVertex2f(rc.right-0.5f, rc.bottom-0.5f);
-  glVertex2f(rc.left+0.5f,  rc.bottom-0.5f);
-  glVertex2f(rc.left+0.5f,  rc.top+0.5f);
-  glEnd();
+  PenColour(fore);
+  MoveTo( rc.left , rc.top );
+  LineTo( rc.right, rc.top );
+  LineTo( rc.right, rc.bottom );
+  LineTo( rc.left,  rc.bottom);
+  LineTo( rc.left,  rc.top );
 }
 
 struct pixmap_t
@@ -316,14 +306,8 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
 {
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  for (int i=0; i<8; i++)
-  {
-    glActiveTexture( GL_TEXTURE0 + i );
-    glBindTexture(GL_TEXTURE_2D, NULL);
-  }
   glActiveTexture( GL_TEXTURE0 );
+  glBindTexture(GL_TEXTURE_2D, NULL);
 
   glColor4ubv((GLubyte*)&back);
   glDisable(GL_TEXTURE_2D);
@@ -367,7 +351,8 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
   glEnable(GL_TEXTURE_2D);
 
   // assume orthographic projection with units = screen pixels, origin at top left
-  glBindTexture(GL_TEXTURE_2D, realFont->ftex);
+  //glBindTexture(GL_TEXTURE_2D, realFont->texture);
+  Renderer::BindTexture( realFont->texture );
   glColor3ubv((GLubyte*)&fore);
   glBegin(GL_QUADS);
   float x = rc.left, y=ybase;
@@ -382,7 +367,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
       UTF16FromUTF8( s, l, (wchar_t*)&c, sizeof(unsigned int) );
     }
     stbtt_aligned_quad q;
-    stbtt_GetBakedQuad(realFont->cdata, realFont->w,realFont->h, c, &x,&y,&q,1);//1=opengl,0=old d3d
+    stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &q, 1 );//1=opengl,0=old d3d
     //x = floor(x);
     glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y0);
     glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y0);
@@ -393,7 +378,6 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
   }
   glEnd();
   glDisable(GL_TEXTURE_2D);
-  //glDisable(GL_BLEND);
 }
 
 void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char *s, int len,

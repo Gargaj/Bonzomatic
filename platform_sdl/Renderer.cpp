@@ -416,4 +416,32 @@ namespace Renderer
     glDisable(GL_BLEND);
   }
 
+  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  {
+    GLuint glTexId = 0;
+    glGenTextures(1, &glTexId);
+    glBindTexture(GL_TEXTURE_2D, glTexId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    GLTexture * tex = new GLTexture();
+    tex->width = w;
+    tex->height = h;
+    tex->ID = glTexId;
+    tex->type = TEXTURETYPE_2D;
+    tex->unit = 0; // this is always 0 cos we're not using shaders here
+    return tex;
+  }
+
+  void ReleaseTexture( Texture * tex )
+  {
+    glDeleteTextures(1, &((GLTexture*)tex)->ID );
+  }
+
+  void BindTexture( Texture * tex )
+  {
+    glBindTexture(GL_TEXTURE_2D, ((GLTexture*)tex)->ID );
+  }
+
 }
