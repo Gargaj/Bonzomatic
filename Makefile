@@ -178,10 +178,10 @@ define MAKE_RULES
   MODULES += $$($1.MODULE)
   DEPFILES += $$($1.DEPFILE)
 
-$$($1.MODULE): $1 $$($1.DEPFILE) $(METADEPS)
+$$($1.MODULE): $1 $$($1.DEPFILE) Makefile
 	$(CXX) $(CXXFLAGS) -c -o $$($1.MODULE) $1
 
-$$($1.DEPFILE): $1 $(METADEPS)
+$$($1.DEPFILE): $1 Makefile
 	@mkdir -p $$(dir $$($1.DEPFILE))
 	$(CXX) $(CXXFLAGS) -MM $1 -MT $$($1.MODULE) -MT $$($1.DEPFILE) -MF $$($1.DEPFILE)
 endef
@@ -194,9 +194,9 @@ $(foreach src,$(SOURCES_CPP), $(eval $(call MAKE_RULES,$(src),.cpp,.opp,.dpp)))
 
 -include $(DEPFILES)
 
-Bonzomatic: $(MODULES) $(METADEPS)
+Bonzomatic: $(MODULES) Makefile
 	$(CXX) $(MODULES) $(LDFLAGS) -o $@
 
 clean:
-	echo rm -f $(MODULES) $(DEPFILES) $(PRODUCT)
+	@rm -r Bonzomatic $(OBJDIR)
 
