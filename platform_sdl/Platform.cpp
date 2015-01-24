@@ -32,27 +32,33 @@ ColourDesired MakeRGBA(unsigned char r, unsigned char g, unsigned char b, unsign
   return a<<24|b<<16|g<<8|r;
 }
 
-ColourDesired Platform::Chrome() {
+ColourDesired Platform::Chrome()
+{
   return MakeRGBA(0xe0, 0xe0, 0xe0);
 }
 
-ColourDesired Platform::ChromeHighlight() {
+ColourDesired Platform::ChromeHighlight()
+{
   return MakeRGBA(0xff, 0xff, 0xff);
 }
 
-const char *Platform::DefaultFont() {
+const char *Platform::DefaultFont()
+{
   return "Lucida Console";
 }
 
-int Platform::DefaultFontSize() {
+int Platform::DefaultFontSize()
+{
   return 10;
 }
 
-unsigned int Platform::DoubleClickTime() {
+unsigned int Platform::DoubleClickTime()
+{
   return 500; 	// Half a second
 }
 
-bool Platform::MouseButtonBounce() {
+bool Platform::MouseButtonBounce()
+{
   return true;
 }
 
@@ -68,7 +74,8 @@ int Platform::Maximum(int a, int b) { return a>b ? a : b; }
 int Platform::Clamp(int val, int minVal, int maxVal) { return Minimum( maxVal, Maximum( val, minVal ) ); }
 
 #ifdef TRACE
-void Platform::DebugPrintf(const char *format, ...) {
+void Platform::DebugPrintf(const char *format, ...)
+{
   char buffer[2000];
   va_list pArguments;
   va_start(pArguments, format);
@@ -77,7 +84,8 @@ void Platform::DebugPrintf(const char *format, ...) {
   Platform::DebugDisplay(buffer);
 }
 #else
-void Platform::DebugPrintf(const char *, ...) {
+void Platform::DebugPrintf(const char *, ...)
+{
 }
 #endif
 
@@ -219,13 +227,16 @@ public:
 }
 #endif
 
-SurfaceImpl::SurfaceImpl() : currentX(0), currentY(0) {
+SurfaceImpl::SurfaceImpl() 
+  : currentX(0), currentY(0)
+{
   unicodeMode = false;
   codePage = 0;
   initialised = false;
 }
 
-SurfaceImpl::~SurfaceImpl() {
+SurfaceImpl::~SurfaceImpl()
+{
 }
 
 void SurfaceImpl::Init( WindowID wid )
@@ -243,7 +254,8 @@ void SurfaceImpl::InitPixMap( int width, int height, Surface *surface_, WindowID
   initialised = true;
 }
 
-void SurfaceImpl::Release() {
+void SurfaceImpl::Release() 
+{
 }
 
 bool SurfaceImpl::Initialised()
@@ -251,15 +263,18 @@ bool SurfaceImpl::Initialised()
   return initialised;
 }
 
-void SurfaceImpl::PenColour(ColourDesired fore) {
+void SurfaceImpl::PenColour(ColourDesired fore) 
+{
   penColour = fore;
 }
 
-int SurfaceImpl::LogPixelsY() {
+int SurfaceImpl::LogPixelsY() 
+{
   return 72;
 }
 
-int SurfaceImpl::DeviceHeightFont(int points) {
+int SurfaceImpl::DeviceHeightFont(int points) 
+{
   int logPix = LogPixelsY();
   return (points * logPix + logPix / 2) / 72;
 }
@@ -281,9 +296,19 @@ void SurfaceImpl::LineTo(float targetX, float targetY)
   currentY = targetY;
 }
 
+void SurfaceImpl::MoveTo( int x, int y )
+{
+  MoveTo( (float)x, (float)y );
+}
+
+void SurfaceImpl::LineTo( int x, int y )
+{
+  LineTo( (float)x, (float)y );
+}
+
 void SurfaceImpl::Polygon(Point* /*pts*/, int /*npts*/, ColourDesired /*fore*/, ColourDesired /*back*/) 
 {
-  assert(0);
+  assert(!"Implemented");;
 }
 
 void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back) 
@@ -304,11 +329,6 @@ struct pixmap_t
   bool initialised;
 };
 
-void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage)
-{
-  assert(!"Implemented");
-}
-
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
 {
   Renderer::BindTexture(NULL);
@@ -323,29 +343,37 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back)
   glEnd();
 }
 
-void SurfaceImpl::FillRectangle(PRectangle rc, Surface & surfacePattern) {
-  //assert(0);
-  FillRectangle( rc, 0xd0000000 );
+void SurfaceImpl::FillRectangle(PRectangle rc, Surface & surfacePattern) 
+{
+  FillRectangle( rc, 0xd0000000 ); 
 }
 
-void SurfaceImpl::RoundedRectangle(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) {
-  assert(0);
+void SurfaceImpl::RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesired back) 
+{
+  RectangleDraw( rc, fore, back ); 
 }
 
 void SurfaceImpl::AlphaRectangle(PRectangle rc, int /*cornerSize*/, ColourDesired fill, int alphaFill,
     ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) 
 {
-  unsigned int back = fill.AsLong() & 0xFFFFFF | ((alphaFill & 0xFF)<<24);
+  unsigned int back = fill.AsLong() & 0xFFFFFF | ((alphaFill & 0xFF) << 24);
   FillRectangle(rc, back);
 }
 
-void SurfaceImpl::Ellipse(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) {
-  assert(0);
+void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage)
+{
+  assert(!"Implemented");
+}
+
+void SurfaceImpl::Ellipse(PRectangle /*rc*/, ColourDesired /*fore*/, ColourDesired /*back*/) 
+{
+  assert(!"Implemented");
 }
 
 void SurfaceImpl::Copy( PRectangle rc, Point from, Surface &surfaceSource )
 {
-  //assert(0);
+  // we don't assert here because this is often used
+  // however, we don't support it right now
 }
 
 void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const char *str, int len, ColourDesired fore) 
@@ -357,7 +385,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
   Renderer::BindTexture( realFont->texture );
   glColor3ubv((GLubyte*)&fore);
   glBegin(GL_QUADS);
-  float x = rc.left, y=ybase;
+  float x = rc.left, y = ybase;
   while (len-- > 0) 
   {
     unsigned int c = *str;
@@ -381,23 +409,27 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, float ybase, const ch
 }
 
 void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, float ybase, const char *s, int len,
-                                 ColourDesired fore, ColourDesired /*back*/) {
+                                 ColourDesired fore, ColourDesired /*back*/)
+{
   DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
 void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, float ybase, const char *s, int len,
-                                  ColourDesired fore, ColourDesired /*back*/) {
+                                  ColourDesired fore, ColourDesired /*back*/)
+{
   DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
 void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, float ybase, const char *s, int len,
-                                  ColourDesired fore) {
+                                  ColourDesired fore)
+{
   DrawTextBase(rc, font_, ybase, s, len, fore);
 }
 
-void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *positions) {
+void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *positions)
+{
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-  //TODO: implement proper UTF-8 handling
+  
   float position = 0;
   char * p = (char*)str;
   while (len-- > 0) 
@@ -423,9 +455,10 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *str, int len, float *po
   }
 }
 
-float SurfaceImpl::WidthText(Font &font_, const char *str, int len) {
+float SurfaceImpl::WidthText(Font &font_, const char *str, int len)
+{
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
-  //TODO: implement proper UTF-8 handling
+  
   float position = 0;
   while (len-- > 0) 
   {
@@ -446,33 +479,38 @@ float SurfaceImpl::WidthText(Font &font_, const char *str, int len) {
   return position;
 }
 
-float SurfaceImpl::WidthChar(Font &font_, char ch) {
+float SurfaceImpl::WidthChar(Font &font_, char ch)
+{
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   int advance, leftBearing;
   stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
   return advance*realFont->scale;
 }
 
-float SurfaceImpl::Ascent(Font &font_) {
+float SurfaceImpl::Ascent(Font &font_)
+{
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
   return ascent*realFont->scale;
 }
 
-float SurfaceImpl::Descent(Font &font_) {
+float SurfaceImpl::Descent(Font &font_)
+{
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
   return -descent*realFont->scale;
 }
 
-float SurfaceImpl::InternalLeading(Font &) {
+float SurfaceImpl::InternalLeading(Font &)
+{
   //WTF is this?????
   return 0;
 }
 
-float SurfaceImpl::ExternalLeading(Font& font_) {
+float SurfaceImpl::ExternalLeading(Font& font_)
+{
   //WTF is this?????
   stbtt_Font* realFont = (stbtt_Font*)font_.GetID();
   int ascent, descent, lineGap;
@@ -480,7 +518,8 @@ float SurfaceImpl::ExternalLeading(Font& font_) {
   return lineGap*realFont->scale;
 }
 
-float SurfaceImpl::Height(Font &font_) {
+float SurfaceImpl::Height(Font &font_)
+{
   return Ascent(font_) + Descent(font_);
 }
 
@@ -489,22 +528,13 @@ float SurfaceImpl::AverageCharWidth(Font &font_)
   return WidthChar(font_, 'n');
 }
 
-void SurfaceImpl::MoveTo( int x_, int y_ )
-{
-  assert(0);
-}
-
-void SurfaceImpl::LineTo( int x_, int y_ )
-{
-  assert(0);
-}
-
 void SurfaceImpl::SetClip(PRectangle rc) 
 {
   // we deal with this in the renderer
 }
 
-void SurfaceImpl::FlushCachedState() {}
+void SurfaceImpl::FlushCachedState()
+{}
 
 void SurfaceImpl::SetUnicodeMode( bool unicodeMode_ )
 {
@@ -528,18 +558,22 @@ class DynamicLibraryImpl : public DynamicLibrary {
 protected:
   HMODULE h;
 public:
-  explicit DynamicLibraryImpl(const char *modulePath) {
+  explicit DynamicLibraryImpl(const char *modulePath)
+{
     h = ::LoadLibraryA(modulePath);
   }
 
-  virtual ~DynamicLibraryImpl() {
+  virtual ~DynamicLibraryImpl()
+{
     if (h != NULL)
       ::FreeLibrary(h);
   }
 
   // Use GetProcAddress to get a pointer to the relevant function.
-  virtual Function FindFunction(const char *name) {
-    if (h != NULL) {
+  virtual Function FindFunction(const char *name)
+{
+    if (h != NULL)
+{
       // C++ standard doesn't like casts betwen function pointers and void pointers so use a union
       union {
         FARPROC fp;
@@ -552,25 +586,30 @@ public:
     }
   }
 
-  virtual bool IsValid() {
+  virtual bool IsValid()
+{
     return h != NULL;
   }
 };
 
-DynamicLibrary *DynamicLibrary::Load(const char *modulePath) {
+DynamicLibrary *DynamicLibrary::Load(const char *modulePath)
+{
   return static_cast<DynamicLibrary *>(new DynamicLibraryImpl(modulePath));
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Window
 
-Window::~Window() {
+Window::~Window()
+{
 }
 
-void Window::Destroy() {
+void Window::Destroy()
+{
 }
 
-bool Window::HasFocus() {
+bool Window::HasFocus()
+{
   return false;
 }
 
@@ -585,7 +624,8 @@ void Window::SetPosition(PRectangle rc)
   rects[wid] = rc;
 }
 
-void Window::SetPositionRelative(PRectangle rc, Window w) {
+void Window::SetPositionRelative(PRectangle rc, Window w)
+{
 }
 
 PRectangle Window::GetClientPosition() 
@@ -593,48 +633,58 @@ PRectangle Window::GetClientPosition()
   return PRectangle( 0, 0, rects[wid].Width(), rects[wid].Height() );
 }
 
-void Window::Show(bool show) {
+void Window::Show(bool show)
+{
 }
 
-void Window::InvalidateAll() {
+void Window::InvalidateAll()
+{
 }
 
-void Window::InvalidateRectangle(PRectangle rc) {
+void Window::InvalidateRectangle(PRectangle rc)
+{
 }
 
-void Window::SetFont(Font &font) {
+void Window::SetFont(Font &font)
+{
 }
 
 void Window::SetCursor(Cursor curs) 
 {
 }
 
-PRectangle Window::GetMonitorRect(Point pt) {
+PRectangle Window::GetMonitorRect(Point pt)
+{
   return PRectangle( 0, 0, Renderer::nWidth, Renderer::nHeight );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Menus
 
-Menu::Menu() : mid(0) {
+Menu::Menu() : mid(0)
+{
   assert(0);
 }
 
-void Menu::CreatePopUp() {
+void Menu::CreatePopUp()
+{
   assert(0);
 }
 
-void Menu::Destroy() {
+void Menu::Destroy()
+{
   assert(0);
 }
 
-void Menu::Show(Point pt, Window &w) {
+void Menu::Show(Point pt, Window &w)
+{
   assert(0);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ListBox implementation
 
-ListBox *ListBox::Allocate() {
+ListBox *ListBox::Allocate()
+{
   return NULL;
 }
