@@ -4,12 +4,12 @@
 
 #include "ShaderEditor.h"
 #include "Renderer.h"
-#include "FFT.h"
+#include "fft.h"
 #include "Timer.h"
-#include "external\scintilla\src\UniConversion.h"
-#include "external\jsonxx\jsonxx.h";
+#include "external/scintilla/src/UniConversion.h"
+#include "external/jsonxx/jsonxx.h"
 
-void main()
+int main()
 {
   RENDERER_SETTINGS settings;
 #ifdef _DEBUG
@@ -21,20 +21,22 @@ void main()
   settings.nHeight = 1080;
   settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
   if (!Renderer::OpenSetupDialog( &settings ))
-    return;
+    return -1;
 #endif
 
   if (!Renderer::Open( &settings ))
-    return;
+    return -1;
 
   if (!FFT::Open())
-    return;
+    return -1;
 
   std::map<std::string,Renderer::Texture*> textures;
 
   int nFontSize = 16;
 #ifdef _WIN32
   std::string sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+#else
+  std::string sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
 
   int nDebugOutputHeight = 200;
@@ -224,4 +226,5 @@ void main()
   FFT::Close();
 
   Renderer::Close();
+  return 0;
 }

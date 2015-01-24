@@ -1,3 +1,4 @@
+#include <cstring>
 #include "../ShaderEditor.h"
 #include "../Renderer.h"
 #include "external/scintilla/lexlib/PropSetSimple.h"

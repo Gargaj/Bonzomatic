@@ -67,8 +67,8 @@ namespace Renderer
     float u, v;
     unsigned int c;
   };
-  void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d );
-  void RenderLine( Vertex & a, Vertex & b );
+  void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d );
+  void RenderLine( const Vertex & a, const Vertex & b );
 
   struct KeyEvent
   {
