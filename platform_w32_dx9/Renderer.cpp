@@ -28,7 +28,6 @@ namespace Renderer
     "{\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
-    "  uv *= 2;\n"
     "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
     "\n"
     "  float2 m;\n"
@@ -66,12 +65,70 @@ namespace Renderer
     {
     case WM_KEYDOWN: 
       {
-        switch( wParam ) 
+        int sciKey = 0;
+        switch(wParam)
         {
-        case VK_ESCAPE: 
-          {
-            run = false;
-          } break;
+        case VK_DOWN:         sciKey = SCK_DOWN;      break;
+        case VK_UP:           sciKey = SCK_UP;        break;
+        case VK_LEFT:         sciKey = SCK_LEFT;      break;
+        case VK_RIGHT:        sciKey = SCK_RIGHT;     break;
+        case VK_HOME:         sciKey = SCK_HOME;      break;
+        case VK_END:          sciKey = SCK_END;       break;
+        case VK_PRIOR:        sciKey = SCK_PRIOR;     break;
+        case VK_NEXT:         sciKey = SCK_NEXT;      break;
+        case VK_DELETE:       sciKey = SCK_DELETE;    break;
+        case VK_INSERT:       sciKey = SCK_INSERT;    break;
+        case VK_ESCAPE:       sciKey = SCK_ESCAPE;    break;
+        case VK_BACK:         sciKey = SCK_BACK;      break;
+        case VK_TAB:          sciKey = SCK_TAB;       break;
+        case VK_RETURN:       sciKey = SCK_RETURN;    break;
+//         case VK_KP_PLUS:      sciKey = SCK_ADD;       break;
+//         case VK_KP_MINUS:     sciKey = SCK_SUBTRACT;  break;
+//         case VK_KP_DIVIDE:    sciKey = SCK_DIVIDE;    break;
+//         case VK_LSUPER:       sciKey = SCK_WIN;       break;
+//         case VK_RSUPER:       sciKey = SCK_RWIN;      break;
+        case VK_MENU:         sciKey = SCK_MENU;      break;
+//         case VK_SLASH:        sciKey = '/';           break;
+//         case VK_ASTERISK:     sciKey = '`';           break;
+//         case VK_LEFTBRACKET:  sciKey = '[';           break;
+//         case VK_BACKSLASH:    sciKey = '\\';          break;
+//         case VK_RIGHTBRACKET: sciKey = ']';           break;
+        case VK_F5:         sciKey = 286;      break;
+        case VK_F11:        sciKey = 292;      break;
+        case VK_SHIFT:
+        case VK_LSHIFT:
+        case VK_RSHIFT:
+        case VK_LMENU:
+        case VK_RMENU:
+        case VK_CONTROL:
+        case VK_LCONTROL:
+        case VK_RCONTROL:
+          sciKey = 0;
+          break;
+        default:
+          sciKey = wParam;
+        }
+        if (sciKey)
+        {
+          keyEventBuffer[keyEventBufferCount].ctrl  = GetAsyncKeyState( VK_LCONTROL ) || GetAsyncKeyState( VK_RCONTROL );
+          keyEventBuffer[keyEventBufferCount].alt   = GetAsyncKeyState( VK_LMENU ) || GetAsyncKeyState( VK_RMENU );
+          keyEventBuffer[keyEventBufferCount].shift = GetAsyncKeyState( VK_LSHIFT ) || GetAsyncKeyState( VK_RSHIFT );
+          keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
+          keyEventBuffer[keyEventBufferCount].character = sciKey;
+          keyEventBufferCount++;
+        }
+        //pKeys[wParam] = 1;
+      } break;
+    case WM_CHAR: 
+      {
+        //if (sciKey)
+        {
+          keyEventBuffer[keyEventBufferCount].ctrl  = GetAsyncKeyState( VK_LCONTROL ) || GetAsyncKeyState( VK_RCONTROL );
+          keyEventBuffer[keyEventBufferCount].alt   = GetAsyncKeyState( VK_LMENU ) || GetAsyncKeyState( VK_RMENU );
+          keyEventBuffer[keyEventBufferCount].shift = GetAsyncKeyState( VK_LSHIFT ) || GetAsyncKeyState( VK_RSHIFT );
+          keyEventBuffer[keyEventBufferCount].scanCode = 0;
+          keyEventBuffer[keyEventBufferCount].character = wParam;
+          keyEventBufferCount++;
         }
         //pKeys[wParam] = 1;
       } break;
@@ -261,6 +318,7 @@ namespace Renderer
 
     pDevice->SetRenderState( D3DRS_ZENABLE , D3DZB_FALSE );
     pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+    pDevice->SetRenderState( D3DRS_LIGHTING, FALSE );
 
     for (int x=0; x<4; x++) 
     {
@@ -272,7 +330,11 @@ namespace Renderer
   }
 
   LPDIRECT3DVERTEXBUFFER9 pFullscreenQuadVB = NULL;
+  LPDIRECT3DVERTEXBUFFER9 pGUIQuadVB = NULL;
   LPDIRECT3DVERTEXDECLARATION9 pPostProcessVertexDecl = NULL;
+  LPDIRECT3DVERTEXDECLARATION9 pGUIVertexDecl = NULL;
+
+#define GUIQUADVB_SIZE (128*6)
 
   bool Open( RENDERER_SETTINGS * settings )
   {
@@ -282,7 +344,7 @@ namespace Renderer
     if (!InitDirect3D(settings))
       return false;
 
-    static D3DVERTEXELEMENT9 pVertexElements[] = 
+    static D3DVERTEXELEMENT9 pFullscreenQuadElements[] = 
     {
       { 0, 0*sizeof(float), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
       { 0, 3*sizeof(float), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
@@ -302,7 +364,20 @@ namespace Renderer
     CopyMemory( v, pQuad, 4 * 5 * sizeof(float) );
     pFullscreenQuadVB->Unlock();
 
-    pDevice->CreateVertexDeclaration( pVertexElements, &pPostProcessVertexDecl );
+    pDevice->CreateVertexDeclaration( pFullscreenQuadElements, &pPostProcessVertexDecl );
+
+    //////////////////////////////////////////////////////////////////////////
+
+    static D3DVERTEXELEMENT9 pGUIQuadElements[] = 
+    {
+      { 0, 0*sizeof(float), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+      { 0, 3*sizeof(float), D3DDECLTYPE_UBYTE4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+      { 0, 4*sizeof(float), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+      D3DDECL_END()
+    };
+
+    pDevice->CreateVertexBuffer( GUIQUADVB_SIZE * 6 * sizeof(float), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, D3DPOOL_DEFAULT, &pGUIQuadVB, NULL);
+    //pDevice->CreateVertexDeclaration( pGUIQuadElements, &pGUIVertexDecl );
 
     return true;
   }
@@ -472,18 +547,6 @@ namespace Renderer
     return true;
   }
 
-  void StartTextRendering()
-  {
-    pDevice->SetVertexShader( NULL );
-    pDevice->SetPixelShader( NULL );
-  }
-  void SetTextRenderingViewport( Scintilla::PRectangle rect )
-  {
-  }
-  void EndTextRendering()
-  {
-  }
-
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
@@ -513,23 +576,135 @@ namespace Renderer
     return tex;
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  // text rendering
+
+
+  void StartTextRendering()
+  {
+    pDevice->SetVertexShader( NULL );
+    pDevice->SetPixelShader( NULL );
+    pDevice->SetRenderState( D3DRS_SCISSORTESTENABLE, TRUE );
+    //pDevice->SetVertexDeclaration( pGUIVertexDecl );
+    pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1);
+    pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+    pDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+    pDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
+
+    D3DXMATRIX mat;
+    D3DXMatrixIdentity( &mat );
+    pDevice->SetTransform( D3DTS_VIEW, &mat );
+    pDevice->SetTransform( D3DTS_WORLD, &mat );
+    D3DXMatrixOrthoOffCenterLH( (D3DXMATRIX*)&mat, 0, nWidth, nHeight, 0, -1.0f, 1.0f );
+    pDevice->SetTransform( D3DTS_PROJECTION, &mat );
+
+    pDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_SELECTARG1 );
+    pDevice->SetTextureStageState( 0, D3DTSS_COLORARG1, D3DTA_DIFFUSE );
+    pDevice->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
+    pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE );
+    pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE );
+  }
+
   void ReleaseTexture( Texture * tex )
   {
     ((DX9Texture *)tex)->pTexture->Release();
     delete tex;
   }
 
+  int bufferPointer = 0;
+  unsigned char buffer[GUIQUADVB_SIZE * sizeof(float) * 6];
+  bool lastModeIsQuad = true;
+  void __FlushRenderCache()
+  {
+    if (!bufferPointer) return;
+
+    void * v = NULL;
+    pGUIQuadVB->Lock( 0, bufferPointer * sizeof(float) * 6, &v, NULL );
+    CopyMemory( v, buffer, bufferPointer * sizeof(float) * 6 );
+    pGUIQuadVB->Unlock();
+
+    pDevice->SetStreamSource( 0, pGUIQuadVB, 0, sizeof(float) * 6 ); 
+    if (lastModeIsQuad)
+      pDevice->DrawPrimitive( D3DPT_TRIANGLELIST, 0, bufferPointer / 3 );
+    else
+      pDevice->DrawPrimitive( D3DPT_LINELIST, 0, bufferPointer / 2 );
+
+    bufferPointer = 0;
+  }
+  inline unsigned int _dxARGBtoABGR(unsigned int abgr)
+  {
+    return (abgr&0xff00ff00)+((abgr<<16)&0x00ff0000)+((abgr>>16)&0x000000ff);
+  }
+  void __WriteVertexToBuffer( Vertex & v )
+  {
+    if (bufferPointer >= GUIQUADVB_SIZE)
+    {
+      __FlushRenderCache();
+    }
+
+    float * f = (float*)(buffer + bufferPointer * sizeof(float) * 6);
+    *(f++) = v.x;
+    *(f++) = v.y;
+    *(f++) = 0.0;
+    *(unsigned int *)(f++) = _dxARGBtoABGR( v.c );
+    *(f++) = v.u;
+    *(f++) = v.v;
+    bufferPointer++;
+  }
+  Texture * lastTexture = NULL;
   void BindTexture( Texture * tex )
   {
-    pDevice->SetTexture( 0, tex ? ((DX9Texture *)tex)->pTexture : NULL );
+    if (lastTexture != tex)
+    {
+      __FlushRenderCache();
+      lastTexture = tex;
+      pDevice->SetTexture( 0, tex ? ((DX9Texture *)tex)->pTexture : NULL );
+    }
   }
 
   void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d )
   {
+    if (!lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = true;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(d);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(d);
+    __WriteVertexToBuffer(c);
   }
 
   void RenderLine( Vertex & a, Vertex & b )
   {
+    if (lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = false;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
+  }
+
+  void SetTextRenderingViewport( Scintilla::PRectangle rect )
+  {
+    __FlushRenderCache();
+    D3DXMATRIX mat;
+    D3DXMatrixIdentity( &mat );
+    mat._41 = rect.left;
+    mat._42 = rect.top;
+    pDevice->SetTransform( D3DTS_WORLD, &mat );
+
+    RECT rc = { rect.left, rect.top, rect.right, rect.bottom };
+    pDevice->SetScissorRect( &rc );
+  }
+  void EndTextRendering()
+  {
+    __FlushRenderCache();
+    pDevice->SetRenderState( D3DRS_SCISSORTESTENABLE, false );
+    pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
   }
 
 }
