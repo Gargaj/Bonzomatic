@@ -13,14 +13,15 @@
 namespace Renderer
 {
   char defaultShader[65536] = 
-    "float2 v2Resolution\n"
-    "texture1D texFFT;\n"
-    "texture2D texNoise;\n"
-    "texture2D texChecker;\n"
-    "texture2D texTex1;\n"
-    "texture2D texTex2;\n"
+    "float2 v2Resolution;\n"
+    "sampler1D texFFT;\n"
+    "sampler2D texNoise;\n"
+    "sampler2D texChecker;\n"
+    "sampler2D texTex1;\n"
+    "sampler2D texTex2;\n"
+    "float fGlobalTime;\n"
     "\n"
-    "float4 ps_main( float2 TexCoord : TEXCOORD0 )\n"
+    "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
     "{\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
@@ -42,6 +43,8 @@ namespace Renderer
 
   LPDIRECT3D9 pD3D = NULL;
   LPDIRECT3DDEVICE9 pDevice = NULL;
+  LPD3DXCONSTANTTABLE pConstantTable = NULL;
+  LPDIRECT3DPIXELSHADER9 theShader = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
@@ -278,7 +281,8 @@ namespace Renderer
   void StartFrame()
   {
     MSG msg;
-    if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) ) {
+    if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) ) 
+    {
       TranslateMessage( &msg );
       DispatchMessage( &msg );
     }
@@ -312,15 +316,38 @@ namespace Renderer
 
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
+    LPD3DXBUFFER pShader = NULL;
+    LPD3DXBUFFER pErrors = NULL;
+
+    if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_3_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
+    {
+      memset( szErrorBuffer, 0, nErrorBufferSize );
+      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      return false;
+    }
+
+    if (theShader) 
+    {
+      theShader->Release();
+      theShader = NULL;
+    }
+
+    if (pDevice->CreatePixelShader( (DWORD*)pShader->GetBufferPointer(), &theShader ) != D3D_OK)
+    {
+      return false;
+    }
+
     return true;
   }
 
   void SetShaderConstant( char * szConstName, float x )
   {
+    pConstantTable->SetFloat( pDevice, szConstName, x );
   }
 
   void SetShaderConstant( char * szConstName, float x, float y )
   {
+    pConstantTable->SetVector( pDevice, szConstName, &D3DXVECTOR4(x, y, 0, 0) );
   }
 
   struct DX9Texture : public Texture
@@ -331,16 +358,50 @@ namespace Renderer
   int textureUnit = 0;
   Texture * CreateRGBA8TextureFromFile( char * szFilename )
   {
+    LPDIRECT3DTEXTURE9 pTex = NULL;
+    D3DXIMAGE_INFO info;
+    HRESULT h = D3DXCreateTextureFromFileExA(
+      pDevice,
+      szFilename,
+      D3DX_DEFAULT,
+      D3DX_DEFAULT,
+      D3DX_DEFAULT,
+      NULL,
+      D3DFMT_FROM_FILE,
+      D3DPOOL_DEFAULT,
+      D3DX_FILTER_NONE,
+      D3DX_DEFAULT,
+      NULL,
+      &info,
+      NULL,
+      &pTex);
+
+    if (!pTex)
+      return NULL;
+
     DX9Texture * tex = new DX9Texture();
-    tex->width = 0;
-    tex->height = 0;
+    tex->pTexture = pTex;
+    tex->width = info.Width;
+    tex->height = info.Height;
     tex->type = TEXTURETYPE_2D;
     return tex;
   }
 
   Texture * Create1DR32Texture( int w )
   {
+    LPDIRECT3DTEXTURE9 pTex = NULL;
+    pDevice->CreateTexture( w, 1, 0, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &pTex, NULL );
+
+    if (!pTex)
+      return NULL;
+
+    D3DLOCKED_RECT rect;
+    pTex->LockRect( 0, &rect, NULL, NULL );
+    memset( rect.pBits, 0, w * sizeof(float) );
+    pTex->UnlockRect(0);
+
     DX9Texture * tex = new DX9Texture();
+    tex->pTexture = pTex;
     tex->width = w;
     tex->height = 1;
     tex->type = TEXTURETYPE_1D;
@@ -349,10 +410,19 @@ namespace Renderer
 
   void SetShaderTexture( char * szTextureName, Texture * tex )
   {
+    int idx = pConstantTable->GetSamplerIndex( szTextureName );
+    pDevice->SetTexture( idx, ((DX9Texture *)tex)->pTexture );
   }
 
   bool UpdateR32Texture( Texture * tex, float * data )
   {
+    LPDIRECT3DTEXTURE9 pTex = ((DX9Texture *)tex)->pTexture;
+    
+    D3DLOCKED_RECT rect;
+    pTex->LockRect( 0, &rect, NULL, D3DLOCK_DISCARD );
+    memcpy( rect.pBits, data, tex->width * sizeof(float) );
+    pTex->UnlockRect(0);
+
     return true;
   }
 
@@ -370,22 +440,42 @@ namespace Renderer
 
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
+    LPDIRECT3DTEXTURE9 pTex = NULL;
+    pDevice->CreateTexture( w, h, 0, NULL, D3DFMT_A8, D3DPOOL_MANAGED, &pTex, NULL );
+
+    if (!pTex)
+      return NULL;
+
+    D3DLOCKED_RECT rect;
+    pTex->LockRect( 0, &rect, NULL, NULL );
+    //memset( rect.pBits, 0, w * sizeof(float) );
+    unsigned char * src = data;
+    unsigned char * dst = (unsigned char *)rect.pBits;
+    for (int i=0; i<h; i++)
+    {
+      memcpy( dst, src, w * sizeof(unsigned char) );
+      src += w * sizeof(unsigned char);
+      dst += rect.Pitch;
+    }
+    pTex->UnlockRect(0);
+
     DX9Texture * tex = new DX9Texture();
+    tex->pTexture = pTex;
     tex->width = w;
-    tex->height = 1;
+    tex->height = h;
     tex->type = TEXTURETYPE_1D;
     return tex;
   }
 
   void ReleaseTexture( Texture * tex )
   {
-//     ((DX9Texture *)tex)->pTexture->Release();
-//     delete tex;
+    ((DX9Texture *)tex)->pTexture->Release();
+    delete tex;
   }
 
   void BindTexture( Texture * tex )
   {
-//     pDevice->SetTexture( 0, ((DX9Texture *)tex)->pTexture );
+    pDevice->SetTexture( 0, tex ? ((DX9Texture *)tex)->pTexture : NULL );
   }
 
   void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d )
