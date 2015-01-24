@@ -707,7 +707,7 @@ namespace Renderer
     return (abgr&0xff00ff00)+((abgr<<16)&0x00ff0000)+((abgr>>16)&0x000000ff);
   }
   Texture * lastTexture = NULL;
-  void __WriteVertexToBuffer( Vertex & v )
+  void __WriteVertexToBuffer( const Vertex & v )
   {
     if (bufferPointer >= GUIQUADVB_SIZE)
     {
@@ -733,7 +733,7 @@ namespace Renderer
     }
   }
 
-  void RenderQuad( Vertex & a, Vertex & b, Vertex & c, Vertex & d )
+  void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d )
   {
     if (!lastModeIsQuad)
     {
@@ -748,7 +748,7 @@ namespace Renderer
     __WriteVertexToBuffer(c);
   }
 
-  void RenderLine( Vertex & a, Vertex & b )
+  void RenderLine( const Vertex & a, const Vertex & b )
   {
     if (lastModeIsQuad)
     {
