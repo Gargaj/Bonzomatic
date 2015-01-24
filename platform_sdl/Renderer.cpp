@@ -98,11 +98,6 @@ namespace Renderer
     SDL_EnableUNICODE(TRUE);
     SDL_EnableKeyRepeat(250, 20);
 
-/*
-    SDL_SysWMinfo info = {{0, 0}, 0, 0};
-    SDL_GetWMInfo(&info);
-*/
-
     run = true;
 
     return true;
