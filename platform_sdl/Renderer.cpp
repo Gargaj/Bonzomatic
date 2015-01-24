@@ -146,7 +146,7 @@ namespace Renderer
     "  out_color = f + t;\n"
     "}";
 
-  SDL_Surface * mScreen = NULL;
+  SDL_Window * mWindow = NULL;
   bool run = true;
 
   GLuint theShader = NULL;
@@ -162,9 +162,9 @@ namespace Renderer
       return false;
     }
 
-    uint32_t flags = SDL_HWSURFACE|SDL_OPENGLBLIT;
+    uint32_t flags = SDL_WINDOW_OPENGL;
     if (settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN)
-      flags |= SDL_FULLSCREEN;
+      flags |= SDL_WINDOW_FULLSCREEN;
 
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
@@ -174,18 +174,22 @@ namespace Renderer
     SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, true );
 
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
-    mScreen = SDL_SetVideoMode( settings->nWidth, settings->nHeight, 32, flags );
-    if (!mScreen)
-    {
-      printf("[Renderer] SDL_SetVideoMode failed\n");
-      SDL_Quit();
-      return false;
-    }
 
-    SDL_EnableUNICODE(true);
-    SDL_EnableKeyRepeat(250, 20);
+    mWindow = SDL_CreateWindow("BONZOMATIC - SDL edition",
+      SDL_WINDOWPOS_CENTERED,
+      SDL_WINDOWPOS_CENTERED,
+      settings->nWidth, settings->nHeight,
+      flags);
+    if (!mWindow)
+      return false;
+
+    SDL_GL_CreateContext(mWindow);
 
 #ifdef _WIN32
     if (settings->bVsync)
@@ -238,8 +242,8 @@ namespace Renderer
           case SDLK_KP_PLUS:      sciKey = SCK_ADD;       break;
           case SDLK_KP_MINUS:     sciKey = SCK_SUBTRACT;  break;
           case SDLK_KP_DIVIDE:    sciKey = SCK_DIVIDE;    break;
-          case SDLK_LSUPER:       sciKey = SCK_WIN;       break;
-          case SDLK_RSUPER:       sciKey = SCK_RWIN;      break;
+//           case SDLK_LSUPER:       sciKey = SCK_WIN;       break;
+//           case SDLK_RSUPER:       sciKey = SCK_RWIN;      break;
           case SDLK_MENU:         sciKey = SCK_MENU;      break;
           case SDLK_SLASH:        sciKey = '/';           break;
           case SDLK_ASTERISK:     sciKey = '`';           break;
@@ -264,7 +268,7 @@ namespace Renderer
           keyEventBuffer[keyEventBufferCount].alt   = E.key.keysym.mod & KMOD_LALT   || E.key.keysym.mod & KMOD_RALT;
           keyEventBuffer[keyEventBufferCount].shift = E.key.keysym.mod & KMOD_LSHIFT || E.key.keysym.mod & KMOD_RSHIFT;
           keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
-          keyEventBuffer[keyEventBufferCount].character = E.key.keysym.unicode;
+//          keyEventBuffer[keyEventBufferCount].character = E.key.keysym.unicode;
           keyEventBufferCount++;
         }
 
@@ -284,10 +288,10 @@ namespace Renderer
         mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
         switch(E.button.button)
         {
-        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
-        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-        case SDL_BUTTON_LEFT:   
-        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+          case SDL_BUTTON_LEFT:   
+          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
       }
@@ -302,7 +306,7 @@ namespace Renderer
         case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
         case SDL_BUTTON_LEFT:   
         default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
-        }
+    }
         mouseEventBufferCount++;
       }
     }
@@ -316,7 +320,7 @@ namespace Renderer
   }
   void EndFrame()
   {
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(mWindow);
   }
   bool WantsToQuit()
   {
