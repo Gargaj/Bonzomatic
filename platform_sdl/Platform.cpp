@@ -29,7 +29,7 @@ using namespace Scintilla;
 
 ColourDesired MakeRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a=0xFF)
 {
-  return a<<24|b<<16|g<<8|r;
+  return a<<24 | b<<16 | g<<8 | r;
 }
 
 ColourDesired Platform::Chrome()
@@ -308,7 +308,7 @@ void SurfaceImpl::LineTo( int x, int y )
 
 void SurfaceImpl::Polygon(Point* /*pts*/, int /*npts*/, ColourDesired /*fore*/, ColourDesired /*back*/) 
 {
-  assert(!"Implemented");;
+  assert(!"Implemented");
 }
 
 void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired back) 
@@ -321,13 +321,6 @@ void SurfaceImpl::RectangleDraw(PRectangle rc, ColourDesired fore, ColourDesired
   LineTo( rc.left,  rc.bottom);
   LineTo( rc.left,  rc.top );
 }
-
-struct pixmap_t
-{
-  GLuint tex;
-  float scalex, scaley;
-  bool initialised;
-};
 
 void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) 
 {
@@ -442,7 +435,7 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
       UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
 
-    int advance, leftBearing;
+    int advance = 0, leftBearing = 0;
     
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     
@@ -469,7 +462,7 @@ float SurfaceImpl::WidthText(Font & font, const char *str, int len)
       c = 0;
       UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
-    int advance, leftBearing;
+    int advance = 0, leftBearing = 0;
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     position += advance*realFont->scale;//TODO: +Kerning
 
@@ -484,7 +477,7 @@ float SurfaceImpl::WidthChar(Font &font, char ch)
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int advance, leftBearing;
   stbtt_GetCodepointHMetrics(&realFont->fontinfo, ch, &advance, &leftBearing);
-  return advance*realFont->scale;
+  return advance * realFont->scale;
 }
 
 float SurfaceImpl::Ascent(Font &font)
@@ -492,7 +485,7 @@ float SurfaceImpl::Ascent(Font &font)
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-  return ascent*realFont->scale;
+  return ascent * realFont->scale;
 }
 
 float SurfaceImpl::Descent(Font &font)
@@ -500,7 +493,7 @@ float SurfaceImpl::Descent(Font &font)
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-  return -descent*realFont->scale;
+  return -descent * realFont->scale;
 }
 
 float SurfaceImpl::InternalLeading(Font &)
@@ -515,7 +508,7 @@ float SurfaceImpl::ExternalLeading(Font& font)
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   int ascent, descent, lineGap;
   stbtt_GetFontVMetrics(&realFont->fontinfo, &ascent, &descent, &lineGap);
-  return lineGap*realFont->scale;
+  return lineGap * realFont->scale;
 }
 
 float SurfaceImpl::Height(Font &font)
@@ -663,22 +656,22 @@ PRectangle Window::GetMonitorRect(Point pt)
 
 Menu::Menu() : mid(0)
 {
-  assert(0);
+  assert(!"Implemented");
 }
 
 void Menu::CreatePopUp()
 {
-  assert(0);
+  assert(!"Implemented");
 }
 
 void Menu::Destroy()
 {
-  assert(0);
+  assert(!"Implemented");
 }
 
 void Menu::Show(Point pt, Window &w)
 {
-  assert(0);
+  assert(!"Implemented");
 }
 
 //////////////////////////////////////////////////////////////////////////
