@@ -164,13 +164,16 @@ void main()
       else if (bShowGui)
       {
         bool consumed = false;
+        if (Renderer::keyEventBuffer[i].scanCode)
+        {
         mShaderEditor.KeyDown(
           iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
           Renderer::keyEventBuffer[i].shift,
           Renderer::keyEventBuffer[i].ctrl, 
           Renderer::keyEventBuffer[i].alt,
           &consumed);
-        if (!consumed)
+        }
+        if (!consumed && Renderer::keyEventBuffer[i].character)
         {
           char    utf8[5] = {0,0,0,0,0};
           wchar_t utf16[2] = {Renderer::keyEventBuffer[i].character, 0};

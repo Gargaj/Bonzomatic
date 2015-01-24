@@ -114,14 +114,14 @@ namespace Renderer
           keyEventBuffer[keyEventBufferCount].alt   = GetAsyncKeyState( VK_LMENU ) || GetAsyncKeyState( VK_RMENU );
           keyEventBuffer[keyEventBufferCount].shift = GetAsyncKeyState( VK_LSHIFT ) || GetAsyncKeyState( VK_RSHIFT );
           keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
-          keyEventBuffer[keyEventBufferCount].character = sciKey;
+          keyEventBuffer[keyEventBufferCount].character = 0;
           keyEventBufferCount++;
         }
         //pKeys[wParam] = 1;
       } break;
     case WM_CHAR: 
       {
-        //if (sciKey)
+        if (wParam >= 32)
         {
           keyEventBuffer[keyEventBufferCount].ctrl  = GetAsyncKeyState( VK_LCONTROL ) || GetAsyncKeyState( VK_RCONTROL );
           keyEventBuffer[keyEventBufferCount].alt   = GetAsyncKeyState( VK_LMENU ) || GetAsyncKeyState( VK_RMENU );
