@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <windowsx.h>
 #include <tchar.h>
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -185,7 +186,10 @@ namespace Renderer
 
     case WM_LBUTTONDOWN: 
       {
-        //nLeftMouse = 1;
+        mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT;
+        mouseEventBuffer[mouseEventBufferCount].x = GET_X_LPARAM(lParam);
+        mouseEventBuffer[mouseEventBufferCount].y = GET_Y_LPARAM(lParam);
+        mouseEventBufferCount++;
       } break;
 
     case WM_LBUTTONUP: 
