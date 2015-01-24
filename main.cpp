@@ -131,9 +131,11 @@ void main()
     float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::StartFrame();
 
+    
     for(int i=0; i<Renderer::mouseEventBufferCount; i++)
     {
-      mShaderEditor.ButtonDown( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false, false, false );
+      if (bShowGui)
+        mShaderEditor.ButtonDown( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false, false, false );
     }
     Renderer::mouseEventBufferCount = 0;
 
@@ -158,7 +160,7 @@ void main()
       {
         bShowGui = !bShowGui;
       }
-      else
+      else if (bShowGui)
       {
         bool consumed = false;
         mShaderEditor.KeyDown(
