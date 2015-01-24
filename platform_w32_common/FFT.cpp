@@ -1,6 +1,6 @@
 #include <bass.h>
 #include <stdio.h>
-#include "../fft.h"
+#include "../FFT.h"
 
 namespace FFT
 {

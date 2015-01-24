@@ -4,7 +4,7 @@
 
 #include "ShaderEditor.h"
 #include "Renderer.h"
-#include "fft.h"
+#include "FFT.h"
 #include "Timer.h"
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
@@ -36,7 +36,7 @@ int main()
 #ifdef _WIN32
   std::string sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
 #else
-  std::string sFontPath = "ProFontWindows.ttf";
+  std::string sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
 
   int nDebugOutputHeight = 200;
