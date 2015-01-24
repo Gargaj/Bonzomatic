@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstring>
 
-#include "../fft.h"
+#include "../FFT.h"
 
 namespace FFT
 {
