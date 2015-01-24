@@ -421,7 +421,6 @@
       <Filter>Externals\Scintilla\LexLib</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="platform_sdl\Platform.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="external\glee\GLee.c">
       <Filter>Externals\GLee</Filter>
@@ -437,6 +436,7 @@
     <ClCompile Include="external\jsonxx\jsonxx.cc">
       <Filter>Externals</Filter>
     </ClCompile>
+    <ClCompile Include="Platform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
