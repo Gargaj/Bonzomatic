@@ -635,6 +635,7 @@ namespace Renderer
   {
     return (abgr&0xff00ff00)+((abgr<<16)&0x00ff0000)+((abgr>>16)&0x000000ff);
   }
+  Texture * lastTexture = NULL;
   void __WriteVertexToBuffer( Vertex & v )
   {
     if (bufferPointer >= GUIQUADVB_SIZE)
@@ -647,11 +648,10 @@ namespace Renderer
     *(f++) = v.y;
     *(f++) = 0.0;
     *(unsigned int *)(f++) = _dxARGBtoABGR( v.c );
-    *(f++) = v.u;
-    *(f++) = v.v;
+    *(f++) = v.u + (lastTexture ? (0.5 / (float)lastTexture->width ) : 0.0);
+    *(f++) = v.v + (lastTexture ? (0.5 / (float)lastTexture->height) : 0.0);
     bufferPointer++;
   }
-  Texture * lastTexture = NULL;
   void BindTexture( Texture * tex )
   {
     if (lastTexture != tex)
