@@ -3,7 +3,11 @@
 #endif
 #include <SDL.h>
 #include <GLee.h>
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
 #include <GL/glu.h>
+#endif
 #include "../Renderer.h"
 
 #define STBI_HEADER_FILE_ONLY
