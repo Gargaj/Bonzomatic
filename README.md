@@ -24,7 +24,7 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
     "texChecker":"textures/checker.png",
     "texNoise":"textures/noise.png",
     "texTex1":"textures/tex1.jpg",
-  }
+  },
   "gui":{
     "outputHeight": 200,
   }
