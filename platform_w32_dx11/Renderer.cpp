@@ -1,7 +1,10 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
+
 #include <d3d11.h>
+#include <D3Dcompiler.h>
+
 #include "../Renderer.h"
 
 #define STBI_HEADER_FILE_ONLY
@@ -58,19 +61,24 @@ namespace Renderer
 {
   char * defaultShaderFilename = "shader.dx11.hlsl";
   char defaultShader[65536] = 
-    "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
-    "texture texTNoise; sampler2D texNoise = sampler_state { Texture = <texTNoise>; };\n"
-    "texture texTChecker; sampler2D texChecker = sampler_state { Texture = <texTChecker>; };\n"
-    "texture texTTex1; sampler2D texTex1 = sampler_state { Texture = <texTTex1>; };\n"
-    "texture texTTex2; sampler2D texTex2 = sampler_state { Texture = <texTTex2>; };\n"
-    "texture texTTex3; sampler2D texTex3 = sampler_state { Texture = <texTTex3>; };\n"
-    "texture texTTex4; sampler2D texTex4 = sampler_state { Texture = <texTTex4>; };\n"
+    "Texture2D texFFT;\n"
+    "Texture2D texNoise;\n"
+    "Texture2D texChecker;\n"
+    "Texture2D texTex1;\n"
+    "Texture2D texTex2;\n"
+    "Texture2D texTex3;\n"
+    "Texture2D texTex4;\n"
+    "SamplerState smp;\n"
     "\n"
-    "float fGlobalTime;\n"
-    "float2 v2Resolution;\n"
-    "\n"
-    "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
+    "cbuffer constants\n"
     "{\n"
+    "  float fGlobalTime;\n"
+    "  float2 v2Resolution;\n"
+    "}\n"
+    "\n"
+    "float4 main( float2 TexCoord : TEXCOORD0 ) : SV_TARGET\n"
+    "{\n"
+    "  return float4(1,0,1,1);\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
     "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
@@ -80,16 +88,16 @@ namespace Renderer
     "  m.y = 1 / length(uv) * .2;\n"
     "  float d = m.y;\n"
     "\n"
-    "  float f = tex1D( texFFT, d ).r * 100;\n"
+    "  float f = texFFT.Sample( smp, d ).r * 100;\n"
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  float4 t = tex2D( texTex2, m.xy ) * d; // or /d\n"
+    "  float4 t = texTex2.Sample( smp, m.xy ) * d; // or /d\n"
     "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
     "}";
   char defaultVertexShader[65536] = 
-    "struct VS_INPUT_PP { float3 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"
-    "struct VS_OUTPUT_PP { float4 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"
+    "struct VS_INPUT_PP { float3 Pos : POSITION; float2 TexCoord : TEXCOORD0; };\n"
+    "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float2 TexCoord : TEXCOORD0; };\n"
     "\n"
     "VS_OUTPUT_PP main( VS_INPUT_PP In )\n"
     "{\n"
@@ -101,9 +109,13 @@ namespace Renderer
 
   bool run = true;
 
-  IDXGISwapChain * pSwapChain;
-  ID3D11Device * pDevice;
-  ID3D11DeviceContext * pContext;
+  IDXGISwapChain * pSwapChain = NULL;
+  ID3D11Device * pDevice = NULL;
+  ID3D11DeviceContext * pContext = NULL;
+  ID3D11RenderTargetView * pRenderTarget = NULL;
+  ID3D11VertexShader * pVertexShader = NULL;
+  ID3D11PixelShader * theShader = NULL;
+  ID3D11ShaderReflection * pShaderReflection = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
@@ -314,24 +326,24 @@ namespace Renderer
   bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
   {
     DXGI_SWAP_CHAIN_DESC desc;
-
-    // clear out the struct for use
     ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
-
-    // fill the swap chain description struct
     desc.BufferCount = 1;
     desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     desc.OutputWindow = hWnd;
-    desc.SampleDesc.Count = 4;
-    desc.Windowed = pSetup->windowMode != RENDERER_WINDOWMODE_FULLSCREEN;                                  
+    desc.SampleDesc.Count = 1;
+    desc.Windowed = pSetup->windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
 
-    // create a device, device context and swap chain using the information in the scd struct
+    DWORD deviceCreationFlags = 0;
+#ifdef _DEBUG
+    //deviceCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
     if (D3D11CreateDeviceAndSwapChain(
       NULL,
       D3D_DRIVER_TYPE_HARDWARE,
       NULL,
-      NULL,
+      deviceCreationFlags,
       NULL,
       NULL,
       D3D11_SDK_VERSION,
@@ -342,10 +354,21 @@ namespace Renderer
       &pContext) != S_OK)
       return false;
 
+    ID3D11Texture2D *pBackBuffer;
+    pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+
+    pDevice->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTarget);
+    pBackBuffer->Release();
+
+    pContext->OMSetRenderTargets(1, &pRenderTarget, NULL);
+
     return true;
   }
 
 #define GUIQUADVB_SIZE (128*6)
+
+  ID3D11Buffer * pFullscreenQuadVB = NULL;
+  ID3D11InputLayout * pFullscreenQuadLayout = NULL;
 
   bool Open( RENDERER_SETTINGS * settings )
   {
@@ -355,14 +378,67 @@ namespace Renderer
     if (!InitDirect3D(settings))
       return false;
 
+    ID3DBlob * pCode = NULL;
+    ID3DBlob * pErrors = NULL;
+    if (D3DCompile( defaultVertexShader, strlen(defaultVertexShader), NULL, NULL, NULL, "main", "vs_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
+    {
+      return false;
+    }
+
+    if (pDevice->CreateVertexShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pVertexShader ) != S_OK)
+    {
+      return false;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    static float pQuad[] = {
+      -1.0, -1.0,  0.0, 0.0, 0.0,
+       1.0, -1.0,  0.0, 1.0, 0.0,
+      -1.0,  1.0,  0.0, 0.0, 1.0,
+       1.0,  1.0,  0.0, 1.0, 1.0,
+    };
+
+    D3D11_BUFFER_DESC desc;
+    ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
+
+    desc.ByteWidth = sizeof(float) * 5 * 4;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA subData;
+    ZeroMemory(&subData, sizeof(D3D11_SUBRESOURCE_DATA));
+    subData.pSysMem = pQuad;
+
+    if (pDevice->CreateBuffer(&desc, &subData, &pFullscreenQuadVB) != S_OK)
+      return false;
+
+    static D3D11_INPUT_ELEMENT_DESC pQuadDesc[] =
+    {
+      {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+      {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    pDevice->CreateInputLayout( pQuadDesc, 2, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pFullscreenQuadLayout);
+
     return true;
   }
 
   void StartFrame()
   {
+    MSG msg;
+    if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) ) 
+    {
+      TranslateMessage( &msg );
+      DispatchMessage( &msg );
+    }
+
+    float f[4] = { 0.08f, 0.18f, 0.18f, 1.0f };
+    pContext->ClearRenderTargetView(pRenderTarget, f);
   }
   void EndFrame()
   {
+    pSwapChain->Present( NULL, NULL );
   }
   bool WantsToQuit()
   {
@@ -370,6 +446,13 @@ namespace Renderer
   }
   void Close()
   {
+    if (theShader) theShader->Release();
+    if (pShaderReflection) pShaderReflection->Release();
+    if (pVertexShader) pVertexShader->Release();
+    if (pFullscreenQuadLayout) pFullscreenQuadLayout->Release();
+    if (pFullscreenQuadVB) pFullscreenQuadVB->Release();
+
+    if (pRenderTarget) pRenderTarget->Release();
     if (pContext) pContext->Release();
     if (pSwapChain) pSwapChain->Release();
     if (pDevice) pDevice->Release();
@@ -382,10 +465,42 @@ namespace Renderer
 
   void RenderFullscreenQuad()
   {
+    pContext->VSSetShader( pVertexShader, NULL, NULL );
+    pContext->PSSetShader( theShader, NULL, NULL );
+    pContext->IASetInputLayout( pFullscreenQuadLayout );
+
+    ID3D11Buffer * buffers[] = { pFullscreenQuadVB };
+    UINT stride[] = { sizeof(float) * 5 };
+    UINT offset[] = { 0 };
+
+    pContext->IASetVertexBuffers( 0, 1, buffers, stride, offset );
+    pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+    pContext->Draw( 4, 0 );
   }
 
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
+    ID3DBlob * pCode = NULL;
+    ID3DBlob * pErrors = NULL;
+    if (D3DCompile( szShaderCode, nShaderCodeSize, NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
+    {
+      memset( szErrorBuffer, 0, nErrorBufferSize );
+      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      return false;
+    }
+
+    if (theShader) 
+    {
+      theShader->Release();
+      theShader = NULL;
+    }
+
+    if (pDevice->CreatePixelShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &theShader ) != S_OK)
+    {
+      return false;
+    }
+    D3DReflect( pCode->GetBufferPointer(), pCode->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pShaderReflection );
     return true;
   }
 
@@ -400,31 +515,149 @@ namespace Renderer
   struct DX11Texture : public Texture
   {
     ID3D11Resource * pTexture;
+    DXGI_FORMAT format;
+    ID3D11ShaderResourceView * pResourceView;
   };
+
+  void CreateResourceView( DX11Texture * tex )
+  {
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+    ZeroMemory( &desc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC) );
+    desc.Format = tex->format;
+    if (tex->type == TEXTURETYPE_1D)
+    {
+      desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+      desc.Texture1D.MostDetailedMip = 0;
+      desc.Texture1D.MipLevels = 1;
+    }
+    else if (tex->type == TEXTURETYPE_2D)
+    {
+      desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+      desc.Texture2D.MostDetailedMip = 0;
+      desc.Texture2D.MipLevels = 1;
+    }
+    pDevice->CreateShaderResourceView( tex->pTexture, &desc, &tex->pResourceView );
+  }
 
   int textureUnit = 0;
   Texture * CreateRGBA8TextureFromFile( char * szFilename )
   {
-    return NULL;
+    int comp = 0;
+    int width = 0;
+    int height = 0;
+    unsigned char * c = stbi_load( szFilename, (int*)&width, (int*)&height, &comp, STBI_rgb_alpha );
+    if (!c) return NULL;
+
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
+    desc.Width = width;
+    desc.Height = height;
+    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    
+    D3D11_SUBRESOURCE_DATA subData;
+    ZeroMemory(&subData,sizeof(D3D11_SUBRESOURCE_DATA));
+    subData.pSysMem = c;
+    subData.SysMemPitch = width * sizeof(unsigned char) * 4;
+
+    ID3D11Texture2D * pTex = NULL;
+
+    if (pDevice->CreateTexture2D( &desc, &subData, &pTex ) != S_OK)
+      return NULL;
+
+    stbi_image_free(c);
+
+    DX11Texture * tex = new DX11Texture();
+    tex->width = width;
+    tex->height = height;
+    tex->pTexture = pTex;
+    tex->type = TEXTURETYPE_2D;
+    tex->format = desc.Format;
+    CreateResourceView(tex);
+    return tex;
   }
 
   Texture * Create1DR32Texture( int w )
   {
-    return NULL;
+    D3D11_TEXTURE1D_DESC desc;
+    ZeroMemory(&desc,sizeof(D3D11_TEXTURE1D_DESC));
+    desc.Width = w;
+    desc.Format = DXGI_FORMAT_R32_FLOAT;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    ID3D11Texture1D * pTex = NULL;
+
+    if (pDevice->CreateTexture1D( &desc, NULL, &pTex ) != S_OK)
+      return NULL;
+
+    DX11Texture * tex = new DX11Texture();
+    tex->width = w;
+    tex->height = 1;
+    tex->pTexture = pTex;
+    tex->type = TEXTURETYPE_1D;
+    tex->format = desc.Format;
+    CreateResourceView(tex);
+    return tex;
   }
 
   void SetShaderTexture( char * szTextureName, Texture * tex )
   {
+    D3D11_SHADER_INPUT_BIND_DESC desc;
+    if (pShaderReflection->GetResourceBindingDescByName( szTextureName, &desc ) == S_OK)
+    {
+      DX11Texture * pTex = (DX11Texture *) tex;
+      pContext->PSSetShaderResources( desc.BindPoint, 1, &pTex->pResourceView );
+    }
   }
 
   bool UpdateR32Texture( Texture * tex, float * data )
   {
+    ID3D11Texture1D * pTex = (ID3D11Texture1D *) ((DX11Texture *) tex)->pTexture;
+
+    D3D11_MAPPED_SUBRESOURCE subRes;
+    pContext->Map( pTex, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
+    CopyMemory( subRes.pData, data, sizeof(float) * tex->width );
+    pContext->Unmap( pTex, NULL );
     return true;
   }
 
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
-    return NULL;
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
+    desc.Width = w;
+    desc.Height = h;
+    desc.Format = DXGI_FORMAT_A8_UNORM;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D11_SUBRESOURCE_DATA subData;
+    ZeroMemory(&subData,sizeof(D3D11_SUBRESOURCE_DATA));
+    subData.pSysMem = data;
+    subData.SysMemPitch = w * sizeof(unsigned char);
+
+    ID3D11Texture2D * pTex = NULL;
+
+    if (pDevice->CreateTexture2D( &desc, &subData, &pTex ) != S_OK)
+      return NULL;
+
+    DX11Texture * tex = new DX11Texture();
+    tex->width = w;
+    tex->height = h;
+    tex->pTexture = pTex;
+    tex->type = TEXTURETYPE_2D;
+    tex->format = desc.Format;
+    CreateResourceView(tex);
+    return tex;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -437,8 +670,9 @@ namespace Renderer
 
   void ReleaseTexture( Texture * tex )
   {
-    ((DX11Texture *)tex)->pTexture->Release();
-    delete tex;
+     ((DX11Texture *)tex)->pResourceView->Release();
+     ((DX11Texture *)tex)->pTexture->Release();
+     delete tex;
   }
 
   int bufferPointer = 0;
