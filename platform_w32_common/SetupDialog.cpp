@@ -88,6 +88,9 @@ public:
         if (setup->windowMode == RENDERER_WINDOWMODE_FULLSCREEN) {
           SendDlgItemMessage(hWnd, IDC_FULLSCREEN, BM_SETCHECK, 1, 1);
         }
+        if (setup->bVsync) {
+          SendDlgItemMessage(hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1);
+        }
 
         return true;
       } break;
@@ -101,6 +104,7 @@ public:
             setup->nWidth  = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nWidth;
             setup->nHeight = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nHeight;
             setup->windowMode = SendDlgItemMessage(hWnd, IDC_FULLSCREEN, BM_GETCHECK , 0, 0) ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+            setup->bVsync = SendDlgItemMessage(hWnd, IDC_VSYNC, BM_GETCHECK , 0, 0) > 0;
             EndDialog (hWnd, TRUE);
           } break;
         case IDCANCEL: 

@@ -11,6 +11,7 @@ typedef struct
   int nWidth;
   int nHeight;
   RENDERER_WINDOWMODE windowMode;
+  bool bVsync;
 } RENDERER_SETTINGS;
 
 namespace Renderer

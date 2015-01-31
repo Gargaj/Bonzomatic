@@ -328,7 +328,7 @@ namespace Renderer
     d3dpp.SwapEffect     = D3DSWAPEFFECT_DISCARD;
     d3dpp.hDeviceWindow  = hWnd;
     d3dpp.Windowed       = pSetup->windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
-    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+    d3dpp.PresentationInterval = pSetup->bVsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
 
     d3dpp.BackBufferCount  = 1;
 
@@ -461,8 +461,10 @@ namespace Renderer
     return true;
   }
 
+  unsigned int nCacheFlushCount = 0;
   void StartFrame()
   {
+    nCacheFlushCount = 0;
     MSG msg;
     if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) ) 
     {
@@ -702,6 +704,7 @@ namespace Renderer
   {
     if (!bufferPointer) return;
 
+    nCacheFlushCount++;
     void * v = NULL;
     pGUIQuadVB->Lock( 0, bufferPointer * sizeof(float) * 6, &v, NULL );
     CopyMemory( v, buffer, bufferPointer * sizeof(float) * 6 );

@@ -12,6 +12,7 @@
 int main()
 {
   RENDERER_SETTINGS settings;
+  settings.bVsync = false;
 #ifdef _DEBUG
   settings.nWidth = 1280;
   settings.nHeight = 720;

@@ -11,6 +11,7 @@
 #define IDC_FULLSCREEN                  1003
 #define IDC_CHECK2                      1004
 #define IDC_ONTOP                       1004
+#define IDC_FULLSCREEN2                 1004
 #define IDC_CHECK3                      1005
 #define IDC_VSYNC                       1005
 #define IDC_COMBO3                      1006

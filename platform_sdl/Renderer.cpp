@@ -190,6 +190,9 @@ namespace Renderer
     SDL_EnableUNICODE(true);
     SDL_EnableKeyRepeat(250, 20);
 
+    if (settings->bVsync)
+      wglSwapIntervalEXT(1);
+
     run = true;
 
     return true;
