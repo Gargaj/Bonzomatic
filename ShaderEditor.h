@@ -61,6 +61,7 @@ class ShaderEditor : public Scintilla::Editor
   bool bReadOnly;
   std::string sFontFile;
   int nFontSize;
+  bool bHasMouseCapture;
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 
@@ -88,6 +89,8 @@ public:
   void Tick();
   int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
   void ButtonDown( Scintilla::Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt );
+  void ButtonMovePublic( Scintilla::Point pt );
+  void ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctrl );
   void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
   void NotifyStyleToNeeded(int endStyleNeeded);
 

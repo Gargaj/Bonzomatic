@@ -138,7 +138,20 @@ int main()
     for(int i=0; i<Renderer::mouseEventBufferCount; i++)
     {
       if (bShowGui)
-        mShaderEditor.ButtonDown( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false, false, false );
+      {
+        switch (Renderer::mouseEventBuffer[i].eventType)
+        {
+          case Renderer::MOUSEEVENTTYPE_MOVE:
+            mShaderEditor.ButtonMovePublic( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ) );
+            break;
+          case Renderer::MOUSEEVENTTYPE_DOWN:
+            mShaderEditor.ButtonDown( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false, false, false );
+            break;
+          case Renderer::MOUSEEVENTTYPE_UP:
+            mShaderEditor.ButtonUp( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false );
+            break;
+        }
+      }
     }
     Renderer::mouseEventBufferCount = 0;
 

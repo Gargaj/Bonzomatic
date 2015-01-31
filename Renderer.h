@@ -82,6 +82,12 @@ namespace Renderer
   extern KeyEvent keyEventBuffer[512];
   extern int keyEventBufferCount;
 
+  enum MOUSEEVENTTYPE
+  {
+    MOUSEEVENTTYPE_DOWN = 0,
+    MOUSEEVENTTYPE_MOVE,
+    MOUSEEVENTTYPE_UP,
+  };
   enum MOUSEBUTTON
   {
     MOUSEBUTTON_LEFT = 0,
@@ -90,6 +96,7 @@ namespace Renderer
   };
   struct MouseEvent
   {
+    MOUSEEVENTTYPE eventType;
     int x;
     int y;
     MOUSEBUTTON button;

@@ -267,16 +267,39 @@ namespace Renderer
         }
 
       }
+      else if (E.type == SDL_MOUSEMOTION)
+      {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_MOVE;
+        mouseEventBuffer[mouseEventBufferCount].x = E.motion.x;
+        mouseEventBuffer[mouseEventBufferCount].y = E.motion.y;
+        if (E.motion.state & SDL_BUTTON(1)) mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT;
+        mouseEventBufferCount++;
+      }
       else if (E.type == SDL_MOUSEBUTTONDOWN)
       {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_DOWN;
         mouseEventBuffer[mouseEventBufferCount].x = E.button.x;
         mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
         switch(E.button.button)
         {
-          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
-          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-          case SDL_BUTTON_LEFT:   
-          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+        case SDL_BUTTON_LEFT:   
+        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+        }
+        mouseEventBufferCount++;
+      }
+      else if (E.type == SDL_MOUSEBUTTONUP)
+      {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_UP;
+        mouseEventBuffer[mouseEventBufferCount].x = E.button.x;
+        mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
+        switch(E.button.button)
+        {
+        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+        case SDL_BUTTON_LEFT:   
+        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
       }

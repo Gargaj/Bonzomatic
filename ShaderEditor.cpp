@@ -10,6 +10,7 @@ ShaderEditor::ShaderEditor( Scintilla::Surface *s )
   surfaceWindow = s;
   sFontFile = "";
   nFontSize = 16;
+  bHasMouseCapture = false;
 }
 
 void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back, int size, const char *face)
@@ -197,12 +198,12 @@ void ShaderEditor::CopyToClipboard( const Scintilla::SelectionText &selectedText
 
 void ShaderEditor::SetMouseCapture( bool on )
 {
-
+  bHasMouseCapture = on;
 }
 
 bool ShaderEditor::HaveMouseCapture()
 {
-  return false;
+  return bHasMouseCapture;
 }
 
 sptr_t ShaderEditor::DefWndProc( unsigned int iMessage, uptr_t wParam, sptr_t lParam )
@@ -305,4 +306,20 @@ void ShaderEditor::ButtonDown( Scintilla::Point pt, unsigned int curTime, bool s
   pt.x -= rect.left;
   pt.y -= rect.top;
   Scintilla::Editor::ButtonDown( pt, curTime, shift, ctrl, alt );
+}
+
+void ShaderEditor::ButtonMovePublic( Scintilla::Point pt )
+{
+  Scintilla::PRectangle rect = wMain.GetPosition();
+  pt.x -= rect.left;
+  pt.y -= rect.top;
+  ButtonMove(pt);
+}
+
+void ShaderEditor::ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctrl )
+{
+  Scintilla::PRectangle rect = wMain.GetPosition();
+  pt.x -= rect.left;
+  pt.y -= rect.top;
+  Scintilla::Editor::ButtonUp( pt, curTime, ctrl );
 }

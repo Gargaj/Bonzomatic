@@ -198,7 +198,16 @@ namespace Renderer
 
     case WM_LBUTTONDOWN: 
       {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_DOWN;
         mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT;
+        mouseEventBuffer[mouseEventBufferCount].x = GET_X_LPARAM(lParam);
+        mouseEventBuffer[mouseEventBufferCount].y = GET_Y_LPARAM(lParam);
+        mouseEventBufferCount++;
+      } break;
+
+    case WM_MOUSEMOVE: 
+      {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_MOVE;
         mouseEventBuffer[mouseEventBufferCount].x = GET_X_LPARAM(lParam);
         mouseEventBuffer[mouseEventBufferCount].y = GET_Y_LPARAM(lParam);
         mouseEventBufferCount++;
@@ -206,7 +215,11 @@ namespace Renderer
 
     case WM_LBUTTONUP: 
       {
-        //nLeftMouse = 0;
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_UP;
+        mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT;
+        mouseEventBuffer[mouseEventBufferCount].x = GET_X_LPARAM(lParam);
+        mouseEventBuffer[mouseEventBufferCount].y = GET_Y_LPARAM(lParam);
+        mouseEventBufferCount++;
       } break;
 
     case WM_ACTIVATE: 
