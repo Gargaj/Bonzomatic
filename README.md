@@ -27,6 +27,7 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
   },
   "gui":{
     "outputHeight": 200,
+    "opacity": 192, // 255 means the editor occludes the effect completely, 0 means the editor is fully transparent
   }
 }
 ```
