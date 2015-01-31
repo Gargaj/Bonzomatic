@@ -52,6 +52,7 @@ struct SHADEREDITOR_OPTIONS {
   std::string sFontPath;
   int nFontSize;
   Scintilla::PRectangle rect;
+  unsigned char nOpacity;
 };
 
 class ShaderEditor : public Scintilla::Editor
@@ -62,6 +63,7 @@ class ShaderEditor : public Scintilla::Editor
   std::string sFontFile;
   int nFontSize;
   bool bHasMouseCapture;
+  unsigned char nOpacity;
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 

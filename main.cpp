@@ -38,6 +38,7 @@ int main()
 #else
   std::string sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
+  unsigned char nOpacity = 0xC0;
 
   int nDebugOutputHeight = 200;
 
@@ -75,6 +76,8 @@ int main()
     {
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
         nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
+        nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
     }
   }
 
@@ -115,6 +118,7 @@ int main()
   SHADEREDITOR_OPTIONS options;
   options.sFontPath = sFontPath;
   options.nFontSize = nFontSize;
+  options.nOpacity = nOpacity;
   options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise( options );

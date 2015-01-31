@@ -11,6 +11,7 @@ ShaderEditor::ShaderEditor( Scintilla::Surface *s )
   sFontFile = "";
   nFontSize = 16;
   bHasMouseCapture = false;
+  nOpacity = 0xC0;
 }
 
 void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back, int size, const char *face)
@@ -23,7 +24,7 @@ void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla
     WndProc(SCI_STYLESETFONT, style, reinterpret_cast<sptr_t>(face));
 }
 
-#define BACKGROUND(x) ( (x) | 0xC0000000 )
+#define BACKGROUND(x) ( (x) | (nOpacity << 24) )
 
 const size_t NB_FOLDER_STATE = 7;
 const size_t FOLDER_TYPE = 0;
@@ -136,6 +137,7 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
 {
   nFontSize = options.nFontSize;
   sFontFile = options.sFontPath;
+  nOpacity = options.nOpacity;
   Initialise();
   wMain.SetPosition(options.rect);
 }
