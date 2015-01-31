@@ -325,3 +325,8 @@ void ShaderEditor::ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctr
   pt.y -= rect.top;
   Scintilla::Editor::ButtonUp( pt, curTime, ctrl );
 }
+
+Font * ShaderEditor::GetTextFont()
+{
+  return &vs.styles[ STYLE_DEFAULT ].font;
+}

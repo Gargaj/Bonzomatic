@@ -97,4 +97,5 @@ public:
   void NotifyStyleToNeeded(int endStyleNeeded);
 
   void SetReadOnly( bool );
+  Scintilla::Font * GetTextFont();
 };

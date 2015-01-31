@@ -235,7 +235,12 @@ int main()
 
       mShaderEditor.Paint();
       mDebugOutput.Paint();
+
+      Renderer::SetTextRenderingViewport( Scintilla::PRectangle(0,0,Renderer::nWidth,Renderer::nHeight) );
+      char szHelp[] = "F5 - recompile shader   F11 - hide GUI";
+      surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, szHelp, strlen(szHelp), 0x80FFFFFF, 0x00000000);
     }
+
 
     Renderer::EndTextRendering();
 
