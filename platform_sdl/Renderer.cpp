@@ -538,7 +538,10 @@ namespace Renderer
     GLuint glTexId = 0;
     glGenTextures(1, &glTexId);
     glBindTexture(GL_TEXTURE_2D, glTexId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
+    unsigned int * p32bitData = new unsigned int[ w * h ];
+    for(int i=0; i<w*h; i++) p32bitData[i] = (data[i] << 24) | 0xFFFFFF;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, p32bitData);
+    delete[] p32bitData;
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
