@@ -59,13 +59,13 @@ namespace Renderer
 {
   char * defaultShaderFilename = "shader.dx9.hlsl";
   char defaultShader[65536] = 
-    "texture texTFFT; sampler1D texFFT = sampler_state { SRGBTexture = FALSE; Texture = <texTFFT>; }; \n"
-    "texture texTNoise; sampler2D texNoise = sampler_state { SRGBTexture = TRUE; Texture = <texTNoise>; };\n"
-    "texture texTChecker; sampler2D texChecker = sampler_state { SRGBTexture = TRUE; Texture = <texTChecker>; };\n"
-    "texture texTTex1; sampler2D texTex1 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex1>; };\n"
-    "texture texTTex2; sampler2D texTex2 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex2>; };\n"
-    "texture texTTex3; sampler2D texTex3 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex3>; };\n"
-    "texture texTTex4; sampler2D texTex4 = sampler_state { SRGBTexture = TRUE; Texture = <texTTex4>; };\n"
+    "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
+    "texture texTNoise; sampler2D texNoise = sampler_state { Texture = <texTNoise>; };\n"
+    "texture texTChecker; sampler2D texChecker = sampler_state { Texture = <texTChecker>; };\n"
+    "texture texTTex1; sampler2D texTex1 = sampler_state { Texture = <texTTex1>; };\n"
+    "texture texTTex2; sampler2D texTex2 = sampler_state { Texture = <texTTex2>; };\n"
+    "texture texTTex3; sampler2D texTex3 = sampler_state { Texture = <texTTex3>; };\n"
+    "texture texTTex4; sampler2D texTex4 = sampler_state { Texture = <texTTex4>; };\n"
     "\n"
     "float fGlobalTime;\n"
     "float2 v2Resolution;\n"
