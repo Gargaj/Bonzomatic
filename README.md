@@ -36,7 +36,6 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 
 ## Future features / todo / etc.
 - DX11 version
-- Key or option to adjust editor background opacity?
 - Option for tab sizes / spaces
 - Texture preview?
 
