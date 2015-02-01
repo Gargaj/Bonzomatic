@@ -119,12 +119,8 @@ namespace Renderer
   ID3D11SamplerState * pSamplerState = NULL;
   ID3D11Buffer * pConstantBuffer = NULL;
 
-  typedef struct {
-    float fGlobalTime;
-    float v2Resolution[3]; // has to be 3 to fill 16byte boundary
-  } VS_CONSTANT_BUFFER;
+  unsigned char constants[128];
 
-  VS_CONSTANT_BUFFER constants;
   int nWidth = 0;
   int nHeight = 0;
   HWND hWnd = NULL;
@@ -460,7 +456,7 @@ namespace Renderer
 
     D3D11_BUFFER_DESC cbDesc;
     ZeroMemory( &cbDesc, sizeof(D3D11_BUFFER_DESC) );
-    cbDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER );
+    cbDesc.ByteWidth = sizeof( constants );
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -531,6 +527,7 @@ namespace Renderer
     pContext->Draw( 4, 0 );
   }
 
+  ID3D11ShaderReflectionConstantBuffer * pCBuf = NULL;
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     ID3DBlob * pCode = NULL;
@@ -553,6 +550,8 @@ namespace Renderer
       return false;
     }
     D3DReflect( pCode->GetBufferPointer(), pCode->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pShaderReflection );
+    pCBuf = pShaderReflection->GetConstantBufferByIndex(0);
+
     return true;
   }
 
@@ -560,20 +559,30 @@ namespace Renderer
   {
     D3D11_MAPPED_SUBRESOURCE subRes;
     pContext->Map( pConstantBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
-    CopyMemory( subRes.pData, &constants, sizeof(VS_CONSTANT_BUFFER) );
+    CopyMemory( subRes.pData, &constants, sizeof(constants) );
     pContext->Unmap( pConstantBuffer, NULL );
   }
 
   void SetShaderConstant( char * szConstName, float x )
   {
-    constants.fGlobalTime = x;
+    ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName( szConstName );
+    D3D11_SHADER_VARIABLE_DESC pDesc;
+    pCVar->GetDesc( &pDesc );
+    
+    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[0] = x;
+
     __UpdateConstants();
   }
 
   void SetShaderConstant( char * szConstName, float x, float y )
   {
-    constants.v2Resolution[0] = x;
-    constants.v2Resolution[1] = y;
+    ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName(szConstName);
+    D3D11_SHADER_VARIABLE_DESC pDesc;
+    pCVar->GetDesc( &pDesc );
+
+    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[0] = x;
+    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[1] = y;
+
     __UpdateConstants();
   }
 
