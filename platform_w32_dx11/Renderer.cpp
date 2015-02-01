@@ -354,7 +354,7 @@ namespace Renderer
       &pContext) != S_OK)
       return false;
 
-    ID3D11Texture2D *pBackBuffer;
+    ID3D11Texture2D * pBackBuffer = NULL;
     pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
 
     pDevice->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTarget);
@@ -393,10 +393,10 @@ namespace Renderer
     //////////////////////////////////////////////////////////////////////////
 
     static float pQuad[] = {
-      -1.0, -1.0,  0.0, 0.0, 0.0,
-       1.0, -1.0,  0.0, 1.0, 0.0,
-      -1.0,  1.0,  0.0, 0.0, 1.0,
-       1.0,  1.0,  0.0, 1.0, 1.0,
+      -1.0, -1.0,  0.5, 0.0, 0.0,
+      -1.0,  1.0,  0.5, 0.0, 1.0,
+       1.0, -1.0,  0.5, 1.0, 0.0,
+       1.0,  1.0,  0.5, 1.0, 1.0,
     };
 
     D3D11_BUFFER_DESC desc;
