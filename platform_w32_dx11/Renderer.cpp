@@ -730,7 +730,8 @@ namespace Renderer
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName( szConstName );
     D3D11_SHADER_VARIABLE_DESC pDesc;
-    pCVar->GetDesc( &pDesc );
+    if (pCVar->GetDesc( &pDesc ) != S_OK)
+      return;
     
     ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[0] = x;
 
@@ -741,7 +742,8 @@ namespace Renderer
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName(szConstName);
     D3D11_SHADER_VARIABLE_DESC pDesc;
-    pCVar->GetDesc( &pDesc );
+    if (pCVar->GetDesc( &pDesc ) != S_OK)
+      return;
 
     ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[0] = x;
     ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[1] = y;
