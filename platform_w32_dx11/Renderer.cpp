@@ -324,12 +324,57 @@ namespace Renderer
     return true;
   }
 
+  bool bVsync = false;
   bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
   {
+    DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
     DXGI_SWAP_CHAIN_DESC desc;
     ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
     desc.BufferCount = 1;
-    desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.BufferDesc.Width = pSetup->nWidth;
+    desc.BufferDesc.Height = pSetup->nHeight;
+    desc.BufferDesc.Format = format;
+    if (pSetup->bVsync)
+    {
+      bVsync = true;
+      IDXGIFactory1 * pFactory = NULL;
+      HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory);
+      if (pFactory)
+      {
+        IDXGIAdapter1 * pAdapter = NULL;
+        pFactory->EnumAdapters1( 0, &pAdapter );
+        if (pAdapter)
+        {
+          IDXGIOutput * pOutput = NULL;
+          pAdapter->EnumOutputs( 0, &pOutput );
+          if (pOutput)
+          {
+            unsigned int nModeCount = 0;
+            pOutput->GetDisplayModeList( format, DXGI_ENUM_MODES_INTERLACED | DXGI_ENUM_MODES_SCALING, &nModeCount, NULL);
+
+            DXGI_MODE_DESC * pModes = new DXGI_MODE_DESC[ nModeCount ];
+            pOutput->GetDisplayModeList( format, DXGI_ENUM_MODES_INTERLACED | DXGI_ENUM_MODES_SCALING, &nModeCount, pModes);
+
+            for (int i=0; i<nModeCount; i++)
+            {
+              if (pModes[i].Width == pSetup->nWidth && pModes[i].Height == pSetup->nHeight)
+              {
+                desc.BufferDesc = pModes[i];
+                break;
+              }
+            }
+            delete[] pModes;
+
+            pOutput->Release();
+          }
+
+          pAdapter->Release();
+        }
+
+        pFactory->Release();
+      }
+    }
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     desc.OutputWindow = hWnd;
     desc.SampleDesc.Count = 1;
@@ -644,7 +689,7 @@ namespace Renderer
   }
   void EndFrame()
   {
-    pSwapChain->Present( NULL, NULL );
+    pSwapChain->Present( bVsync ? 1 : 0, NULL );
   }
   bool WantsToQuit()
   {
