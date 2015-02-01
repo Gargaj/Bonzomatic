@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
+#include <float.h>
 
 #include <d3d11.h>
 #include <D3Dcompiler.h>
@@ -10,7 +11,6 @@
 #define STBI_HEADER_FILE_ONLY
 #include <stb_image.c>
 #include "../external/scintilla/include/Scintilla.h"
-#include <float.h>
 
 #define DEVTYPE D3DDEVTYPE_HAL
 
@@ -95,6 +95,7 @@ namespace Renderer
     "  float4 t = texTex2.Sample( smp, m.xy ) * d; // or /d\n"
     "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
     "}";
+
   char defaultVertexShader[65536] = 
     "struct VS_INPUT_PP { float3 Pos : POSITION; float2 TexCoord : TEXCOORD; };\n"
     "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float2 TexCoord : TEXCOORD; };\n"
@@ -116,10 +117,6 @@ namespace Renderer
   ID3D11VertexShader * pVertexShader = NULL;
   ID3D11PixelShader * theShader = NULL;
   ID3D11ShaderReflection * pShaderReflection = NULL;
-  ID3D11SamplerState * pSamplerState = NULL;
-  ID3D11Buffer * pConstantBuffer = NULL;
-
-  unsigned char constants[128];
 
   int nWidth = 0;
   int nHeight = 0;
@@ -369,19 +366,14 @@ namespace Renderer
     return true;
   }
 
-#define GUIQUADVB_SIZE (128*6)
-
   ID3D11Buffer * pFullscreenQuadVB = NULL;
   ID3D11InputLayout * pFullscreenQuadLayout = NULL;
+  ID3D11SamplerState * pFullscreenQuadSamplerState = NULL;
+  ID3D11Buffer * pFullscreenQuadConstantBuffer = NULL;
+  unsigned char pFullscreenQuadConstants[128];
 
-  bool Open( RENDERER_SETTINGS * settings )
+  bool InitD3D11QuadRendering( RENDERER_SETTINGS * settings )
   {
-    if (!InitWindow(settings))
-      return false;
-
-    if (!InitDirect3D(settings))
-      return false;
-
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
     if (D3DCompile( defaultVertexShader, strlen(defaultVertexShader), NULL, NULL, NULL, "main", "vs_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
@@ -449,22 +441,38 @@ namespace Renderer
     sampDesc.MaxLOD = FLT_MAX;
     sampDesc.MaxAnisotropy = 1;
     sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    if (pDevice->CreateSamplerState( &sampDesc, &pSamplerState ) != S_OK)
+    if (pDevice->CreateSamplerState( &sampDesc, &pFullscreenQuadSamplerState ) != S_OK)
       return false;
 
     //////////////////////////////////////////////////////////////////////////
 
     D3D11_BUFFER_DESC cbDesc;
     ZeroMemory( &cbDesc, sizeof(D3D11_BUFFER_DESC) );
-    cbDesc.ByteWidth = sizeof( constants );
+    cbDesc.ByteWidth = sizeof( pFullscreenQuadConstants );
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
     ZeroMemory( &subData, sizeof(D3D11_SUBRESOURCE_DATA) );
-    subData.pSysMem = &constants;
+    subData.pSysMem = &pFullscreenQuadConstants;
 
-    if (pDevice->CreateBuffer( &cbDesc, &subData, &pConstantBuffer ) != S_OK)
+    if (pDevice->CreateBuffer( &cbDesc, &subData, &pFullscreenQuadConstantBuffer ) != S_OK)
+      return false;
+
+    return true;
+  }
+
+#define GUIQUADVB_SIZE (128*6)
+
+  bool Open( RENDERER_SETTINGS * settings )
+  {
+    if (!InitWindow(settings))
+      return false;
+
+    if (!InitDirect3D(settings))
+      return false;
+
+    if (!InitD3D11QuadRendering(settings))
       return false;
 
     return true;
@@ -514,8 +522,8 @@ namespace Renderer
     pContext->VSSetShader( pVertexShader, NULL, NULL );
     pContext->PSSetShader( theShader, NULL, NULL );
     pContext->IASetInputLayout( pFullscreenQuadLayout );
-    pContext->PSSetSamplers( 0, 1, &pSamplerState );
-    pContext->PSSetConstantBuffers( 0, 1, &pConstantBuffer );
+    pContext->PSSetSamplers( 0, 1, &pFullscreenQuadSamplerState );
+    pContext->PSSetConstantBuffers( 0, 1, &pFullscreenQuadConstantBuffer );
 
     ID3D11Buffer * buffers[] = { pFullscreenQuadVB };
     UINT stride[] = { sizeof(float) * 5 };
@@ -558,9 +566,9 @@ namespace Renderer
   void __UpdateConstants()
   {
     D3D11_MAPPED_SUBRESOURCE subRes;
-    pContext->Map( pConstantBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
-    CopyMemory( subRes.pData, &constants, sizeof(constants) );
-    pContext->Unmap( pConstantBuffer, NULL );
+    pContext->Map( pFullscreenQuadConstantBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
+    CopyMemory( subRes.pData, &pFullscreenQuadConstants, sizeof(pFullscreenQuadConstants) );
+    pContext->Unmap( pFullscreenQuadConstantBuffer, NULL );
   }
 
   void SetShaderConstant( char * szConstName, float x )
@@ -569,7 +577,7 @@ namespace Renderer
     D3D11_SHADER_VARIABLE_DESC pDesc;
     pCVar->GetDesc( &pDesc );
     
-    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[0] = x;
+    ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[0] = x;
 
     __UpdateConstants();
   }
@@ -580,8 +588,8 @@ namespace Renderer
     D3D11_SHADER_VARIABLE_DESC pDesc;
     pCVar->GetDesc( &pDesc );
 
-    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[0] = x;
-    ((float*)(((unsigned char*)&constants) + pDesc.StartOffset))[1] = y;
+    ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[0] = x;
+    ((float*)(((unsigned char*)&pFullscreenQuadConstants) + pDesc.StartOffset))[1] = y;
 
     __UpdateConstants();
   }
@@ -737,7 +745,6 @@ namespace Renderer
   //////////////////////////////////////////////////////////////////////////
   // text rendering
 
-
   void StartTextRendering()
   {
   }
@@ -830,25 +837,11 @@ namespace Renderer
 
   void SetTextRenderingViewport( Scintilla::PRectangle rect )
   {
-/*
     __FlushRenderCache();
-    D3DXMATRIX mat;
-    D3DXMatrixIdentity( &mat );
-    mat._41 = rect.left;
-    mat._42 = rect.top;
-    pDevice->SetTransform( D3DTS_WORLD, &mat );
-
-    RECT rc = { rect.left, rect.top, rect.right, rect.bottom };
-    pDevice->SetScissorRect( &rc );
-*/
   }
   void EndTextRendering()
   {
-/*
     __FlushRenderCache();
-    pDevice->SetRenderState( D3DRS_SCISSORTESTENABLE, false );
-    pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
-*/
   }
 
 }
