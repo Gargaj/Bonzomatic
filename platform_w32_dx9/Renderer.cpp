@@ -352,21 +352,7 @@ namespace Renderer
     if (d3dpp.BackBufferFormat == D3DFMT_UNKNOWN) 
       return false;
 
-    d3dpp.EnableAutoDepthStencil = TRUE;
-    d3dpp.AutoDepthStencilFormat = D3DFMT_UNKNOWN;
-
-    static D3DFORMAT pDepthFormats[] = {
-      D3DFMT_D16,
-      D3DFMT_D24X8,
-      D3DFMT_D32,
-      D3DFMT_UNKNOWN
-    };
-    for (int i=0; pDepthFormats[i]!=D3DFMT_UNKNOWN; i++)
-      if ( SUCCEEDED(pD3D->CheckDeviceFormat( D3DADAPTER_DEFAULT, DEVTYPE, d3ddm.Format, D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_SURFACE, pDepthFormats[i] )) )
-        d3dpp.AutoDepthStencilFormat = pDepthFormats[i];
-
-    if (d3dpp.AutoDepthStencilFormat == D3DFMT_UNKNOWN) 
-      return false;
+    d3dpp.EnableAutoDepthStencil = FALSE;
 
     static D3DMULTISAMPLE_TYPE pMultisampleTypes[]=
     {
@@ -390,8 +376,6 @@ namespace Renderer
       }
     }
 
-    pDevice->SetRenderState( D3DRS_ZENABLE , D3DZB_FALSE );
-    pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
     pDevice->SetRenderState( D3DRS_LIGHTING, FALSE );
 
     for (int x=0; x<4; x++) 
@@ -426,8 +410,8 @@ namespace Renderer
 
     static float pQuad[] = {
       -1.0, -1.0,  0.0, 0.0, 0.0,
-       1.0, -1.0,  0.0, 1.0, 0.0,
       -1.0,  1.0,  0.0, 0.0, 1.0,
+       1.0, -1.0,  0.0, 1.0, 0.0,
        1.0,  1.0,  0.0, 1.0, 1.0,
     };
 
@@ -498,14 +482,6 @@ namespace Renderer
   void RenderFullscreenQuad()
   {
     pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
-
-    D3DXMATRIX mat;
-    D3DXMatrixIdentity( &mat );
-    pDevice->SetTransform( D3DTS_VIEW, &mat );
-    pDevice->SetTransform( D3DTS_WORLD, &mat );
-    //D3DXMatrixOrthoOffCenterLH( (D3DXMATRIX*)&mat, -1.0f, -1.0, 1.0f, 1.0f, -1.0f, 1.0f );
-    //D3DXMatrixOrthoOffCenterLH( &mat, -1.0, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f );
-    pDevice->SetTransform( D3DTS_PROJECTION, &mat );
 
     pDevice->SetVertexShader( pVertexShader );
     pDevice->SetPixelShader( theShader );
@@ -760,8 +736,8 @@ namespace Renderer
     __WriteVertexToBuffer(b);
     __WriteVertexToBuffer(d);
     __WriteVertexToBuffer(b);
-    __WriteVertexToBuffer(d);
     __WriteVertexToBuffer(c);
+    __WriteVertexToBuffer(d);
   }
 
   void RenderLine( const Vertex & a, const Vertex & b )
