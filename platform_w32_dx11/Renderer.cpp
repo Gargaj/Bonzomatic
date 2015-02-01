@@ -697,6 +697,8 @@ namespace Renderer
   }
   void Close()
   {
+    // TODO: a bunch of other crap needs to be deallocated here but i cant be arsed
+
     if (theShader) theShader->Release();
     if (pShaderReflection) pShaderReflection->Release();
     if (pVertexShader) pVertexShader->Release();
