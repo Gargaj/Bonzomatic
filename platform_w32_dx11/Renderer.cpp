@@ -10,6 +10,7 @@
 #define STBI_HEADER_FILE_ONLY
 #include <stb_image.c>
 #include "../external/scintilla/include/Scintilla.h"
+#include <float.h>
 
 #define DEVTYPE D3DDEVTYPE_HAL
 
@@ -76,9 +77,8 @@ namespace Renderer
     "  float2 v2Resolution;\n"
     "}\n"
     "\n"
-    "float4 main( float2 TexCoord : TEXCOORD0 ) : SV_TARGET\n"
+    "float4 main( float4 position : SV_POSITION, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
     "{\n"
-    "  return float4(1,0,1,1);\n"
     "  float2 uv = TexCoord;\n"
     "  uv -= 0.5;\n"
     "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
@@ -96,8 +96,8 @@ namespace Renderer
     "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
     "}";
   char defaultVertexShader[65536] = 
-    "struct VS_INPUT_PP { float3 Pos : POSITION; float2 TexCoord : TEXCOORD0; };\n"
-    "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float2 TexCoord : TEXCOORD0; };\n"
+    "struct VS_INPUT_PP { float3 Pos : POSITION; float2 TexCoord : TEXCOORD; };\n"
+    "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float2 TexCoord : TEXCOORD; };\n"
     "\n"
     "VS_OUTPUT_PP main( VS_INPUT_PP In )\n"
     "{\n"
@@ -116,7 +116,15 @@ namespace Renderer
   ID3D11VertexShader * pVertexShader = NULL;
   ID3D11PixelShader * theShader = NULL;
   ID3D11ShaderReflection * pShaderReflection = NULL;
+  ID3D11SamplerState * pSamplerState = NULL;
+  ID3D11Buffer * pConstantBuffer = NULL;
 
+  typedef struct {
+    float fGlobalTime;
+    float v2Resolution[3]; // has to be 3 to fill 16byte boundary
+  } VS_CONSTANT_BUFFER;
+
+  VS_CONSTANT_BUFFER constants;
   int nWidth = 0;
   int nHeight = 0;
   HWND hWnd = NULL;
@@ -415,11 +423,53 @@ namespace Renderer
 
     static D3D11_INPUT_ELEMENT_DESC pQuadDesc[] =
     {
-      {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-      {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+      {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
+      {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 3 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
     pDevice->CreateInputLayout( pQuadDesc, 2, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pFullscreenQuadLayout);
+
+    //////////////////////////////////////////////////////////////////////////
+
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width  = settings->nWidth;
+    viewport.Height = settings->nHeight;
+
+    pContext->RSSetViewports(1, &viewport);
+
+    //////////////////////////////////////////////////////////////////////////
+
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc,sizeof(D3D11_SAMPLER_DESC));
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    sampDesc.MinLOD = -FLT_MAX;
+    sampDesc.MaxLOD = FLT_MAX;
+    sampDesc.MaxAnisotropy = 1;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    if (pDevice->CreateSamplerState( &sampDesc, &pSamplerState ) != S_OK)
+      return false;
+
+    //////////////////////////////////////////////////////////////////////////
+
+    D3D11_BUFFER_DESC cbDesc;
+    ZeroMemory( &cbDesc, sizeof(D3D11_BUFFER_DESC) );
+    cbDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER );
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    ZeroMemory( &subData, sizeof(D3D11_SUBRESOURCE_DATA) );
+    subData.pSysMem = &constants;
+
+    if (pDevice->CreateBuffer( &cbDesc, &subData, &pConstantBuffer ) != S_OK)
+      return false;
 
     return true;
   }
@@ -468,6 +518,8 @@ namespace Renderer
     pContext->VSSetShader( pVertexShader, NULL, NULL );
     pContext->PSSetShader( theShader, NULL, NULL );
     pContext->IASetInputLayout( pFullscreenQuadLayout );
+    pContext->PSSetSamplers( 0, 1, &pSamplerState );
+    pContext->PSSetConstantBuffers( 0, 1, &pConstantBuffer );
 
     ID3D11Buffer * buffers[] = { pFullscreenQuadVB };
     UINT stride[] = { sizeof(float) * 5 };
@@ -504,12 +556,25 @@ namespace Renderer
     return true;
   }
 
+  void __UpdateConstants()
+  {
+    D3D11_MAPPED_SUBRESOURCE subRes;
+    pContext->Map( pConstantBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
+    CopyMemory( subRes.pData, &constants, sizeof(VS_CONSTANT_BUFFER) );
+    pContext->Unmap( pConstantBuffer, NULL );
+  }
+
   void SetShaderConstant( char * szConstName, float x )
   {
+    constants.fGlobalTime = x;
+    __UpdateConstants();
   }
 
   void SetShaderConstant( char * szConstName, float x, float y )
   {
+    constants.v2Resolution[0] = x;
+    constants.v2Resolution[1] = y;
+    __UpdateConstants();
   }
 
   struct DX11Texture : public Texture
@@ -552,7 +617,7 @@ namespace Renderer
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
     desc.Width = width;
     desc.Height = height;
-    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.SampleDesc.Count = 1;
