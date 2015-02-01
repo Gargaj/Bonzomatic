@@ -389,7 +389,7 @@ namespace Renderer
 
   LPDIRECT3DVERTEXBUFFER9 pFullscreenQuadVB = NULL;
   LPDIRECT3DVERTEXBUFFER9 pGUIQuadVB = NULL;
-  LPDIRECT3DVERTEXDECLARATION9 pPostProcessVertexDecl = NULL;
+  LPDIRECT3DVERTEXDECLARATION9 pFullscreenQuadVertexDecl = NULL;
 
 #define GUIQUADVB_SIZE (128*6)
 
@@ -421,7 +421,7 @@ namespace Renderer
     CopyMemory( v, pQuad, 4 * 5 * sizeof(float) );
     pFullscreenQuadVB->Unlock();
 
-    pDevice->CreateVertexDeclaration( pFullscreenQuadElements, &pPostProcessVertexDecl );
+    pDevice->CreateVertexDeclaration( pFullscreenQuadElements, &pFullscreenQuadVertexDecl );
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -470,6 +470,11 @@ namespace Renderer
   }
   void Close()
   {
+    if (pFullscreenQuadVB) pFullscreenQuadVB->Release();
+    if (pFullscreenQuadVertexDecl) pFullscreenQuadVertexDecl->Release();
+    if (pGUIQuadVB) pGUIQuadVB->Release();
+    if (pVertexShader) pVertexShader->Release();
+    if (theShader) theShader->Release();
     if (pDevice) pDevice->Release();
     if (pD3D) pD3D->Release();
     if (!hWnd) 
@@ -486,7 +491,7 @@ namespace Renderer
     pDevice->SetVertexShader( pVertexShader );
     pDevice->SetPixelShader( theShader );
     
-    pDevice->SetVertexDeclaration( pPostProcessVertexDecl );
+    pDevice->SetVertexDeclaration( pFullscreenQuadVertexDecl );
     pDevice->SetStreamSource( 0, pFullscreenQuadVB, 0, sizeof(float) * 5 ); 
     pDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
   }

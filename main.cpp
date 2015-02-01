@@ -252,6 +252,12 @@ int main()
 
   FFT::Close();
 
+  Renderer::ReleaseTexture( texFFT );
+  for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
+  {
+    Renderer::ReleaseTexture( it->second );
+  }
+
   Renderer::Close();
   return 0;
 }
