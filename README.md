@@ -27,6 +27,7 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
   },
   "gui":{
     "outputHeight": 200,
+    "opacity": 192, // 255 means the editor occludes the effect completely, 0 means the editor is fully transparent
   }
 }
 ```
@@ -36,7 +37,6 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 
 ## Future features / todo / etc.
 - DX11 version
-- Key or option to adjust editor background opacity?
 - Option for tab sizes / spaces
 - Texture preview?
 
