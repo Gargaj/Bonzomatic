@@ -612,7 +612,7 @@ namespace Renderer
 
     D3D11_BUFFER_DESC cbDesc;
     ZeroMemory( &cbDesc, sizeof(D3D11_BUFFER_DESC) );
-    cbDesc.ByteWidth = sizeof( float ) * 4 * 4;
+    cbDesc.ByteWidth = sizeof( float ) * 4 * 4 * 2;
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -1001,8 +1001,8 @@ namespace Renderer
     *(f++) = v.y;
     *(f++) = 0.0;
     *(unsigned int *)(f++) = v.c;
-    *(f++) = v.u;// + (lastTexture ? (0.5 / (float)lastTexture->width ) : 0.0);
-    *(f++) = v.v;// + (lastTexture ? (0.5 / (float)lastTexture->height) : 0.0);
+    *(f++) = v.u;
+    *(f++) = v.v;
     *(f++) = lastTexture ? 0.0 : 1.0;
     bufferPointer++;
   }
@@ -1010,18 +1010,11 @@ namespace Renderer
   {
     if (lastTexture != tex)
     {
-      //__FlushRenderCache();
       lastTexture = tex;
-
       if (tex)
       {
         DX11Texture * pTex = (DX11Texture *) tex;
         pContext->PSSetShaderResources( 0, 1, &pTex->pResourceView );
-        //pContext->PSSetShader( pGUIPixelShaderTextured, NULL, NULL );
-      }
-      else
-      {
-        //pContext->PSSetShader( pGUIPixelShaderColor, NULL, NULL );
       }
     }
   }
