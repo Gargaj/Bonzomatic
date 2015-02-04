@@ -222,37 +222,6 @@ namespace Renderer
         mouseEventBufferCount++;
       } break;
 
-    case WM_ACTIVATE: 
-      {
-        if((LOWORD(wParam) & WA_ACTIVE) || (LOWORD(wParam) & WA_CLICKACTIVE)) 
-        {
-          //nGotFocus = 1;
-          //bActive = true;
-        } 
-        else 
-        {
-          //nLostFocus = 1;
-          //bActive = false;
-        }
-      } break;
-
-    case WM_SIZE: 
-      {
-        switch (wParam) 
-        {
-        case SIZE_MINIMIZED: 
-          {
-            //nLostFocus = 1;
-          } break;
-        case SIZE_MAXIMIZED:
-        case SIZE_RESTORED:
-          {
-            //nGotFocus = 1;
-          } break;
-        }
-      } break;
-
-
     case WM_SYSCOMMAND: 
       {
         switch (wParam) 
