@@ -515,25 +515,20 @@ namespace Renderer
     return true;
   }
 
-#define GUIQUADVB_SIZE (128*6)
+#define GUIQUADVB_SIZE (1024 * 6)
 
-  char defaultGUIPixelShaderTextured[65536] = 
+  char defaultGUIPixelShader[65536] = 
     "Texture2D tex;\n"
     "SamplerState smp;\n"
-    "float4 main( float4 position : SV_POSITION, float4 Color: COLOR, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
+    "float4 main( float4 position : SV_POSITION, float4 Color: COLOR, float2 TexCoord : TEXCOORD0, float Factor : TEXCOORD1 ) : SV_TARGET\n"
     "{\n"
-    "  return float4( Color.rgb, Color.a * tex.Sample(smp,TexCoord).a );\n"
-    "}\n";
-  char defaultGUIPixelShaderColor[65536] = 
-    "Texture2D tex;\n"
-    "SamplerState smp;\n"
-    "float4 main( float4 position : SV_POSITION, float4 Color: COLOR, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
-    "{\n"
-    "  return Color;\n"
+    "  float4 v4Texture = float4( Color.rgb, Color.a * tex.Sample(smp,TexCoord).a );\n"
+    "  float4 v4Color = Color;\n"
+    "  return lerp( v4Texture, v4Color, Factor );\n"
     "}\n";
   char defaultGUIVertexShader[65536] = 
-    "struct VS_INPUT_PP { float3 Pos : POSITION; float4 Color: COLOR; float2 TexCoord : TEXCOORD; };\n"
-    "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float4 Color: COLOR; float2 TexCoord : TEXCOORD; };\n"
+    "struct VS_INPUT_PP { float3 Pos : POSITION; float4 Color: COLOR; float2 TexCoord : TEXCOORD0; float Factor : TEXCOORD1; };\n"
+    "struct VS_OUTPUT_PP { float4 Pos : SV_POSITION; float4 Color: COLOR; float2 TexCoord : TEXCOORD0; float Factor : TEXCOORD1; };\n"
     "\n"
     "cbuffer c { float4x4 matProj; float2 v2Offset; }\n"
     "\n"
@@ -544,12 +539,12 @@ namespace Renderer
     "  Out.Pos = mul( Out.Pos, matProj );\n"
     "  Out.Color = In.Color;\n"
     "  Out.TexCoord = In.TexCoord;\n"
+    "  Out.Factor = In.Factor;\n"
     "  return Out;\n"
     "}\n";
 
   ID3D11VertexShader * pGUIVertexShader = NULL;
-  ID3D11PixelShader * pGUIPixelShaderTextured = NULL;
-  ID3D11PixelShader * pGUIPixelShaderColor = NULL;
+  ID3D11PixelShader * pGUIPixelShader = NULL;
   ID3D11Buffer * pGUIQuadVB = NULL;
   ID3D11InputLayout * pGUIQuadLayout = NULL;
   ID3D11Buffer * pGUIConstantBuffer = NULL;
@@ -573,22 +568,12 @@ namespace Renderer
   {
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
-    if (D3DCompile( defaultGUIPixelShaderTextured, strlen(defaultGUIPixelShaderTextured), NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
+    if (D3DCompile( defaultGUIPixelShader, strlen(defaultGUIPixelShader), NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
       return false;
     }
 
-    if (pDevice->CreatePixelShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pGUIPixelShaderTextured ) != S_OK)
-    {
-      return false;
-    }
-
-    if (D3DCompile( defaultGUIPixelShaderColor, strlen(defaultGUIPixelShaderColor), NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
-    {
-      return false;
-    }
-
-    if (pDevice->CreatePixelShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pGUIPixelShaderColor ) != S_OK)
+    if (pDevice->CreatePixelShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pGUIPixelShader ) != S_OK)
     {
       return false;
     }
@@ -606,7 +591,7 @@ namespace Renderer
     D3D11_BUFFER_DESC desc;
     ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
 
-    desc.ByteWidth = sizeof(float) * 6 * GUIQUADVB_SIZE;
+    desc.ByteWidth = sizeof(float) * 7 * GUIQUADVB_SIZE;
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -619,9 +604,10 @@ namespace Renderer
       {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
       {"COLOR"   , 0, DXGI_FORMAT_R8G8B8A8_UNORM , 0, 3 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
       {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 4 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
+      {"TEXCOORD", 1, DXGI_FORMAT_R32_FLOAT      , 0, 6 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    if (pDevice->CreateInputLayout( pGUIDesc, 3, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pGUIQuadLayout) != S_OK)
+    if (pDevice->CreateInputLayout( pGUIDesc, 4, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pGUIQuadLayout) != S_OK)
       return false;
 
     D3D11_BUFFER_DESC cbDesc;
@@ -956,24 +942,30 @@ namespace Renderer
   //////////////////////////////////////////////////////////////////////////
   // text rendering
 
+  int nDrawCallCount = 0;
+  Texture * lastTexture = NULL;
   void StartTextRendering()
   {
     float factor[4] = { 1.0, 1.0, 1.0, 1.0 };
     pContext->VSSetShader( pGUIVertexShader, NULL, NULL );
+    pContext->PSSetShader( pGUIPixelShader, NULL, NULL );
     pContext->IASetInputLayout( pGUIQuadLayout );
     pContext->VSSetConstantBuffers( 0, 1, &pGUIConstantBuffer );
     pContext->OMSetBlendState( pGUIBlendState, factor, 0xFFFFFFFF );
     pContext->RSSetState( pGUIRasterizerState );
 
     ID3D11Buffer * buffers[] = { pGUIQuadVB };
-    UINT stride[] = { sizeof(float) * 6 };
+    UINT stride[] = { sizeof(float) * 7 };
     UINT offset[] = { 0 };
 
     pContext->IASetVertexBuffers( 0, 1, buffers, stride, offset );
+    lastTexture = NULL;
+    
+    nDrawCallCount = 0;
   }
 
   int bufferPointer = 0;
-  unsigned char buffer[GUIQUADVB_SIZE * sizeof(float) * 6];
+  unsigned char buffer[GUIQUADVB_SIZE * sizeof(float) * 7];
   bool lastModeIsQuad = true;
   void __FlushRenderCache()
   {
@@ -981,7 +973,7 @@ namespace Renderer
 
     D3D11_MAPPED_SUBRESOURCE subRes;
     pContext->Map( pGUIQuadVB, 0, D3D11_MAP_WRITE_DISCARD, NULL, &subRes );
-    CopyMemory( subRes.pData, buffer, bufferPointer * sizeof(float) * 6 );
+    CopyMemory( subRes.pData, buffer, bufferPointer * sizeof(float) * 7 );
     pContext->Unmap( pGUIQuadVB, 0 );
 
     if (lastModeIsQuad)
@@ -993,10 +985,10 @@ namespace Renderer
       pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_LINELIST );
     }
     pContext->Draw( bufferPointer, 0 );
+    nDrawCallCount++;
 
     bufferPointer = 0;
   }
-  Texture * lastTexture = NULL;
   void __WriteVertexToBuffer( const Vertex & v )
   {
     if (bufferPointer >= GUIQUADVB_SIZE)
@@ -1004,31 +996,32 @@ namespace Renderer
       __FlushRenderCache();
     }
 
-    float * f = (float*)(buffer + bufferPointer * sizeof(float) * 6);
+    float * f = (float*)(buffer + bufferPointer * sizeof(float) * 7);
     *(f++) = v.x;
     *(f++) = v.y;
     *(f++) = 0.0;
     *(unsigned int *)(f++) = v.c;
     *(f++) = v.u;// + (lastTexture ? (0.5 / (float)lastTexture->width ) : 0.0);
     *(f++) = v.v;// + (lastTexture ? (0.5 / (float)lastTexture->height) : 0.0);
+    *(f++) = lastTexture ? 0.0 : 1.0;
     bufferPointer++;
   }
   void BindTexture( Texture * tex )
   {
     if (lastTexture != tex)
     {
-      __FlushRenderCache();
+      //__FlushRenderCache();
       lastTexture = tex;
 
       if (tex)
       {
         DX11Texture * pTex = (DX11Texture *) tex;
         pContext->PSSetShaderResources( 0, 1, &pTex->pResourceView );
-        pContext->PSSetShader( pGUIPixelShaderTextured, NULL, NULL );
+        //pContext->PSSetShader( pGUIPixelShaderTextured, NULL, NULL );
       }
       else
       {
-        pContext->PSSetShader( pGUIPixelShaderColor, NULL, NULL );
+        //pContext->PSSetShader( pGUIPixelShaderColor, NULL, NULL );
       }
     }
   }
