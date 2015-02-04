@@ -688,8 +688,21 @@ namespace Renderer
     if (theShader) theShader->Release();
     if (pShaderReflection) pShaderReflection->Release();
     if (pVertexShader) pVertexShader->Release();
+
     if (pFullscreenQuadLayout) pFullscreenQuadLayout->Release();
     if (pFullscreenQuadVB) pFullscreenQuadVB->Release();
+    if (pFullscreenQuadSamplerState) pFullscreenQuadSamplerState->Release();
+    if (pFullscreenQuadConstantBuffer) pFullscreenQuadConstantBuffer->Release();
+    if (pFullscreenQuadBlendState) pFullscreenQuadBlendState->Release();
+    if (pFullscreenQuadRasterizerState) pFullscreenQuadRasterizerState->Release();
+
+    if (pGUIRasterizerState) pGUIRasterizerState->Release();
+    if (pGUIBlendState) pGUIBlendState->Release();
+    if (pGUIConstantBuffer) pGUIConstantBuffer->Release();
+    if (pGUIPixelShader) pGUIPixelShader->Release();
+    if (pGUIVertexShader) pGUIVertexShader->Release();
+    if (pGUIQuadLayout) pGUIQuadLayout->Release();
+    if (pGUIQuadVB) pGUIQuadVB->Release();
 
     if (pRenderTarget) pRenderTarget->Release();
     if (pContext) pContext->Release();
