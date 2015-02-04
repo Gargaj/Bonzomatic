@@ -43,7 +43,7 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
-- Riverwash LiveCoding Tool by Michał Staniszewski (http://www.plastic-demo.org/)
+- Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org/)
 
 ### Libraries and other included software
 - Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
