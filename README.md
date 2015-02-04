@@ -51,7 +51,6 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 - BASS.DLL by Ian Luck (http://www.un4seen.com/)
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - Simple DirectMedia Layer by the SDL dev team (https://www.libsdl.org/)
-- ProFont by Tobias Jung (http://tobiasjung.name/profont/)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
  
 These software are available under their respective licenses.
