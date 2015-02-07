@@ -36,7 +36,6 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 Please use Visual C++ 2010 - nothing else is needed right now.
 
 ## Future features / todo / etc.
-- DX11 version
 - Option for tab sizes / spaces
 - Texture preview?
 
