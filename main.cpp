@@ -5,6 +5,7 @@
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
+#include "MIDI.h"
 #include "Timer.h"
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
@@ -31,7 +32,11 @@ int main()
   if (!FFT::Open())
     return -1;
 
+  if (!MIDI::Open())
+    return -1;
+
   std::map<std::string,Renderer::Texture*> textures;
+  std::map<int,std::string> midiRoutes;
 
   int nFontSize = 16;
 #ifdef _WIN32
@@ -79,6 +84,14 @@ int main()
         nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
         nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+    }
+    if (o.has<jsonxx::Object>("midi"))
+    {
+      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
+      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+      {
+        midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
+      }
     }
   }
 
@@ -206,8 +219,12 @@ int main()
     Renderer::keyEventBufferCount = 0;
 
     Renderer::SetShaderConstant( "fGlobalTime", time );
-
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
+
+    for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
+    {
+      Renderer::SetShaderConstant( (char*)it->second.c_str(), MIDI::GetCCValue( it->first ) );
+    }
 
 
     static float fftData[FFT_SIZE];
@@ -250,6 +267,7 @@ int main()
 
   delete surface;
 
+  MIDI::Close();
   FFT::Close();
 
   Renderer::ReleaseTexture( texFFT );

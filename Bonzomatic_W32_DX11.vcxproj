@@ -62,7 +62,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>bass.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bass.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;DXGI.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>bass.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bass.lib;d3d11.lib;d3dcompiler.lib;dxguid.lib;DXGI.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -223,6 +223,7 @@
     <ClCompile Include="external\stb_image.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Platform.cpp" />
+    <ClCompile Include="platform_w32_common\MIDI.cpp" />
     <ClCompile Include="platform_w32_dx11\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
