@@ -83,6 +83,8 @@ int main()
     {
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
         nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
+        nTexPreviewWidth = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
         nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
     }
