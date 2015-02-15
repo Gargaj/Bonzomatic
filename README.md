@@ -3,7 +3,7 @@
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
 
-![Screenshot](http://i.imgur.com/ohdzWmDl.jpg)
+![Screenshot](http://i.imgur.com/8K8IztLl.jpg)
 
 The tool was originally conceived and implemented after the Revision 2014 demoscene party's live coding competition where two contestants improv-code an effect in 25 minutes head-to-head: https://www.youtube.com/watch?v=-5P9rRUXaR0
 
