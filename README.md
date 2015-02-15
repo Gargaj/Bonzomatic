@@ -28,6 +28,7 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
   "gui":{
     "outputHeight": 200,
     "opacity": 192, // 255 means the editor occludes the effect completely, 0 means the editor is fully transparent
+    "texturePreviewWidth": 64,
   },
   "midi":{ /* the keys below will become the shader variable names, the values are the CC numbers */
     "fMidiKnob": 16, /* e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2 */
