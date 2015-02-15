@@ -69,6 +69,9 @@ public:
 
   void Initialise();
   void Initialise(SHADEREDITOR_OPTIONS &options);
+
+  void SetPosition( Scintilla::PRectangle rect );
+
   void SetVerticalScrollPos();
   void SetHorizontalScrollPos();
   bool ModifyScrollBars(int nMax, int nPage);

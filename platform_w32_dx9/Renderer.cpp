@@ -151,6 +151,7 @@ namespace Renderer
 //         case VK_LEFTBRACKET:  sciKey = '[';           break;
 //         case VK_BACKSLASH:    sciKey = '\\';          break;
 //         case VK_RIGHTBRACKET: sciKey = ']';           break;
+        case VK_F2:         sciKey = 283;      break;
         case VK_F5:         sciKey = 286;      break;
         case VK_F11:        sciKey = 292;      break;
         case VK_SHIFT:
@@ -586,19 +587,25 @@ namespace Renderer
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
-    pDevice->CreateTexture( w, h, 0, NULL, D3DFMT_A8, D3DPOOL_MANAGED, &pTex, NULL );
+    pDevice->CreateTexture( w, h, 0, NULL, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTex, NULL );
 
     if (!pTex)
       return NULL;
 
     D3DLOCKED_RECT rect;
     pTex->LockRect( 0, &rect, NULL, NULL );
-    //memset( rect.pBits, 0, w * sizeof(float) );
     unsigned char * src = data;
     unsigned char * dst = (unsigned char *)rect.pBits;
     for (int i=0; i<h; i++)
     {
-      memcpy( dst, src, w * sizeof(unsigned char) );
+      unsigned char * srcLine = src;
+      unsigned int * dstLine = (unsigned int *)dst;
+      for (int j=0; j<w; j++)
+      {
+        *dstLine = (*srcLine << 24) | 0xFFFFFF;
+        srcLine++;
+        dstLine++;
+      }
       src += w * sizeof(unsigned char);
       dst += rect.Pitch;
     }
@@ -634,8 +641,9 @@ namespace Renderer
     D3DXMatrixOrthoOffCenterLH( (D3DXMATRIX*)&mat, 0, nWidth, nHeight, 0, -1.0f, 1.0f );
     pDevice->SetTransform( D3DTS_PROJECTION, &mat );
 
-    pDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_SELECTARG1 );
+    pDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
     pDevice->SetTextureStageState( 0, D3DTSS_COLORARG1, D3DTA_DIFFUSE );
+    pDevice->SetTextureStageState( 0, D3DTSS_COLORARG2, D3DTA_TEXTURE );
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE );
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE );

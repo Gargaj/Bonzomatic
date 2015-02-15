@@ -139,7 +139,7 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
   sFontFile = options.sFontPath;
   nOpacity = options.nOpacity;
   Initialise();
-  wMain.SetPosition(options.rect);
+  SetPosition( options.rect );
 }
 
 void ShaderEditor::SetVerticalScrollPos()
@@ -329,4 +329,9 @@ void ShaderEditor::ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctr
 Font * ShaderEditor::GetTextFont()
 {
   return &vs.styles[ STYLE_DEFAULT ].font;
+}
+
+void ShaderEditor::SetPosition( Scintilla::PRectangle rect )
+{
+  wMain.SetPosition(rect);
 }

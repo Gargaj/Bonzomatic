@@ -161,6 +161,7 @@ namespace Renderer
 //         case VK_LEFTBRACKET:  sciKey = '[';           break;
 //         case VK_BACKSLASH:    sciKey = '\\';          break;
 //         case VK_RIGHTBRACKET: sciKey = ']';           break;
+        case VK_F2:         sciKey = 283;      break;
         case VK_F5:         sciKey = 286;      break;
         case VK_F11:        sciKey = 292;      break;
         case VK_SHIFT:
@@ -491,7 +492,7 @@ namespace Renderer
     "SamplerState smp;\n"
     "float4 main( float4 position : SV_POSITION, float4 Color: COLOR, float2 TexCoord : TEXCOORD0, float Factor : TEXCOORD1 ) : SV_TARGET\n"
     "{\n"
-    "  float4 v4Texture = float4( Color.rgb, Color.a * tex.Sample(smp,TexCoord).a );\n"
+    "  float4 v4Texture = Color * tex.Sample(smp,TexCoord);//float4( Color.rgb, Color.a * .a );\n"
     "  float4 v4Color = Color;\n"
     "  return lerp( v4Texture, v4Color, Factor );\n"
     "}\n";
@@ -888,21 +889,26 @@ namespace Renderer
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
     desc.Width = w;
     desc.Height = h;
-    desc.Format = DXGI_FORMAT_A8_UNORM;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.SampleDesc.Count = 1;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
+    unsigned int * p = new unsigned int[ w * h ];
+    for (int i=0; i < w * h; i++)
+      p[i] = (data[i] << 24) | 0xFFFFFF;
     D3D11_SUBRESOURCE_DATA subData;
     ZeroMemory(&subData,sizeof(D3D11_SUBRESOURCE_DATA));
-    subData.pSysMem = data;
-    subData.SysMemPitch = w * sizeof(unsigned char);
+    subData.pSysMem = p;
+    subData.SysMemPitch = w * sizeof(unsigned int);
 
     ID3D11Texture2D * pTex = NULL;
 
     if (pDevice->CreateTexture2D( &desc, &subData, &pTex ) != S_OK)
       return NULL;
+
+    delete[] p;
 
     DX11Texture * tex = new DX11Texture();
     tex->width = w;
@@ -995,6 +1001,7 @@ namespace Renderer
       lastTexture = tex;
       if (tex)
       {
+        __FlushRenderCache();
         DX11Texture * pTex = (DX11Texture *) tex;
         pContext->PSSetShaderResources( 0, 1, &pTex->pResourceView );
       }

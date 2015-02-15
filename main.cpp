@@ -47,6 +47,7 @@ int main()
   unsigned char nOpacity = 0xC0;
 
   int nDebugOutputHeight = 200;
+  int nTexPreviewWidth = 64;
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -129,16 +130,18 @@ int main()
 
   int nMargin = 20;
 
+  bool bTexPreviewVisible = true;
+
   SHADEREDITOR_OPTIONS options;
   options.sFontPath = sFontPath;
   options.nFontSize = nFontSize;
   options.nOpacity = nOpacity;
-  options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
+  options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise( options );
   mShaderEditor.SetText( szShader );
 
-  options.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin, settings.nHeight - nMargin );
+  options.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin );
   ShaderEditor mDebugOutput( surface );
   mDebugOutput.Initialise( options );
   mDebugOutput.SetText( "" );
@@ -175,7 +178,22 @@ int main()
 
     for(int i=0; i<Renderer::keyEventBufferCount; i++)
     {
-      if (Renderer::keyEventBuffer[i].scanCode == 286) // F5
+      if (Renderer::keyEventBuffer[i].scanCode == 283) // F2
+      {
+        if (bTexPreviewVisible)
+        {
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin, settings.nHeight - nMargin ) );
+          bTexPreviewVisible = false;
+        }
+        else
+        {
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin ) );
+          bTexPreviewVisible = true;
+        }
+      }
+      else if (Renderer::keyEventBuffer[i].scanCode == 286) // F5
       {
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
@@ -255,7 +273,28 @@ int main()
       mDebugOutput.Paint();
 
       Renderer::SetTextRenderingViewport( Scintilla::PRectangle(0,0,Renderer::nWidth,Renderer::nHeight) );
-      char szHelp[] = "F5 - recompile shader   F11 - hide GUI";
+
+      if (bTexPreviewVisible)
+      {
+        int y1 = nMargin;
+        int x1 = settings.nWidth - nMargin - nTexPreviewWidth;
+        int x2 = settings.nWidth - nMargin;
+        for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
+        {
+          int y2 = y1 + nTexPreviewWidth * (it->second->width / (float)it->second->height);
+          Renderer::BindTexture( it->second );
+          Renderer::RenderQuad(
+            Renderer::Vertex( x1, y1, 0xFFFFFFFF, 0.0, 0.0 ),
+            Renderer::Vertex( x2, y1, 0xFFFFFFFF, 1.0, 0.0 ),
+            Renderer::Vertex( x2, y2, 0xFFFFFFFF, 1.0, 1.0 ),
+            Renderer::Vertex( x1, y2, 0xFFFFFFFF, 0.0, 1.0 )
+          );
+          surface->DrawTextNoClip( Scintilla::PRectangle(x1,y1,x2,y2), *mShaderEditor.GetTextFont(), y2 - 5.0, it->first.c_str(), it->first.length(), 0xffFFFFFF, 0x00000000);
+          y1 = y2 + nMargin;
+        }
+      }
+
+      char szHelp[] = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI";
       surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, szHelp, strlen(szHelp), 0x80FFFFFF, 0x00000000);
     }
 
