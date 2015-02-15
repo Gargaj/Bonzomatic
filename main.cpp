@@ -286,10 +286,10 @@ int main()
           int y2 = y1 + nTexPreviewWidth * (it->second->width / (float)it->second->height);
           Renderer::BindTexture( it->second );
           Renderer::RenderQuad(
-            Renderer::Vertex( x1, y1, 0xFFFFFFFF, 0.0, 0.0 ),
-            Renderer::Vertex( x2, y1, 0xFFFFFFFF, 1.0, 0.0 ),
-            Renderer::Vertex( x2, y2, 0xFFFFFFFF, 1.0, 1.0 ),
-            Renderer::Vertex( x1, y2, 0xFFFFFFFF, 0.0, 1.0 )
+            Renderer::Vertex( x1, y1, 0xccFFFFFF, 0.0, 0.0 ),
+            Renderer::Vertex( x2, y1, 0xccFFFFFF, 1.0, 0.0 ),
+            Renderer::Vertex( x2, y2, 0xccFFFFFF, 1.0, 1.0 ),
+            Renderer::Vertex( x1, y2, 0xccFFFFFF, 0.0, 1.0 )
           );
           surface->DrawTextNoClip( Scintilla::PRectangle(x1,y1,x2,y2), *mShaderEditor.GetTextFont(), y2 - 5.0, it->first.c_str(), it->first.length(), 0xffFFFFFF, 0x00000000);
           y1 = y2 + nMargin;
