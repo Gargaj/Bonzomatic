@@ -27,7 +27,7 @@ const char * shaderType =
   "usampler1D usampler2D usampler3D "
   "sampler1DShadow sampler2DShadow sampler1DArray sampler2DArray "
   "sampler1DArrayShadow sampler2DArrayShadow "
-  "samplerCube samperCubeShadow samperCubeArrayShadow ";
+  "samplerCube samplerCubeShadow samplerCubeArrayShadow ";
 
 const char * shaderBuiltin = 
   "radians degrees sin cos tan asin acos atan sinh "
