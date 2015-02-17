@@ -109,17 +109,18 @@ void ShaderEditor::Initialise()
     WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
   }
   WndProc(SCI_SETUSETABS, 1, NULL);
-  WndProc(SCI_SETTABWIDTH, 4, NULL);
+  WndProc(SCI_SETTABWIDTH, 2, NULL);
   WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
 
-  lexState->SetLexer( SCLEX_CPPNOCASE );
+  lexState->SetLexer( SCLEX_CPP );
   lexState->SetWordList(0, shaderKeyword);
   lexState->SetWordList(1, shaderType);
-  lexState->SetWordList(4, shaderBuiltin);
+  lexState->SetWordList(3, shaderBuiltin);
 
   SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
   SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_WORD2,        0xFFFFFF00, BACKGROUND( 0x000000 ));
+  SetAStyle(SCE_C_GLOBALCLASS,  0xFF88FF44, BACKGROUND( 0x000000 ));  
   SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_NUMBER,       0xFF0080FF, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_OPERATOR,     0xFF00CCFF, BACKGROUND( 0x000000 ));
