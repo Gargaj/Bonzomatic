@@ -120,9 +120,14 @@ namespace Renderer
     "\n"
     "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
     "\n"
+    "vec4 plas( vec2 v, float time )\n"
+    "{\n"
+    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "  return vec4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "}\n"
     "void main(void)\n"
     "{\n"
-    "  vec2 uv = gl_TexCoord[0].xy;\n";
+    "  vec2 uv = gl_TexCoord[0].xy;\n"
     "  uv -= 0.5;\n"
     "  uv /= vec2(v2Resolution.y / v2Resolution.x, 1);\n"
     "\n"
@@ -135,8 +140,9 @@ namespace Renderer
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  vec4 t = texture( texTex2, m.xy ) * d; // or /d\n"
-    "  out_color = f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
+    "  vec4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "  t = clamp( t, 0.0, 1.0 );\n"
+    "  out_color = f + t;\n"
     "}";
 
   SDL_Surface * mScreen = NULL;

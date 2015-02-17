@@ -72,6 +72,11 @@ namespace Renderer
     "float fGlobalTime; // in seconds\n"
     "float2 v2Resolution; // viewport resolution (in pixels)\n"
     "\n"
+    "float4 plas( float2 v, float time )\n"
+    "{\n"
+    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "  return float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "}\n"
     "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
     "{\n"
     "  float2 uv = TexCoord;\n"
@@ -87,8 +92,9 @@ namespace Renderer
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  float4 t = tex2D( texTex2, m.xy ) * d; // or /d\n"
-    "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
+    "  float4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "  t = saturate( t );\n"
+    "  return f + t;\n"
     "}";
   char defaultVertexShader[65536] = 
     "struct VS_INPUT_PP { float3 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"

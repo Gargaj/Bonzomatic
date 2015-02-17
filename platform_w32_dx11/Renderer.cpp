@@ -77,6 +77,11 @@ namespace Renderer
     "{%midi:end%}"
     "}\n"
     "\n"
+    "float4 plas( float2 v, float time )\n"
+    "{\n"
+    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "  return float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "}\n"
     "float4 main( float4 position : SV_POSITION, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
     "{\n"
     "  float2 uv = TexCoord;\n"
@@ -92,8 +97,9 @@ namespace Renderer
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  float4 t = texTex2.Sample( smp, m.xy ) * d; // or /d\n"
-    "  return f + t;// + uv.xyxy * 0.5 * (sin( fGlobalTime ) + 1.5);\n"
+    "  float4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "  t = saturate( t );\n"
+    "  return f + t;\n"
     "}";
 
   char defaultVertexShader[65536] = 
