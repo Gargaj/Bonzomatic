@@ -10,6 +10,35 @@
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
 
+void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
+{
+  if (sDefShader.find(sTokenBegin) != std::string::npos
+    && sDefShader.find(sTokenName) != std::string::npos
+    && sDefShader.find(sTokenEnd) != std::string::npos
+    && sDefShader.find(sTokenBegin) < sDefShader.find(sTokenName)
+    && sDefShader.find(sTokenName) < sDefShader.find(sTokenEnd))
+  {
+    int nTokenStart = sDefShader.find(sTokenBegin) + strlen(sTokenBegin);
+    std::string sTextureToken = sDefShader.substr( nTokenStart, sDefShader.find(sTokenEnd) - nTokenStart );
+
+    std::string sFinalShader;
+    sFinalShader = sDefShader.substr( 0, sDefShader.find(sTokenBegin) );
+
+    //for (std::map<std::string, Renderer::Texture*>::iterator it = tokens.begin(); it != tokens.end(); it++)
+    for (int i=0; i < tokens.size(); i++)
+    {
+      std::string s = sTextureToken;
+      while (s.find(sTokenName) != std::string::npos)
+      {
+        s.replace( s.find(sTokenName), strlen(sTokenName), tokens[i], 0, std::string::npos );
+      }
+      sFinalShader += s;
+    }
+    sFinalShader += sDefShader.substr( sDefShader.find(sTokenEnd) + strlen(sTokenEnd), std::string::npos );
+    sDefShader = sFinalShader;
+  }
+}
+
 int main()
 {
   RENDERER_SETTINGS settings;
@@ -116,7 +145,19 @@ int main()
   }
   if (!shaderInitSuccessful)
   {
-    strncpy( szShader, Renderer::defaultShader, 65535 );
+    std::string sDefShader = Renderer::defaultShader;
+
+    std::vector<std::string> tokens;
+    for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
+      tokens.push_back(it->first);
+    ReplaceTokens(sDefShader, "{%textures:begin%}", "{%textures:name%}", "{%textures:end%}", tokens);
+
+    tokens.clear();
+    for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
+      tokens.push_back(it->second);
+    ReplaceTokens(sDefShader, "{%midi:begin%}", "{%midi:name%}", "{%midi:end%}", tokens);
+
+    strncpy( szShader, sDefShader.c_str(), 65535 );
     if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
       puts(szError);

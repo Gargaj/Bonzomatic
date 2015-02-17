@@ -60,15 +60,17 @@ namespace Renderer
   char * defaultShaderFilename = "shader.dx9.hlsl";
   char defaultShader[65536] = 
     "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
-    "texture texTNoise; sampler2D texNoise = sampler_state { Texture = <texTNoise>; };\n"
-    "texture texTChecker; sampler2D texChecker = sampler_state { Texture = <texTChecker>; };\n"
-    "texture texTTex1; sampler2D texTex1 = sampler_state { Texture = <texTTex1>; };\n"
-    "texture texTTex2; sampler2D texTex2 = sampler_state { Texture = <texTTex2>; };\n"
-    "texture texTTex3; sampler2D texTex3 = sampler_state { Texture = <texTTex3>; };\n"
-    "texture texTTex4; sampler2D texTex4 = sampler_state { Texture = <texTTex4>; };\n"
+    "// towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "\n"
-    "float fGlobalTime;\n"
-    "float2 v2Resolution;\n"
+    "{%textures:begin%}" // leave off \n here
+    "texture raw{%textures:name%}; sampler2D {%textures:name%} = sampler_state { Texture = <raw{%textures:name%}>; };\n"
+    "{%textures:end%}"
+    "\n"
+    "{%midi:begin%}" // leave off \n here
+    "float {%midi:name%};\n"
+    "{%midi:end%}"
+    "float fGlobalTime; // in seconds\n"
+    "float2 v2Resolution; // viewport resolution (in pixels)\n"
     "\n"
     "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
     "{\n"

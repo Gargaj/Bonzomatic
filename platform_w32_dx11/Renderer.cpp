@@ -62,19 +62,19 @@ namespace Renderer
 {
   char * defaultShaderFilename = "shader.dx11.hlsl";
   char defaultShader[65536] = 
-    "Texture2D texFFT;\n"
-    "Texture2D texNoise;\n"
-    "Texture2D texChecker;\n"
-    "Texture2D texTex1;\n"
-    "Texture2D texTex2;\n"
-    "Texture2D texTex3;\n"
-    "Texture2D texTex4;\n"
+    "{%textures:begin%}" // leave off \n here
+    "Texture2D {%textures:name%};\n"
+    "{%textures:end%}" // leave off \n here
+    "Texture1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "SamplerState smp;\n"
     "\n"
     "cbuffer constants\n"
     "{\n"
-    "  float fGlobalTime;\n"
-    "  float2 v2Resolution;\n"
+    "  float fGlobalTime; // in seconds\n"
+    "  float2 v2Resolution; // viewport resolution (in pixels)\n"
+    "{%midi:begin%}"
+    "  float {%midi:name%};\n"
+    "{%midi:end%}"
     "}\n"
     "\n"
     "float4 main( float4 position : SV_POSITION, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
@@ -385,7 +385,8 @@ namespace Renderer
   ID3D11InputLayout * pFullscreenQuadLayout = NULL;
   ID3D11SamplerState * pFullscreenQuadSamplerState = NULL;
   ID3D11Buffer * pFullscreenQuadConstantBuffer = NULL;
-  unsigned char pFullscreenQuadConstants[128];
+#define FULLSCREENQUADCONSTANTS_SIZE 512
+  unsigned char pFullscreenQuadConstants[FULLSCREENQUADCONSTANTS_SIZE];
   ID3D11BlendState* pFullscreenQuadBlendState = NULL;
   ID3D11RasterizerState * pFullscreenQuadRasterizerState = NULL;
 
