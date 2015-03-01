@@ -108,10 +108,17 @@ void ShaderEditor::Initialise()
     WndProc(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
     WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
   }
-  WndProc(SCI_SETUSETABS, 1, NULL);
-  WndProc(SCI_SETTABWIDTH, 2, NULL);
+  WndProc(SCI_SETUSETABS, bUseSpacesForTabs ? 0 : 1, NULL);
+  WndProc(SCI_SETTABWIDTH, nTabSize, NULL);
   WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
 
+  if (bVisibleWhitespace)
+  {
+    WndProc(SCI_SETVIEWWS, SCWS_VISIBLEALWAYS, NULL);
+    WndProc(SCI_SETWHITESPACEFORE, 1, 0x30FFFFFF);
+    WndProc(SCI_SETWHITESPACESIZE, 2, NULL );
+  }
+  
   lexState->SetLexer( SCLEX_CPP );
   lexState->SetWordList(0, shaderKeyword);
   lexState->SetWordList(1, shaderType);
@@ -126,7 +133,7 @@ void ShaderEditor::Initialise()
   SetAStyle(SCE_C_OPERATOR,     0xFF00CCFF, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_COMMENT,      0xFF00FF00, BACKGROUND( 0x000000 ));
   SetAStyle(SCE_C_COMMENTLINE,  0xFF00FF00, BACKGROUND( 0x000000 ));
-
+  
   lexState->Colourise( 0, -1 );
 
   //WndProc( SCI_COLOURISE, NULL, NULL );
@@ -139,6 +146,10 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
   nFontSize = options.nFontSize;
   sFontFile = options.sFontPath;
   nOpacity = options.nOpacity;
+  bUseSpacesForTabs = options.bUseSpacesForTabs;
+  nTabSize = options.nTabSize;
+  bVisibleWhitespace = options.bVisibleWhitespace;
+
   Initialise();
   SetPosition( options.rect );
 }
@@ -285,6 +296,7 @@ void ShaderEditor::SetReadOnly( bool b )
   WndProc( SCI_SETREADONLY, bReadOnly, NULL );
   if (bReadOnly)
   {
+    WndProc(SCI_SETVIEWWS, SCWS_INVISIBLE, NULL);
     WndProc(SCI_SETMARGINWIDTHN, 0, 0);
     WndProc(SCI_SETMARGINWIDTHN, 1, 0);
     WndProc( SCI_SETCARETLINEVISIBLE,   0, NULL);

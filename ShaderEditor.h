@@ -53,6 +53,9 @@ struct SHADEREDITOR_OPTIONS {
   int nFontSize;
   Scintilla::PRectangle rect;
   unsigned char nOpacity;
+  bool bUseSpacesForTabs;
+  int nTabSize;
+  bool bVisibleWhitespace;
 };
 
 class ShaderEditor : public Scintilla::Editor
@@ -60,10 +63,15 @@ class ShaderEditor : public Scintilla::Editor
   Scintilla::Surface *surfaceWindow;
   Scintilla::LexState * lexState;
   bool bReadOnly;
+  bool bHasMouseCapture;
+
   std::string sFontFile;
   int nFontSize;
-  bool bHasMouseCapture;
   unsigned char nOpacity;
+  bool bUseSpacesForTabs;
+  int nTabSize;
+  bool bVisibleWhitespace;
+
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
 

@@ -67,16 +67,21 @@ int main()
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
 
-  int nFontSize = 16;
+  SHADEREDITOR_OPTIONS options;
+  options.nFontSize = 16;
 #ifdef _WIN32
-  std::string sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+  options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
 #else
-  std::string sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
+  options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
-  unsigned char nOpacity = 0xC0;
+  options.nOpacity = 0xC0;
+  options.bUseSpacesForTabs = true;
+  options.nTabSize = 2;
+  options.bVisibleWhitespace = false;
 
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
+
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -104,9 +109,9 @@ int main()
     if (o.has<jsonxx::Object>("font"))
     {
       if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
-        nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
+        options.nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
       if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
-        sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+        options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
     }
     if (o.has<jsonxx::Object>("gui"))
     {
@@ -115,7 +120,13 @@ int main()
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
         nTexPreviewWidth = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
-        nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+        options.nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
+        options.bUseSpacesForTabs = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
+        options.nTabSize = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
+      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
+        options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
     }
     if (o.has<jsonxx::Object>("midi"))
     {
@@ -175,10 +186,6 @@ int main()
 
   bool bTexPreviewVisible = true;
 
-  SHADEREDITOR_OPTIONS options;
-  options.sFontPath = sFontPath;
-  options.nFontSize = nFontSize;
-  options.nOpacity = nOpacity;
   options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise( options );
