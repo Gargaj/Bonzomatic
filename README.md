@@ -44,7 +44,6 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 
 ## Future features / todo / etc.
 - Option for tab sizes / spaces
-- Texture preview?
 
 ## Credits and acknowledgements
 ### Original / parent project authors
