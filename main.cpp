@@ -81,7 +81,7 @@ int main()
 
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
-  float fFFTSmoothingFactor = 0.9f;
+  float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -93,6 +93,12 @@ int main()
 
     jsonxx::Object o;
     o.parse( szConfig );
+
+    if (o.has<jsonxx::Object>("rendering"))
+    {
+      if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
+        fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
+    }
 
     if (o.has<jsonxx::Object>("textures"))
     {

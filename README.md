@@ -20,6 +20,9 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
     "file":"Input-Regular_(InputMono-Medium).ttf",
     "size":16,
   },
+  "rendering":{
+    "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
+  },
   "textures":{ /* the keys below will become the shader variable names */
     "texChecker":"textures/checker.png",
     "texNoise":"textures/noise.png",
