@@ -185,7 +185,8 @@ void ShaderEditor::Paste()
   memset(p,0,n+1);
   Clipboard::GetContents( p, n );
 
-  InsertPasteShape(p, n, pasteStream);
+  ClearSelection();
+  InsertPaste(p, n);
 
   delete[] p;
 }
