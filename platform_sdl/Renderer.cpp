@@ -111,6 +111,7 @@ namespace Renderer
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
     "\n"
     "uniform sampler1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
+    "uniform sampler1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
     "{%textures:begin%}" // leave off \n here
     "uniform sampler2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here

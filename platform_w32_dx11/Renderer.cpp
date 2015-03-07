@@ -106,6 +106,7 @@ namespace Renderer
     "Texture2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
     "Texture1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
+    "Texture1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
     "SamplerState smp;\n"
     "\n"
     "cbuffer constants\n"
