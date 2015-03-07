@@ -127,7 +127,7 @@ namespace Renderer
     "}\n"
     "void main(void)\n"
     "{\n"
-    "  vec2 uv = gl_TexCoord[0].xy;\n"
+    "  vec2 uv = vec2(gl_FragCoord.x / v2Resolution.x, gl_FragCoord.y / v2Resolution.y);\n"
     "  uv -= 0.5;\n"
     "  uv /= vec2(v2Resolution.y / v2Resolution.x, 1);\n"
     "\n"
