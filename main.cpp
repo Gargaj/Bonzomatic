@@ -81,7 +81,7 @@ int main()
 
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
-
+  float fFFTSmoothingFactor = 0.9f;
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -139,6 +139,7 @@ int main()
   }
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
+  Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
 
   bool shaderInitSuccessful = false;
   char szShader[65535];
@@ -196,6 +197,11 @@ int main()
   mDebugOutput.Initialise( options );
   mDebugOutput.SetText( "" );
   mDebugOutput.SetReadOnly(true);
+
+  static float fftData[FFT_SIZE];
+  memset(fftData, 0, sizeof(float) * FFT_SIZE);
+  static float fftDataSmoothed[FFT_SIZE];
+  memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
 
   bool bShowGui = true;
   Timer::Start();
@@ -295,11 +301,18 @@ int main()
     }
 
 
-    static float fftData[FFT_SIZE];
     if (FFT::GetFFT(fftData))
+    {
       Renderer::UpdateR32Texture( texFFT, fftData );
+      for ( int i = 0; i < FFT_SIZE; i++ )
+      {
+        fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
+      }
+      Renderer::UpdateR32Texture( texFFTSmoothed, fftDataSmoothed );
+    }
 
     Renderer::SetShaderTexture( "texFFT", texFFT );
+    Renderer::SetShaderTexture( "texFFTSmoothed", texFFTSmoothed );
 
     for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
     {
@@ -360,6 +373,7 @@ int main()
   FFT::Close();
 
   Renderer::ReleaseTexture( texFFT );
+  Renderer::ReleaseTexture( texFFTSmoothed );
   for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
   {
     Renderer::ReleaseTexture( it->second );
