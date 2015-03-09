@@ -56,13 +56,22 @@ int main()
 #endif
 
   if (!Renderer::Open( &settings ))
+  {
+    printf("Renderer::Open failed\n");
     return -1;
+  }
 
   if (!FFT::Open())
+  {
+    printf("FFT::Open() failed\n");
     return -1;
+  }
 
   if (!MIDI::Open())
+  {
+    printf("MIDI::Open() failed\n");
     return -1;
+  }
 
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
@@ -109,6 +118,11 @@ int main()
         char * fn = (char*)it->second->string_value_->c_str();
         printf("* %s...\n",fn);
         Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        if (!tex)
+        {
+          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
+          return -1;
+        }
         textures.insert( std::make_pair( it->first, tex ) );
       }
     }
@@ -178,6 +192,7 @@ int main()
     strncpy( szShader, sDefShader.c_str(), 65535 );
     if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
+      printf("Initial shader compile failed:\n");
       puts(szError);
       assert(0);
     }

@@ -415,7 +415,10 @@ namespace Renderer
       &pDevice,
       NULL,
       &pContext) != S_OK)
+    {
+      printf("[Renderer] D3D11CreateDeviceAndSwapChain failed\n");
       return false;
+    }
 
     ID3D11Texture2D * pBackBuffer = NULL;
     pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
@@ -443,11 +446,13 @@ namespace Renderer
     ID3DBlob * pErrors = NULL;
     if (D3DCompile( defaultVertexShader, strlen(defaultVertexShader), NULL, NULL, NULL, "main", "vs_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
+      printf("[Renderer] D3DCompile failed\n");
       return false;
     }
 
     if (pDevice->CreateVertexShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pVertexShader ) != S_OK)
     {
+      printf("[Renderer] CreateVertexShader failed\n");
       return false;
     }
 
@@ -472,7 +477,10 @@ namespace Renderer
     subData.pSysMem = pQuad;
 
     if (pDevice->CreateBuffer(&desc, &subData, &pFullscreenQuadVB) != S_OK)
+    {
+      printf("[Renderer] CreateBuffer failed\n");
       return false;
+    }
 
     static D3D11_INPUT_ELEMENT_DESC pQuadDesc[] =
     {
@@ -481,7 +489,10 @@ namespace Renderer
     };
 
     if (pDevice->CreateInputLayout( pQuadDesc, 2, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pFullscreenQuadLayout) != S_OK)
+    {
+      printf("[Renderer] CreateInputLayout failed\n");
       return false;
+    }
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -588,21 +599,25 @@ namespace Renderer
     ID3DBlob * pErrors = NULL;
     if (D3DCompile( defaultGUIPixelShader, strlen(defaultGUIPixelShader), NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
+      printf("[Renderer] D3DCompile (PS) failed\n");
       return false;
     }
 
     if (pDevice->CreatePixelShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pGUIPixelShader ) != S_OK)
     {
+      printf("[Renderer] CreatePixelShader failed\n");
       return false;
     }
 
     if (D3DCompile( defaultGUIVertexShader, strlen(defaultGUIVertexShader), NULL, NULL, NULL, "main", "vs_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
+      printf("[Renderer] D3DCompile (VS) failed\n");
       return false;
     }
 
     if (pDevice->CreateVertexShader( pCode->GetBufferPointer(), pCode->GetBufferSize(), NULL, &pGUIVertexShader ) != S_OK)
     {
+      printf("[Renderer] CreateVertexShader failed\n");
       return false;
     }
 
@@ -615,7 +630,10 @@ namespace Renderer
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
     if (pDevice->CreateBuffer(&desc, NULL, &pGUIQuadVB) != S_OK)
+    {
+      printf("[Renderer] CreateBuffer (VB) failed\n");
       return false;
+    }
 
     static D3D11_INPUT_ELEMENT_DESC pGUIDesc[] =
     {
@@ -626,7 +644,10 @@ namespace Renderer
     };
 
     if (pDevice->CreateInputLayout( pGUIDesc, 4, pCode->GetBufferPointer(), pCode->GetBufferSize(), &pGUIQuadLayout) != S_OK)
+    {
+      printf("[Renderer] CreateInputLayout failed\n");
       return false;
+    }
 
     D3D11_BUFFER_DESC cbDesc;
     ZeroMemory( &cbDesc, sizeof(D3D11_BUFFER_DESC) );
@@ -642,7 +663,10 @@ namespace Renderer
     subData.pSysMem = &pGUIMatrix;
 
     if (pDevice->CreateBuffer( &cbDesc, &subData, &pGUIConstantBuffer ) != S_OK)
+    {
+      printf("[Renderer] CreateBuffer (CB) failed\n");
       return false;
+    }
 
     D3D11_BLEND_DESC blendDesc = CD3D11_BLEND_DESC( CD3D11_DEFAULT() );
     blendDesc.RenderTarget[0].BlendEnable = true;
@@ -665,16 +689,28 @@ namespace Renderer
     nHeight = settings->nHeight;
 
     if (!InitWindow(settings))
+    {
+      printf("[Renderer] InitWindow failed\n");
       return false;
+    }
 
     if (!InitDirect3D(settings))
+    {
+      printf("[Renderer] InitDirect3D failed\n");
       return false;
+    }
 
     if (!InitD3D11QuadRendering(settings))
+    {
+      printf("[Renderer] InitD3D11QuadRendering failed\n");
       return false;
+    }
 
     if (!InitD3D11GUIRendering(settings))
+    {
+      printf("[Renderer] InitD3D11GUIRendering failed\n");
       return false;
+    }
 
     return true;
   }

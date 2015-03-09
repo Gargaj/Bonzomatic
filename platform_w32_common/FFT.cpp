@@ -13,14 +13,14 @@ namespace FFT
     int res = BASS_Init( device, freq, 0, 0, 0 );
     if( !res )
     {
-//      fprintf( stderr, "BASS_Init failed! Err=%d\n", BASS_ErrorGetCode() );
+      printf("[FFT] BASS_Init failed: %08X\n",res);
       return false;
     }
 
     res = BASS_RecordInit( device );
     if( !res )
     {
-//      fprintf( stderr, "BASS_RecordInit failed! Err=%d\n", BASS_ErrorGetCode() );
+      printf("[FFT] BASS_RecordInit failed: %08X\n",res);
       return false;
     }
 
@@ -31,6 +31,7 @@ namespace FFT
     hRecord = BASS_RecordStart( freq, channels, BASS_SAMPLE_8BITS, 0, 0 );
     if (!hRecord)
     {
+      printf("[FFT] BASS_RecordStart failed: %08X\n",BASS_ErrorGetCode());
       return false;
     }
     return true;

@@ -338,8 +338,12 @@ namespace Renderer
 
   bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
   {
-    pD3D=Direct3DCreate9(D3D9b_SDK_VERSION);
-    if (!pD3D) return false;
+    pD3D = Direct3DCreate9(D3D9b_SDK_VERSION);
+    if (!pD3D) 
+    {
+      printf("[Renderer] Direct3DCreate9 failed\n");
+      return false;
+    }
 
     nWidth  = pSetup->nWidth;
     nHeight = pSetup->nHeight;
@@ -359,7 +363,10 @@ namespace Renderer
 
     D3DDISPLAYMODE d3ddm;
     if( FAILED( pD3D->GetAdapterDisplayMode( D3DADAPTER_DEFAULT, &d3ddm ) ) )
+    {
+      printf("[Renderer] GetAdapterDisplayMode failed\n");
       return false;
+    }
 
     static D3DFORMAT pBackbufferFormats32[] = {
       D3DFMT_X8R8G8B8,
@@ -372,7 +379,10 @@ namespace Renderer
         d3dpp.BackBufferFormat = pFormats[i];
 
     if (d3dpp.BackBufferFormat == D3DFMT_UNKNOWN) 
+    {
+      printf("[Renderer] No suitable backbuffer format found\n");
       return false;
+    }
 
     d3dpp.EnableAutoDepthStencil = FALSE;
 
@@ -394,6 +404,7 @@ namespace Renderer
       h = pD3D->CreateDevice( D3DADAPTER_DEFAULT, DEVTYPE, hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &pDevice);
       if(h != D3D_OK) 
       {
+        printf("[Renderer] CreateDevice failed: %08X\n",h);
         return false;
       }
     }
@@ -418,10 +429,16 @@ namespace Renderer
   bool Open( RENDERER_SETTINGS * settings )
   {
     if (!InitWindow(settings))
+    {
+      printf("[Renderer] InitWindow failed\n");
       return false;
+    }
 
     if (!InitDirect3D(settings))
+    {
+      printf("[Renderer] InitDirect3D failed\n");
       return false;
+    }
 
     static D3DVERTEXELEMENT9 pFullscreenQuadElements[] = 
     {
@@ -456,11 +473,13 @@ namespace Renderer
 
     if (D3DXCompileShader( defaultVertexShader, strlen(defaultVertexShader), NULL, NULL, "main", "vs_3_0", NULL, &pShader, &pErrors, NULL ) != D3D_OK)
     {
+      printf("[Renderer] D3DXCompileShader failed\n");
       return false;
     }
 
     if (pDevice->CreateVertexShader( (DWORD*)pShader->GetBufferPointer(), &pVertexShader ) != D3D_OK)
     {
+      printf("[Renderer] CreateVertexShader failed\n");
       return false;
     }
 

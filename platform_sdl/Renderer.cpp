@@ -158,6 +158,7 @@ namespace Renderer
     theShader = NULL;
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0)
     {
+      printf("[Renderer] SDL_Init failed\n");
       return false;
     }
 
@@ -178,6 +179,7 @@ namespace Renderer
     mScreen = SDL_SetVideoMode( settings->nWidth, settings->nHeight, 32, flags );
     if (!mScreen)
     {
+      printf("[Renderer] SDL_SetVideoMode failed\n");
       SDL_Quit();
       return false;
     }
