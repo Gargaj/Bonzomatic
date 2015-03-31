@@ -10,17 +10,15 @@ namespace FFT
     const int freq = 44100;
     int device = -1;
 
-    int res = BASS_Init( device, freq, 0, 0, 0 );
-    if( !res )
+    if( !BASS_Init( device, freq, 0, 0, 0 ) )
     {
-      printf("[FFT] BASS_Init failed: %08X\n",res);
+      printf("[FFT] BASS_Init failed: %08X\n",BASS_ErrorGetCode());
       return false;
     }
 
-    res = BASS_RecordInit( device );
-    if( !res )
+    if( !BASS_RecordInit( device ) )
     {
-      printf("[FFT] BASS_RecordInit failed: %08X\n",res);
+      printf("[FFT] BASS_RecordInit failed: %08X\n",BASS_ErrorGetCode());
       return false;
     }
 
