@@ -38,6 +38,9 @@ namespace FFT
   }
   bool GetFFT( float * samples )
   {
+    if (!hRecord)
+      return false;
+
     unsigned int len = 0;
 
     switch( FFT_SIZE*2 ) // for 256 fft, only 128 values will contain DC in our case
