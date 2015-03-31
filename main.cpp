@@ -63,14 +63,14 @@ int main()
 
   if (!FFT::Open())
   {
-    printf("FFT::Open() failed\n");
-    return -1;
+    printf("FFT::Open() failed, continuing anyway...\n");
+    //return -1;
   }
 
   if (!MIDI::Open())
   {
-    printf("MIDI::Open() failed\n");
-    return -1;
+    printf("MIDI::Open() failed, continuing anyway...\n");
+    //return -1;
   }
 
   std::map<std::string,Renderer::Texture*> textures;
@@ -96,6 +96,8 @@ int main()
   FILE * fConf = fopen("config.json","rb");
   if (fConf)
   {
+    printf("Config file found, parsing...\n");
+
     memset( szConfig, 0, 65535 );
     int n = fread( szConfig, 1, 65535, fConf );
     fclose(fConf);
@@ -167,16 +169,21 @@ int main()
   FILE * f = fopen(Renderer::defaultShaderFilename,"rb");
   if (f)
   {
+    printf("Loading last shader...\n");
+
     memset( szShader, 0, 65535 );
     int n = fread( szShader, 1, 65535, f );
     fclose(f);
     if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
+      printf("Last shader works fine.\n");
       shaderInitSuccessful = true;
     }
   }
   if (!shaderInitSuccessful)
   {
+    printf("No valid last shader found, falling back to default...\n");
+
     std::string sDefShader = Renderer::defaultShader;
 
     std::vector<std::string> tokens;
@@ -192,7 +199,7 @@ int main()
     strncpy( szShader, sDefShader.c_str(), 65535 );
     if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
-      printf("Initial shader compile failed:\n");
+      printf("Default shader compile failed:\n");
       puts(szError);
       assert(0);
     }
@@ -232,7 +239,6 @@ int main()
     float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::StartFrame();
 
-    
     for(int i=0; i<Renderer::mouseEventBufferCount; i++)
     {
       if (bShowGui)
