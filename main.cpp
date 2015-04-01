@@ -371,7 +371,7 @@ int main()
         int x2 = settings.nWidth - nMargin;
         for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
         {
-          int y2 = y1 + nTexPreviewWidth * (it->second->width / (float)it->second->height);
+          int y2 = y1 + nTexPreviewWidth * (it->second->height / (float)it->second->width);
           Renderer::BindTexture( it->second );
           Renderer::RenderQuad(
             Renderer::Vertex( x1, y1, 0xccFFFFFF, 0.0, 0.0 ),
