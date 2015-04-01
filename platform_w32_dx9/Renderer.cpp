@@ -592,7 +592,7 @@ namespace Renderer
       NULL,
       D3DFMT_FROM_FILE,
       D3DPOOL_DEFAULT,
-      D3DX_FILTER_NONE,
+      D3DX_DEFAULT,
       D3DX_DEFAULT,
       NULL,
       &info,
