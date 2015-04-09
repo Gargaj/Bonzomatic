@@ -228,6 +228,7 @@
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />
     <ClCompile Include="platform_w32_common\MIDI.cpp" />
+    <ClCompile Include="platform_w32_common\Misc.cpp" />
     <ClCompile Include="platform_w32_common\Platform_DynamicLoad.cpp" />
     <ClCompile Include="platform_w32_common\SetupDialog.cpp" />
     <ClCompile Include="platform_w32_common\Timer.cpp" />
