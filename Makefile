@@ -167,10 +167,10 @@ INCLUDEPATHS := \
 CXX ?= cpp
 OBJDIR ?= .obj
 
-CXXFLAGS := -std=c++11 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+CXXFLAGS := -std=c++11 -arch x86_64 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
-LDFLAGS := -lGL `pkg-config --libs sdl`
+LDFLAGS := -framework OpenGL -framework Cocoa `pkg-config --libs sdl`
 
 define MAKE_RULES
   $1.MODULE := $(addprefix $(OBJDIR)/, $(1:$(2)=$(3)))

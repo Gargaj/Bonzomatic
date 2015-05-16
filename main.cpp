@@ -5,7 +5,9 @@
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
+#ifndef __APPLE__
 #include "MIDI.h"
+#endif
 #include "Timer.h"
 #include "Misc.h"
 #include "external/scintilla/src/UniConversion.h"
@@ -68,11 +70,15 @@ int main()
     //return -1;
   }
 
+#ifndef __APPLE__
+
   if (!MIDI::Open())
   {
     printf("MIDI::Open() failed, continuing anyway...\n");
     //return -1;
   }
+
+#endif
 
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
@@ -81,7 +87,13 @@ int main()
   options.nFontSize = 16;
 #ifdef _WIN32
   options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
-#else
+#endif 
+
+#ifdef __APPLE__
+  options.sFontPath = "/Library/Fonts/Tahoma.ttf";
+#endif
+  
+#ifdef __linux__
   options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
   options.nOpacity = 0xC0;
@@ -206,7 +218,9 @@ int main()
     }
   }
 
+#ifndef __APPLE__
   Misc::InitKeymaps();
+#endif
 
 #ifdef SCI_LEXER
   Scintilla_LinkLexers();
@@ -284,9 +298,11 @@ int main()
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
+#ifndef __APPLE__
           FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
           fwrite( szShader, strlen(szShader), 1, f );
           fclose(f);
+#endif
           mDebugOutput.SetText( "" );
         }
         else
@@ -325,10 +341,12 @@ int main()
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
+#ifndef __APPLE__
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
       Renderer::SetShaderConstant( (char*)it->second.c_str(), MIDI::GetCCValue( it->first ) );
     }
+#endif
 
 
     if (FFT::GetFFT(fftData))
@@ -387,10 +405,17 @@ int main()
         }
       }
 
+#ifndef __APPLE__
       char szLayout[255];
       Misc::GetKeymapName(szLayout);
+#endif
+
       std::string sHelp = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI   Current keymap: ";
+
+#ifndef __APPLE__
       sHelp += szLayout;
+#endif
+
       surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
 
@@ -401,8 +426,9 @@ int main()
   }
 
   delete surface;
-
+#ifndef __APPLE__
   MIDI::Close();
+#endif
   FFT::Close();
 
   Renderer::ReleaseTexture( texFFT );
