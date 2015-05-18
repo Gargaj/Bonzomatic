@@ -45,9 +45,6 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 ## Building
 Please use Visual C++ 2010 - nothing else is needed right now.
 
-## Future features / todo / etc.
-- Option for tab sizes / spaces
-
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
