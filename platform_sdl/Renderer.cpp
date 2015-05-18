@@ -187,8 +187,10 @@ namespace Renderer
     SDL_EnableUNICODE(true);
     SDL_EnableKeyRepeat(250, 20);
 
+#ifdef _WIN32
     if (settings->bVsync)
       wglSwapIntervalEXT(1);
+#endif
 
     run = true;
 
