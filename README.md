@@ -43,7 +43,12 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 ```
 
 ## Building
+### Windows
 Please use Visual C++ 2010 - nothing else is needed right now.
+
+### OSX
+Run the makefile inside the terminal application. You'll need the usual XCode command line developer tools.
+If you have any questions about the OSX build please contact Oni (http://section9.co.uk)
 
 ## Future features / todo / etc.
 - Option for tab sizes / spaces
