@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
@@ -493,10 +495,12 @@ namespace Renderer
     if (!tex)
       return;
 
+    glUseProgram(theShader);
     GLint location = glGetUniformLocation( theShader, szTextureName );
+
     if ( location != -1 )
     {
-      glProgramUniform1iEXT( theShader, location, ((GLTexture*)tex)->unit );
+      glUniform1i( location, ((GLTexture*)tex)->unit );
       glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {

@@ -1,0 +1,20 @@
+{
+  "rendering":{
+    "fftSmoothFactor": 0.9
+  },  
+  "textures":{
+    "texChecker":"textures/chessboard.png",
+    "texNoise":"textures/noise.png"
+  },
+  "gui":{
+    "outputHeight": 200,
+    "opacity": 192,
+    "texturePreviewWidth": 64,
+    "spacesForTabs": false,
+    "tabSize": 8,
+    "visibleWhitespace": true
+  },
+  "midi":{
+    "fMidiKnob": 16
+  }
+}

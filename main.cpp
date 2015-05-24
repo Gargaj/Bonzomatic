@@ -13,6 +13,8 @@
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
 
+using namespace std;
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -118,29 +120,13 @@ int main()
     jsonxx::Object o;
     o.parse( szConfig );
 
+
     if (o.has<jsonxx::Object>("rendering"))
     {
       if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
         fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
     }
 
-    if (o.has<jsonxx::Object>("textures"))
-    {
-      printf("Loading textures...\n");
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
-      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
-      {
-        char * fn = (char*)it->second->string_value_->c_str();
-        printf("* %s...\n",fn);
-        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
-        if (!tex)
-        {
-          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
-          return -1;
-        }
-        textures.insert( std::make_pair( it->first, tex ) );
-      }
-    }
     if (o.has<jsonxx::Object>("font"))
     {
       if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
@@ -148,6 +134,7 @@ int main()
       if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
         options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
     }
+
     if (o.has<jsonxx::Object>("gui"))
     {
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
@@ -163,12 +150,30 @@ int main()
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
         options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
     }
-    if (o.has<jsonxx::Object>("midi"))
+    
+    /*if (o.has<jsonxx::Object>("midi"))
     {
       std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
+      }
+    }*/
+
+    if (o.has<jsonxx::Object>("textures"))
+    {
+      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
+      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+      {
+        char * fn = (char*)it->second->string_value_->c_str();
+        printf("* %s...\n",fn);
+        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        if (!tex)
+        {
+          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
+          return -1;
+        }
+        textures.insert( std::make_pair( it->first, tex ) );
       }
     }
   }
@@ -298,6 +303,7 @@ int main()
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
+          // TODO - This is breaking on Apple - Will fix
 #ifndef __APPLE__
           FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
           fwrite( szShader, strlen(szShader), 1, f );
@@ -341,6 +347,7 @@ int main()
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
+    // For now, ignore MIDI on Apple - Will fix
 #ifndef __APPLE__
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
@@ -356,6 +363,7 @@ int main()
       {
         fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
       }
+
       Renderer::UpdateR32Texture( texFFTSmoothed, fftDataSmoothed );
     }
 
