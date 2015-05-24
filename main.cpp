@@ -151,14 +151,14 @@ int main()
         options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
     }
     
-    /*if (o.has<jsonxx::Object>("midi"))
+    if (o.has<jsonxx::Object>("midi"))
     {
       std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
-    }*/
+    }
 
     if (o.has<jsonxx::Object>("textures"))
     {
@@ -347,7 +347,7 @@ int main()
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
-    // For now, ignore MIDI on Apple - Will fix
+    // For now, ignore MIDI on Apple
 #ifndef __APPLE__
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
@@ -434,9 +434,11 @@ int main()
   }
 
   delete surface;
+
 #ifndef __APPLE__
   MIDI::Close();
 #endif
+  
   FFT::Close();
 
   Renderer::ReleaseTexture( texFFT );

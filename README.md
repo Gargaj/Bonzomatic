@@ -50,6 +50,8 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 Run the makefile inside the terminal application. You'll need the usual XCode command line developer tools.
 If you have any questions about the OSX build please contact Oni (http://section9.co.uk)
 
+Textures should be placeed inside Bonzomatic.app/Contents/MacOS, along with the config.json
+
 ## Future features / todo / etc.
 - Option for tab sizes / spaces
 

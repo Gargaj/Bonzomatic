@@ -210,8 +210,10 @@ namespace Renderer
     SDL_EnableUNICODE(true);
     SDL_EnableKeyRepeat(250, 20);
 
-    //if (settings->bVsync)
-    //wglSwapIntervalEXT(1);
+#ifndef __APPLE__
+    if (settings->bVsync)
+    wglSwapIntervalEXT(1);
+#endif
 
     run = true;
 
@@ -417,7 +419,6 @@ namespace Renderer
     if ( location != -1 )
     {
      glUniform2f(location, x, y);
-     //glProgramUniform2fEXT( theShader, location, x, y );
     }
   }
 

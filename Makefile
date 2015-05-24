@@ -195,15 +195,12 @@ $$($1.DEPFILE): $1 Makefile
 	$(CXX) $(CXXFLAGS) -MM $1 -MT $$($1.MODULE) -MT $$($1.DEPFILE) -MF $$($1.DEPFILE)
 endef
 
-
 package:
 	UNAME_S=`uname -s`; \
 	if [ $(UNAME_S)='Darwin' ]; then \
 		mkdir -p Bonzomatic.app/Contents/MacOS; \
 		cp Bonzomatic Bonzomatic.app/Contents/MacOS/. ; \
 		cp external/bass/libbass.dylib Bonzomatic.app/Contents/MacOS/. ; \
-		cp -r textures Bonzomatic.app/Contents/MacOS/. ;\
-		cp config.json Bonzomatic.app/Contents/MacOS/. ;\
 	fi
 
 # Generate rules for .d and .o files
