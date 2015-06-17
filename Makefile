@@ -149,8 +149,8 @@ SOURCES_CPP := \
 	Platform.cpp \
 	ShaderEditor.cpp \
 	platform_sdl/Renderer.cpp \
-	platform_sdl/MIDI.cpp \
-	platform_sdl/Misc.cpp \
+	platform_x11/MIDI.cpp \
+	platform_x11/Misc.cpp \
 	platform_x11/Clipboard.cpp \
 	platform_x11/FFT.cpp \
 	platform_x11/SetupDialog.cpp \
