@@ -433,6 +433,7 @@
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="platform_w32_common\Platform_DynamicLoad.cpp" />
     <ClCompile Include="platform_w32_common\MIDI.cpp" />
+    <ClCompile Include="platform_w32_common\Misc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\scintilla\src\AutoComplete.h">
