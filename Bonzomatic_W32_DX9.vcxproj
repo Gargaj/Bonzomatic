@@ -224,6 +224,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="platform_w32_common\MIDI.cpp" />
+    <ClCompile Include="platform_w32_common\Misc.cpp" />
     <ClCompile Include="platform_w32_dx9\Renderer.cpp" />
     <ClCompile Include="platform_w32_common\Clipboard.cpp" />
     <ClCompile Include="platform_w32_common\FFT.cpp" />

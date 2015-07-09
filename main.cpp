@@ -7,6 +7,7 @@
 #include "FFT.h"
 #include "MIDI.h"
 #include "Timer.h"
+#include "Misc.h"
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
 
@@ -205,6 +206,8 @@ int main()
     }
   }
 
+  Misc::InitKeymaps();
+
 #ifdef SCI_LEXER
   Scintilla_LinkLexers();
 #endif
@@ -384,8 +387,11 @@ int main()
         }
       }
 
-      char szHelp[] = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI";
-      surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, szHelp, strlen(szHelp), 0x80FFFFFF, 0x00000000);
+      char szLayout[255];
+      Misc::GetKeymapName(szLayout);
+      std::string sHelp = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI   Current keymap: ";
+      sHelp += szLayout;
+      surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
 
 

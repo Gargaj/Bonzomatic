@@ -381,6 +381,8 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font, float ybase, const cha
       c = 0;
       UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
+    if (c >= CHARACTER_COUNT)
+      c = '?';
     stbtt_aligned_quad quad;
     stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &quad, 1 );
     
@@ -428,6 +430,8 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
       c = 0;
       UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
+    if (c >= CHARACTER_COUNT)
+      c = '?';
 
     int advance = 0, leftBearing = 0;
     
@@ -456,6 +460,9 @@ float SurfaceImpl::WidthText(Font & font, const char *str, int len)
       c = 0;
       UTF16FromUTF8( str, charLength, (wchar_t*)&c, sizeof(unsigned int) );
     }
+    if (c >= CHARACTER_COUNT)
+      c = '?';
+
     int advance = 0, leftBearing = 0;
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     position += advance*realFont->scale;//TODO: +Kerning

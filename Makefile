@@ -149,6 +149,8 @@ SOURCES_CPP := \
 	Platform.cpp \
 	ShaderEditor.cpp \
 	platform_sdl/Renderer.cpp \
+	platform_x11/MIDI.cpp \
+	platform_x11/Misc.cpp \
 	platform_x11/Clipboard.cpp \
 	platform_x11/FFT.cpp \
 	platform_x11/SetupDialog.cpp \
@@ -167,7 +169,7 @@ INCLUDEPATHS := \
 CXX ?= cpp
 OBJDIR ?= .obj
 
-CXXFLAGS := -std=c++11 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
 LDFLAGS := -lGL `pkg-config --libs sdl`
