@@ -5,9 +5,7 @@
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
-#ifndef __APPLE__
 #include "MIDI.h"
-#endif
 #include "Timer.h"
 #include "Misc.h"
 #include "external/scintilla/src/UniConversion.h"
@@ -347,13 +345,10 @@ int main()
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
 
-    // For now, ignore MIDI on Apple
-#ifndef __APPLE__
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
       Renderer::SetShaderConstant( (char*)it->second.c_str(), MIDI::GetCCValue( it->first ) );
     }
-#endif
 
 
     if (FFT::GetFFT(fftData))
@@ -435,9 +430,7 @@ int main()
 
   delete surface;
 
-#ifndef __APPLE__
   MIDI::Close();
-#endif
   
   FFT::Close();
 

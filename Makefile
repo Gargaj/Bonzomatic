@@ -151,6 +151,7 @@ SOURCES_CPP := \
 	platform_sdl/Renderer.cpp \
 	platform_x11/Clipboard.cpp \
 	platform_x11/FFT.cpp \
+  platform_x11/MIDI.cpp \
 	platform_x11/SetupDialog.cpp \
 	platform_x11/Timer.cpp \
 	platform_x11/Platform_DynamicLoad.cpp
