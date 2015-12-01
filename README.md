@@ -14,7 +14,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 - Alt-F4: exbobolate your planet
 
 ## Configuration
-Create a ```config.json``` with e.g. the following contents: (all fields are optional)
+Create a ```config.json``` with e.g. the following contents: (all fields are optional). '''NOTE''' the OSX version cannot have trailing commas or comments.
 ``` javascript
 {
   "font":{
@@ -44,7 +44,17 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 ```
 
 ## Building
+### Windows
 Please use Visual C++ 2010 - nothing else is needed right now.
+
+### OSX
+Run the makefile inside the terminal application. You'll need the usual XCode command line developer tools.
+If you have any questions about the OSX build please contact Oni (http://section9.co.uk)
+
+Textures should be placed inside Bonzomatic.app/Contents/MacOS, along with the config.json
+
+## Future features / todo / etc.
+- Option for tab sizes / spaces
 
 ## Credits and acknowledgements
 ### Original / parent project authors

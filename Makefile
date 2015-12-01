@@ -1,5 +1,5 @@
 .SUFFIXES:
-all: Bonzomatic
+all: Bonzomatic package
 
 SOURCES_C := \
 	external/glee/GLee.c \
@@ -169,10 +169,21 @@ INCLUDEPATHS := \
 CXX ?= cpp
 OBJDIR ?= .obj
 
+
+UNAME_S := $(shell uname -s)
 CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+
+ifeq ($(UNAME_S),Linux) 
+  CXXFLAGS := -std=c++11 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+  LDFLAGS := -lGL `pkg-config --libs sdl`
+endif
+
+ifeq ($(UNAME_S),Darwin)
+	CXXFLAGS := -std=c++11 -arch x86_64 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+	LDFLAGS := -Lexternal/bass -lbass -framework OpenGL -framework Cocoa `pkg-config --libs sdl`
+endif
+
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
-#CXXFLAGS += -Werror
-LDFLAGS := -lGL `pkg-config --libs sdl`
 
 define MAKE_RULES
   $1.MODULE := $(addprefix $(OBJDIR)/, $(1:$(2)=$(3)))
@@ -187,6 +198,14 @@ $$($1.DEPFILE): $1 Makefile
 	@mkdir -p $$(dir $$($1.DEPFILE))
 	$(CXX) $(CXXFLAGS) -MM $1 -MT $$($1.MODULE) -MT $$($1.DEPFILE) -MF $$($1.DEPFILE)
 endef
+
+package:
+	UNAME_S=`uname -s`; \
+	if [ $(UNAME_S)='Darwin' ]; then \
+		mkdir -p Bonzomatic.app/Contents/MacOS; \
+		cp Bonzomatic Bonzomatic.app/Contents/MacOS/. ; \
+		cp external/bass/libbass.dylib Bonzomatic.app/Contents/MacOS/. ; \
+	fi
 
 # Generate rules for .d and .o files
 $(foreach src,$(SOURCES_C), $(eval $(call MAKE_RULES,$(src),.c,.o,.d)))

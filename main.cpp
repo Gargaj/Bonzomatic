@@ -11,6 +11,26 @@
 #include "external/scintilla/src/UniConversion.h"
 #include "external/jsonxx/jsonxx.h"
 
+using namespace std;
+
+#ifdef __APPLE__
+
+#include <mach-o/dyld.h>
+std::string get_osx_cwd() {
+  char path[1024];
+  uint32_t size = sizeof(path);
+  string pathStr;
+  if (_NSGetExecutablePath(path, &size) == 0){
+    pathStr = string(path);
+    std::size_t pos = pathStr.rfind("/");
+    pathStr = pathStr.substr(0,pos);
+  }
+  return pathStr;
+}
+#endif
+
+
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -68,11 +88,15 @@ int main()
     //return -1;
   }
 
+#ifndef __APPLE__
+
   if (!MIDI::Open())
   {
     printf("MIDI::Open() failed, continuing anyway...\n");
     //return -1;
   }
+
+#endif
 
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
@@ -81,7 +105,13 @@ int main()
   options.nFontSize = 16;
 #ifdef _WIN32
   options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
-#else
+#endif 
+
+#ifdef __APPLE__
+  options.sFontPath = "/Library/Fonts/Tahoma.ttf";
+#endif
+  
+#ifdef __linux__
   options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
   options.nOpacity = 0xC0;
@@ -94,7 +124,13 @@ int main()
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
 
   char szConfig[65535];
-  FILE * fConf = fopen("config.json","rb");
+  std:string config_filepath = "config.json";
+#ifdef __APPLE__
+  config_filepath = get_osx_cwd() + "/" + config_filepath;
+#endif
+  printf("%s",config_filepath.c_str());
+
+  FILE * fConf = fopen(config_filepath.c_str(),"rb");
   if (fConf)
   {
     printf("Config file found, parsing...\n");
@@ -106,29 +142,13 @@ int main()
     jsonxx::Object o;
     o.parse( szConfig );
 
+
     if (o.has<jsonxx::Object>("rendering"))
     {
       if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
         fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
     }
 
-    if (o.has<jsonxx::Object>("textures"))
-    {
-      printf("Loading textures...\n");
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
-      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
-      {
-        char * fn = (char*)it->second->string_value_->c_str();
-        printf("* %s...\n",fn);
-        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
-        if (!tex)
-        {
-          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
-          return -1;
-        }
-        textures.insert( std::make_pair( it->first, tex ) );
-      }
-    }
     if (o.has<jsonxx::Object>("font"))
     {
       if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
@@ -136,6 +156,7 @@ int main()
       if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
         options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
     }
+
     if (o.has<jsonxx::Object>("gui"))
     {
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
@@ -151,12 +172,36 @@ int main()
       if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
         options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
     }
+    
     if (o.has<jsonxx::Object>("midi"))
     {
       std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
+      }
+    }
+
+    if (o.has<jsonxx::Object>("textures"))
+    {
+      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
+      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+      {
+        char * fn = (char*)it->second->string_value_->c_str();
+#ifdef __APPLE__
+        std::string tf (fn);
+        std::string tp = get_osx_cwd();
+        tp += "/" + tf;
+        fn = (char *)tp.c_str();
+#endif
+        printf("* %s...\n",fn);
+        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        if (!tex)
+        {
+          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
+          return -1;
+        }
+        textures.insert( std::make_pair( it->first, tex ) );
       }
     }
   }
@@ -206,7 +251,9 @@ int main()
     }
   }
 
+#ifndef __APPLE__
   Misc::InitKeymaps();
+#endif
 
 #ifdef SCI_LEXER
   Scintilla_LinkLexers();
@@ -284,9 +331,12 @@ int main()
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
+          // TODO - This is breaking on Apple - Will fix
+#ifndef __APPLE__
           FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
           fwrite( szShader, strlen(szShader), 1, f );
           fclose(f);
+#endif
           mDebugOutput.SetText( "" );
         }
         else
@@ -338,6 +388,7 @@ int main()
       {
         fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
       }
+
       Renderer::UpdateR32Texture( texFFTSmoothed, fftDataSmoothed );
     }
 
@@ -387,10 +438,17 @@ int main()
         }
       }
 
+#ifndef __APPLE__
       char szLayout[255];
       Misc::GetKeymapName(szLayout);
+#endif
+
       std::string sHelp = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI   Current keymap: ";
+
+#ifndef __APPLE__
       sHelp += szLayout;
+#endif
+
       surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
 
@@ -403,6 +461,7 @@ int main()
   delete surface;
 
   MIDI::Close();
+  
   FFT::Close();
 
   Renderer::ReleaseTexture( texFFT );

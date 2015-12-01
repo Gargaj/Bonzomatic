@@ -12,3 +12,4 @@ bool MIDI::Close() {
 float MIDI::GetCCValue( unsigned char cc) {
 	return 0.f;
 }
+

@@ -14,6 +14,10 @@
 #include <stb_image.c>
 #include "../external/scintilla/include/Scintilla.h"
 
+#include <iostream>
+
+using namespace std;
+
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
@@ -104,8 +108,12 @@ const char * shaderBuiltin =
 namespace Renderer
 {
   char * defaultShaderFilename = "shader.glsl";
-  char defaultShader[65536] = 
+  char defaultShader[65536] =
+#ifdef __APPLE__
+ 
+#else
     "#version 430 core\n"
+#endif
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
@@ -119,7 +127,11 @@ namespace Renderer
     "float {%midi:name%};\n"
     "{%midi:end%}" // leave off \n here
     "\n"
+#ifdef __APPLE__
+    "vec4 out_color; // out_color must be written in order to see anything\n"
+#else
     "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
+#endif
     "\n"
     "vec4 plas( vec2 v, float time )\n"
     "{\n"
@@ -134,16 +146,27 @@ namespace Renderer
     "\n"
     "  vec2 m;\n"
     "  m.x = atan(uv.x / uv.y) / 3.14;\n"
+#ifdef __APPLE__
+    "  m.y = 1.0;\n"
+#else
     "  m.y = 1 / length(uv) * .2;\n"
+#endif
     "  float d = m.y;\n"
     "\n"
+#ifdef __APPLE__
+    "  float f = texture1D( texFFT, d).r * 100.0;\n"
+#else
     "  float f = texture( texFFT, d ).r * 100;\n"
+#endif
     "  m.x += sin( fGlobalTime ) * 0.1;\n"
     "  m.y += fGlobalTime * 0.25;\n"
     "\n"
     "  vec4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
     "  t = clamp( t, 0.0, 1.0 );\n"
     "  out_color = f + t;\n"
+#ifdef __APPLE__
+    "  gl_FragColor = out_color;\n"
+#endif
     "}";
 
   SDL_Surface * mScreen = NULL;
@@ -376,21 +399,26 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
-  {
+  // Changed the two functions below to support OSX a little better
+
+  void SetShaderConstant( char * szConstName, float x ) {
+    
+    glUseProgram(theShader);
+
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform1fEXT( theShader, location, x );
+         glUniform1f( location, x );
     }
-  }
+ }
 
   void SetShaderConstant( char * szConstName, float x, float y )
   {
+    glUseProgram(theShader);
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform2fEXT( theShader, location, x, y );
+     glUniform2f(location, x, y);
     }
   }
 
@@ -468,10 +496,12 @@ namespace Renderer
     if (!tex)
       return;
 
+    glUseProgram(theShader);
     GLint location = glGetUniformLocation( theShader, szTextureName );
+
     if ( location != -1 )
     {
-      glProgramUniform1iEXT( theShader, location, ((GLTexture*)tex)->unit );
+      glUniform1i( location, ((GLTexture*)tex)->unit );
       glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {
@@ -515,13 +545,15 @@ namespace Renderer
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
-  void SetTextRenderingViewport( Scintilla::PRectangle rect )
+
+  void SetTextRenderingViewport( Scintilla::PRectangle rect ) 
   {
     glEnable(GL_SCISSOR_TEST);
     glScissor( rect.left, nHeight - rect.bottom, rect.right - rect.left, rect.bottom - rect.top );
     glLoadIdentity();
     glTranslatef( rect.left, rect.top, 0.0 );
   }
+
   void EndTextRendering()
   {
     glPopAttrib();
