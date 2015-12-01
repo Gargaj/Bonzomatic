@@ -1,24 +1,15 @@
-#include <stdio.h>
+// Dummy midi implementation, just to make sure bonzomatic compiles.
+#include "../MIDI.h"
 
-// A blank midi class that needs some work on X11 and Apple :S
+bool MIDI::Open() {
+	return false;
+}
 
-namespace MIDI
-{
-  
-  void MyMidiInProc( ) {
-  }
+bool MIDI::Close() {
+	return false;
+}
 
-  bool Open() {
-    return false;
-  }
+float MIDI::GetCCValue( unsigned char cc) {
+	return 0.f;
+}
 
-  bool Close() {
-    return true;
-  }
-
-  float GetCCValue( unsigned char cc )
-  {
-    return 0.0;
-  }
-
-};

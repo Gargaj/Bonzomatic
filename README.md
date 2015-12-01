@@ -8,12 +8,13 @@ This is a live-coding tool, where you can write a 2D fragment/pixel shader while
 The tool was originally conceived and implemented after the Revision 2014 demoscene party's live coding competition where two contestants improv-code an effect in 25 minutes head-to-head: https://www.youtube.com/watch?v=-5P9rRUXaR0
 
 ## Keys
+- F2: toggle texture preview
 - F5: recompile shader
 - F11: hide shader overlay
 - Alt-F4: exbobolate your planet
 
 ## Configuration
-Create a ```config.json``` with e.g. the following contents: (all fields are optional)
+Create a ```config.json``` with e.g. the following contents: (all fields are optional). '''NOTE''' the OSX version cannot have trailing commas or comments.
 ``` javascript
 {
   "font":{
@@ -50,7 +51,7 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 Run the makefile inside the terminal application. You'll need the usual XCode command line developer tools.
 If you have any questions about the OSX build please contact Oni (http://section9.co.uk)
 
-Textures should be placeed inside Bonzomatic.app/Contents/MacOS, along with the config.json
+Textures should be placed inside Bonzomatic.app/Contents/MacOS, along with the config.json
 
 ## Future features / todo / etc.
 - Option for tab sizes / spaces

@@ -149,9 +149,10 @@ SOURCES_CPP := \
 	Platform.cpp \
 	ShaderEditor.cpp \
 	platform_sdl/Renderer.cpp \
+	platform_x11/MIDI.cpp \
+	platform_x11/Misc.cpp \
 	platform_x11/Clipboard.cpp \
 	platform_x11/FFT.cpp \
-  platform_x11/MIDI.cpp \
 	platform_x11/SetupDialog.cpp \
 	platform_x11/Timer.cpp \
 	platform_x11/Platform_DynamicLoad.cpp
@@ -168,7 +169,10 @@ INCLUDEPATHS := \
 CXX ?= cpp
 OBJDIR ?= .obj
 
+
 UNAME_S := $(shell uname -s)
+CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+
 ifeq ($(UNAME_S),Linux) 
   CXXFLAGS := -std=c++11 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
   LDFLAGS := -lGL `pkg-config --libs sdl`
@@ -178,7 +182,6 @@ ifeq ($(UNAME_S),Darwin)
 	CXXFLAGS := -std=c++11 -arch x86_64 -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
 	LDFLAGS := -Lexternal/bass -lbass -framework OpenGL -framework Cocoa `pkg-config --libs sdl`
 endif
-
 
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 

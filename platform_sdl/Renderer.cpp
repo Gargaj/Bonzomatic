@@ -210,9 +210,9 @@ namespace Renderer
     SDL_EnableUNICODE(true);
     SDL_EnableKeyRepeat(250, 20);
 
-#ifndef __APPLE__
+#ifdef _WIN32
     if (settings->bVsync)
-    wglSwapIntervalEXT(1);
+      wglSwapIntervalEXT(1);
 #endif
 
     run = true;

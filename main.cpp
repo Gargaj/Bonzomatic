@@ -13,6 +13,24 @@
 
 using namespace std;
 
+#ifdef __APPLE__
+
+#include <mach-o/dyld.h>
+std::string get_osx_cwd() {
+  char path[1024];
+  uint32_t size = sizeof(path);
+  string pathStr;
+  if (_NSGetExecutablePath(path, &size) == 0){
+    pathStr = string(path);
+    std::size_t pos = pathStr.rfind("/");
+    pathStr = pathStr.substr(0,pos);
+  }
+  return pathStr;
+}
+#endif
+
+
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -106,7 +124,13 @@ int main()
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
 
   char szConfig[65535];
-  FILE * fConf = fopen("config.json","rb");
+  std:string config_filepath = "config.json";
+#ifdef __APPLE__
+  config_filepath = get_osx_cwd() + "/" + config_filepath;
+#endif
+  printf("%s",config_filepath.c_str());
+
+  FILE * fConf = fopen(config_filepath.c_str(),"rb");
   if (fConf)
   {
     printf("Config file found, parsing...\n");
@@ -164,6 +188,12 @@ int main()
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         char * fn = (char*)it->second->string_value_->c_str();
+#ifdef __APPLE__
+        std::string tf (fn);
+        std::string tp = get_osx_cwd();
+        tp += "/" + tf;
+        fn = (char *)tp.c_str();
+#endif
         printf("* %s...\n",fn);
         Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
         if (!tex)
