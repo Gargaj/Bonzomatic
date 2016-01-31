@@ -349,3 +349,18 @@ void ShaderEditor::SetPosition( Scintilla::PRectangle rect )
 {
   wMain.SetPosition(rect);
 }
+
+bool ShaderEditor::FineTickerRunning( TickReason )
+{
+  return false;
+}
+
+void ShaderEditor::FineTickerStart( TickReason, int, int )
+{
+
+}
+
+void ShaderEditor::FineTickerCancel( TickReason )
+{
+
+}

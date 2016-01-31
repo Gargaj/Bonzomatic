@@ -92,7 +92,11 @@ public:
   void SetMouseCapture(bool on);
   bool HaveMouseCapture();
   sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+
   void SetTicking(bool on);
+  bool FineTickerRunning(TickReason);
+  void FineTickerStart(TickReason, int, int);
+  void FineTickerCancel(TickReason);
 
   void SetText( char * buf );
   void GetText( char * buf, int len );
