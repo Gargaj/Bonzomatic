@@ -24,7 +24,7 @@
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
-const char * shaderType = 
+const char * shaderType =
   "attribute const in inout out uniform varying invariant "
   "centroid flat smooth noperspective layout patch sample "
   "subroutine lowp mediump highp precision "
@@ -36,7 +36,7 @@ const char * shaderType =
   "sampler1DArrayShadow sampler2DArrayShadow "
   "samplerCube samplerCubeShadow samplerCubeArrayShadow ";
 
-const char * shaderBuiltin = 
+const char * shaderBuiltin =
   "radians degrees sin cos tan asin acos atan sinh "
   "cosh tanh asinh acosh atanh pow exp log exp2 "
   "log2 sqrt inversesqrt abs sign floor trunc round "
@@ -111,8 +111,8 @@ const char * shaderBuiltin =
 namespace Renderer
 {
   char * defaultShaderFilename = "shader.glsl";
-  char defaultShader[65536] = 
-    "#version 430 core\n"
+  char defaultShader[65536] =
+    "#version 410 core\n"
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
@@ -239,7 +239,7 @@ namespace Renderer
       wglSwapIntervalEXT(1);
 #endif
 
-    static float pFullscreenQuadVertices[] = 
+    static float pFullscreenQuadVertices[] =
     {
       -1.0, -1.0,  0.5, 0.0, 0.0,
       -1.0,  1.0,  0.5, 0.0, 1.0,
@@ -283,7 +283,7 @@ namespace Renderer
 
 #define GUIQUADVB_SIZE (1024 * 6)
 
-    char * defaultGUIVertexShader = 
+    char * defaultGUIVertexShader =
       "#version 430 core\n"
       "attribute vec3 in_pos;\n"
       "attribute vec4 in_color;\n"
@@ -302,7 +302,7 @@ namespace Renderer
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
       "}\n";
-    char * defaultGUIPixelShader = 
+    char * defaultGUIPixelShader =
       "#version 430 core\n"
       "uniform sampler2D tex;\n"
       "varying vec4 out_color;\n"
@@ -371,7 +371,7 @@ namespace Renderer
     SDL_Event	E;
     while (SDL_PollEvent(&E))
     {
-      if (E.type == SDL_QUIT) 
+      if (E.type == SDL_QUIT)
       {
         run = false;
       }
@@ -381,7 +381,7 @@ namespace Renderer
         keyEventBuffer[keyEventBufferCount].alt   = false;
         keyEventBuffer[keyEventBufferCount].shift = false;
         keyEventBuffer[keyEventBufferCount].scanCode = 0;
-        
+
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
         std::u16string dest = convert.from_bytes(E.text.text);
 
@@ -390,7 +390,7 @@ namespace Renderer
       }
       else if (E.type == SDL_KEYDOWN)
       {
-        if (E.key.keysym.sym == SDLK_F4 && (E.key.keysym.mod == KMOD_LALT || E.key.keysym.mod == KMOD_RALT)) 
+        if (E.key.keysym.sym == SDLK_F4 && (E.key.keysym.mod == KMOD_LALT || E.key.keysym.mod == KMOD_RALT))
         {
           run = false;
         }
@@ -476,7 +476,7 @@ namespace Renderer
         {
           case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
           case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-          case SDL_BUTTON_LEFT:   
+          case SDL_BUTTON_LEFT:
           default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
@@ -490,7 +490,7 @@ namespace Renderer
         {
           case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
           case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-          case SDL_BUTTON_LEFT:   
+          case SDL_BUTTON_LEFT:
           default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
@@ -697,7 +697,7 @@ namespace Renderer
     for(int i=0; i<w*h; i++) p32bitData[i] = (data[i] << 24) | 0xFFFFFF;
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, p32bitData);
     delete[] p32bitData;
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GLTexture * tex = new GLTexture();
