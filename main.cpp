@@ -81,6 +81,8 @@ int main()
   options.nFontSize = 16;
 #ifdef _WIN32
   options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+#elif __APPLE__
+  options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
@@ -306,7 +308,7 @@ int main()
         mShaderEditor.KeyDown(
           iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
           Renderer::keyEventBuffer[i].shift,
-          Renderer::keyEventBuffer[i].ctrl, 
+          Renderer::keyEventBuffer[i].ctrl,
           Renderer::keyEventBuffer[i].alt,
           &consumed);
         }
