@@ -380,7 +380,8 @@ namespace Renderer
         {
           run = false;
         }
-        int sciKey;
+        int sciKey = 0;
+        bool bNormalKey = false;
         switch(E.key.keysym.sym)
         {
           case SDLK_DOWN:         sciKey = SCK_DOWN;      break;
@@ -429,16 +430,17 @@ namespace Renderer
             sciKey = 0;
             break;
           default:
-            sciKey = 0;//E.key.keysym.sym;
+            bNormalKey = true;
+            sciKey = E.key.keysym.sym;
         }
 
-        if (sciKey)
+        if ((bNormalKey && E.key.keysym.mod) || !bNormalKey)
         {
           keyEventBuffer[keyEventBufferCount].ctrl  = E.key.keysym.mod & KMOD_LCTRL  || E.key.keysym.mod & KMOD_RCTRL;
           keyEventBuffer[keyEventBufferCount].alt   = E.key.keysym.mod & KMOD_LALT   || E.key.keysym.mod & KMOD_RALT;
           keyEventBuffer[keyEventBufferCount].shift = E.key.keysym.mod & KMOD_LSHIFT || E.key.keysym.mod & KMOD_RSHIFT;
           keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
-          keyEventBuffer[keyEventBufferCount].character = E.key.keysym.sym;
+          keyEventBuffer[keyEventBufferCount].character = 0;
           keyEventBufferCount++;
         }
 
