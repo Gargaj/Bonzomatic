@@ -39,6 +39,8 @@ namespace Renderer
   void SetTextRenderingViewport( Scintilla::PRectangle rect );
   void EndTextRendering();
 
+  bool GrabFrame( void * pPixelBuffer ); // input buffer must be able to hold w * h * 4 bytes of 0xAABBGGRR data
+
   void Close();
 
   enum TEXTURETYPE
