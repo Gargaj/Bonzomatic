@@ -11,6 +11,13 @@
 #include "UniConversion.h"
 #include "jsonxx.h"
 
+#include "Misc.h"
+
+#ifdef WIN32
+#include <windows.h>
+#include <Processing.NDI.Lib.h>
+#endif
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -109,8 +116,6 @@ int main()
   options.nFontSize = 16;
 #ifdef _WIN32
   options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
-#elif __APPLE__
-  options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
@@ -122,6 +127,8 @@ int main()
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
+
+  std::string sNDIConnectionString;
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -188,6 +195,11 @@ int main()
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
+    }
+    if (o.has<jsonxx::Object>("ndi"))
+    {
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
+        sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
     }
   }
 
@@ -264,10 +276,46 @@ int main()
   static float fftDataSmoothed[FFT_SIZE];
   memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
 
-  // if we want to do some sort of frame capturing code
-  // (for e.g. sending frames through the network)
-  // we'd do it here, and then below.
-  unsigned int * pFrameContents = NULL;// new unsigned int[ settings.nWidth * settings.nHeight ];
+  NDIlib_video_frame_t pNDIFrame;
+  NDIlib_send_instance_t pNDI_send;
+  bool bNDIEnabled = false;
+  if (sNDIConnectionString.length())
+  {
+    if (!NDIlib_initialize())
+    {
+      printf("Cannot run NDI.");
+      return 0;
+    }
+
+    const NDIlib_send_create_t NDI_send_create_desc = { "Bonzomatic NDI source", NULL, TRUE, FALSE };
+
+    pNDI_send = NDIlib_send_create(&NDI_send_create_desc);
+    if (!pNDI_send)
+    {
+      printf("Cannot create NDI source");
+      return 0;
+    }
+
+    NDIlib_metadata_frame_t pNDIConnType;
+    pNDIConnType.length = sNDIConnectionString.length();
+    pNDIConnType.timecode = NDIlib_send_timecode_synthesize;
+    pNDIConnType.p_data = (CHAR*)sNDIConnectionString.c_str();
+
+    NDIlib_send_add_connection_metadata(pNDI_send, &pNDIConnType);
+
+    pNDIFrame.xres = settings.nWidth;
+    pNDIFrame.yres = settings.nHeight;
+    pNDIFrame.FourCC = NDIlib_FourCC_type_BGRA;
+    pNDIFrame.frame_rate_N = 30000;
+    pNDIFrame.frame_rate_D = 1001;
+    pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
+    pNDIFrame.is_progressive = false;
+    pNDIFrame.timecode = NDIlib_send_timecode_synthesize;
+    pNDIFrame.p_data = (BYTE*)malloc(settings.nWidth * settings.nHeight * 4);
+    pNDIFrame.line_stride_in_bytes = settings.nWidth * 4;
+
+    bNDIEnabled = true;
+  }
   
   bool bShowGui = true;
   Timer::Start();
@@ -317,7 +365,7 @@ int main()
           bTexPreviewVisible = true;
         }
       }
-      else if (Renderer::keyEventBuffer[i].scanCode == 286 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'r')) // F5
+      else if (Renderer::keyEventBuffer[i].scanCode == 286) // F5
       {
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
@@ -344,7 +392,7 @@ int main()
         mShaderEditor.KeyDown(
           iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
           Renderer::keyEventBuffer[i].shift,
-          Renderer::keyEventBuffer[i].ctrl,
+          Renderer::keyEventBuffer[i].ctrl, 
           Renderer::keyEventBuffer[i].alt,
           &consumed);
         }
@@ -427,7 +475,7 @@ int main()
 
       char szLayout[255];
       Misc::GetKeymapName(szLayout);
-      std::string sHelp = "F2 - toggle texture preview   F5 or Ctrl-R - recompile shader   F11 - hide GUI   Current keymap: ";
+      std::string sHelp = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI   Current keymap: ";
       sHelp += szLayout;
       surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
@@ -437,17 +485,21 @@ int main()
 
     Renderer::EndFrame();
 
-    if (pFrameContents)
+    if (bNDIEnabled && Renderer::GrabFrame( pNDIFrame.p_data ))
     {
-      if (Renderer::GrabFrame( pFrameContents ))
-      {
-        // send framebuffer through network here.
-      }
+      unsigned int * p = (unsigned int *)pNDIFrame.p_data;
+      for(int i=0; i < settings.nWidth * settings.nHeight; i++)
+        p[i] = (p[i] & 0x00FF00) | ((p[i] >> 16) & 0xFF) | ((p[i] & 0xFF) << 16) | 0xFF000000;
+      NDIlib_send_send_video(pNDI_send, &pNDIFrame);
     }
   }
 
-  if (pFrameContents)
-    delete[] pFrameContents;
+  if (bNDIEnabled)
+  {
+    free((void*)pNDIFrame.p_data);
+    NDIlib_send_destroy(pNDI_send);
+    NDIlib_destroy();
+  }
 
   delete surface;
 
