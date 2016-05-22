@@ -159,6 +159,8 @@ namespace Renderer
   LPD3DXCONSTANTTABLE pConstantTable = NULL;
   LPDIRECT3DVERTEXSHADER9 pVertexShader = NULL;
   LPDIRECT3DPIXELSHADER9 theShader = NULL;
+  LPDIRECT3DSURFACE9 pBackBuffer = NULL;
+  LPDIRECT3DSURFACE9 pFrameGrabTexture = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
@@ -336,6 +338,7 @@ namespace Renderer
     return true;
   }
 
+  D3DPRESENT_PARAMETERS d3dpp;
   bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
   {
     pD3D = Direct3DCreate9(D3D9b_SDK_VERSION);
@@ -348,7 +351,6 @@ namespace Renderer
     nWidth  = pSetup->nWidth;
     nHeight = pSetup->nHeight;
 
-    D3DPRESENT_PARAMETERS d3dpp;
     ZeroMemory(&d3dpp,sizeof(d3dpp));
 
     d3dpp.SwapEffect     = D3DSWAPEFFECT_DISCARD;
@@ -417,6 +419,9 @@ namespace Renderer
       pDevice->SetSamplerState( x, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
       pDevice->SetSamplerState( x, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
     }
+
+    pDevice->GetRenderTarget( 0, &pBackBuffer );
+
     return 1;
   }
 
@@ -480,6 +485,12 @@ namespace Renderer
     if (pDevice->CreateVertexShader( (DWORD*)pShader->GetBufferPointer(), &pVertexShader ) != D3D_OK)
     {
       printf("[Renderer] CreateVertexShader failed\n");
+      return false;
+    }
+
+    if (pDevice->CreateOffscreenPlainSurface( settings->nWidth, settings->nHeight, d3dpp.BackBufferFormat, D3DPOOL_SYSTEMMEM, &pFrameGrabTexture, NULL) != D3D_OK)
+    {
+      printf("[Renderer] CreateOffscreenPlainSurface failed\n");
       return false;
     }
 
@@ -823,4 +834,35 @@ namespace Renderer
     pDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
   }
 
+  //////////////////////////////////////////////////////////////////////////
+
+  bool GrabFrame( void * pPixelBuffer )
+  {
+    if (!pFrameGrabTexture)
+      return false;
+
+    if (pDevice->GetRenderTargetData( pBackBuffer, pFrameGrabTexture ) != D3D_OK)
+      return false;
+
+    D3DLOCKED_RECT rect;
+    if (pFrameGrabTexture->LockRect( &rect, NULL, NULL ) != D3D_OK)
+      return false;
+    
+    unsigned char* pSrc = (unsigned char*)rect.pBits;
+    unsigned char* pDst = (unsigned char*)pPixelBuffer;
+    for( int i = 0; i < nHeight; i++ )
+    {
+      unsigned int* pSrc32 = (unsigned int*)pSrc;
+      unsigned int* pDst32 = (unsigned int*)pDst;
+      for(int j=0; j < nWidth; j++)
+        pDst32[j] = (pSrc32[j] & 0x00FF00) | ((pSrc32[j] >> 16) & 0xFF) | ((pSrc32[j] & 0xFF) << 16) | 0xFF000000;
+
+      pSrc += rect.Pitch;
+      pDst += nWidth * 4;
+    }
+
+    pFrameGrabTexture->UnlockRect();
+
+    return true;
+  }
 }
