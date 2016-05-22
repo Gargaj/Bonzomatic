@@ -150,6 +150,8 @@ namespace Renderer
   bool run = true;
 
   GLuint theShader = NULL;
+  GLuint glhVertexShader = NULL;
+  GLuint glhFullscreenQuadVB = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
@@ -176,7 +178,8 @@ namespace Renderer
 
     SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 4 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
@@ -196,6 +199,52 @@ namespace Renderer
     if (settings->bVsync)
       wglSwapIntervalEXT(1);
 #endif
+
+    static float pFullscreenQuadVertices[] = 
+    {
+      -1.0, -1.0,  0.5, 0.0, 0.0,
+      -1.0,  1.0,  0.5, 0.0, 1.0,
+       1.0, -1.0,  0.5, 1.0, 0.0,
+       1.0,  1.0,  0.5, 1.0, 1.0,
+    };
+
+    GLenum i = 0;
+    glGenBuffers( 1, &glhFullscreenQuadVB );
+    i = glGetError();
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
+    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+
+    GLuint glhFullscreenQuadVA;
+    glGenVertexArrays(1, &glhFullscreenQuadVA);
+    glBindVertexArray(glhFullscreenQuadVA);
+
+    glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
+
+    char * szVertexShader =
+      "#version 430 core\n"
+      "attribute vec3 in_pos;\n"
+      "attribute vec2 in_texcoord;\n"
+      "varying vec2 out_texcoord;\n"
+      "void main()\n"
+      "{\n"
+      "  gl_Position = vec4( in_pos.x, in_pos.y, in_pos.z, 1.0 );\n"
+      "  out_texcoord = in_texcoord;\n"
+      "}";
+    GLint nVertexShaderSize = strlen(szVertexShader);
+
+    glShaderSource(glhVertexShader, 1, (const GLchar**)&szVertexShader, &nVertexShaderSize);
+    glCompileShader(glhVertexShader);
+
+    GLint size = 0;
+    GLint result = 0;
+    char szErrorBuffer[5000];
+    glGetShaderInfoLog(glhVertexShader, 4000, &size, szErrorBuffer);
+    glGetShaderiv(glhVertexShader, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+      return false;
+    }
 
     run = true;
 
@@ -303,21 +352,16 @@ namespace Renderer
         mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
         switch(E.button.button)
         {
-        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
-        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-        case SDL_BUTTON_LEFT:   
-        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
-    }
+          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+          case SDL_BUTTON_LEFT:   
+          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+        }
         mouseEventBufferCount++;
       }
     }
     glClearColor(0.08f, 0.18f, 0.18f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
   }
   void EndFrame()
   {
@@ -335,14 +379,23 @@ namespace Renderer
   void RenderFullscreenQuad()
   {
     glUseProgram(theShader);
-    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.00f, -1.00f);
-      glTexCoord2f(1.0f, 0.0f); glVertex2f( 1.00f, -1.00f);
-      glTexCoord2f(1.0f, 1.0f); glVertex2f( 1.00f,  1.00f);
-      glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.00f,  1.00f);
-    glEnd();
-    glUseProgram(0);
+
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+
+    GLuint position = glGetAttribLocation( theShader, "in_pos" );
+    glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+
+    GLuint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
+    glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+
+    glEnableVertexAttribArray( position );
+    glEnableVertexAttribArray( texcoord );
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+    glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+    glDisableVertexAttribArray( texcoord );
+    glDisableVertexAttribArray( position );
+
+    glUseProgram(NULL);
   }
 
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
@@ -363,6 +416,7 @@ namespace Renderer
       return false;
     }
 
+    glAttachShader(prg, glhVertexShader);
     glAttachShader(prg, shd);
     glLinkProgram(prg);
     glGetProgramInfoLog(prg, nErrorBufferSize - size, &size, szErrorBuffer + size);
@@ -496,45 +550,6 @@ namespace Renderer
     return true;
   }
 
-  void StartTextRendering()
-  {
-    glUseProgram(0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(0, nWidth, 0, nHeight, 0, 500);
-    glTranslatef(0, nHeight, 0);
-    glScalef(1, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-    for (int i=0; i<8; i++)
-    {
-      glActiveTexture( GL_TEXTURE0 + i );
-      glBindTexture(GL_TEXTURE_2D, NULL);
-    }
-    glActiveTexture( GL_TEXTURE0 );
-    glEnable(GL_TEXTURE_2D);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
-  void SetTextRenderingViewport( Scintilla::PRectangle rect )
-  {
-    glEnable(GL_SCISSOR_TEST);
-    glScissor( rect.left, nHeight - rect.bottom, rect.right - rect.left, rect.bottom - rect.top );
-    glLoadIdentity();
-    glTranslatef( rect.left, rect.top, 0.0 );
-  }
-  void EndTextRendering()
-  {
-    glPopAttrib();
-    glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_BLEND);
-  }
-
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
     GLuint glTexId = 0;
@@ -561,29 +576,90 @@ namespace Renderer
     glDeleteTextures(1, &((GLTexture*)tex)->ID );
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  // text rendering
+
+#define GUIQUADVB_SIZE 512
+
+  int nDrawCallCount = 0;
+  Texture * lastTexture = NULL;
+  void StartTextRendering()
+  {
+  }
+
+  int bufferPointer = 0;
+  unsigned char buffer[GUIQUADVB_SIZE * sizeof(float) * 7];
+  bool lastModeIsQuad = true;
+  void __FlushRenderCache()
+  {
+    if (!bufferPointer) return;
+
+
+    bufferPointer = 0;
+  }
+  void __WriteVertexToBuffer( const Vertex & v )
+  {
+    if (bufferPointer >= GUIQUADVB_SIZE)
+    {
+      __FlushRenderCache();
+    }
+
+    float * f = (float*)(buffer + bufferPointer * sizeof(float) * 7);
+    *(f++) = v.x;
+    *(f++) = v.y;
+    *(f++) = 0.0;
+    *(unsigned int *)(f++) = v.c;
+    *(f++) = v.u;
+    *(f++) = v.v;
+    *(f++) = lastTexture ? 0.0 : 1.0;
+    bufferPointer++;
+  }
   void BindTexture( Texture * tex )
   {
-    if (tex) glEnable(GL_TEXTURE_2D);
-    else glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, tex ? ((GLTexture*)tex)->ID : NULL );
+    if (lastTexture != tex)
+    {
+      lastTexture = tex;
+      if (tex)
+      {
+        __FlushRenderCache();
+      }
+    }
   }
 
   void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d )
   {
-    glBegin(GL_QUADS);
-    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
-    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
-    glColor4ubv( (GLubyte*)&c.c ); glTexCoord2f( c.u, c.v ); glVertex2f( c.x, c.y );
-    glColor4ubv( (GLubyte*)&d.c ); glTexCoord2f( d.u, d.v ); glVertex2f( d.x, d.y );
-    glEnd();
+    if (!lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = true;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(d);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(c);
+    __WriteVertexToBuffer(d);
   }
 
   void RenderLine( const Vertex & a, const Vertex & b )
   {
-    glBegin(GL_LINES);
-    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
-    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
-    glEnd();
+    if (lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = false;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
   }
+
+  void SetTextRenderingViewport( Scintilla::PRectangle rect )
+  {
+    __FlushRenderCache();
+  }
+  void EndTextRendering()
+  {
+    __FlushRenderCache();
+  }
+
 
 }
