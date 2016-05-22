@@ -236,6 +236,8 @@ int main()
   static float fftDataSmoothed[FFT_SIZE];
   memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
 
+  unsigned int * pFrameContents = new unsigned int[ settings.nWidth * settings.nHeight ];
+  
   bool bShowGui = true;
   Timer::Start();
   float fNextTick = 0.1;
@@ -400,6 +402,13 @@ int main()
     Renderer::EndTextRendering();
 
     Renderer::EndFrame();
+
+    if (pFrameContents)
+    {
+      if (Renderer::GrabFrame( pFrameContents ))
+      {
+      }
+    }
   }
 
   delete surface;

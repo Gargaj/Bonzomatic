@@ -164,6 +164,8 @@ namespace Renderer
   ID3D11VertexShader * pVertexShader = NULL;
   ID3D11PixelShader * theShader = NULL;
   ID3D11ShaderReflection * pShaderReflection = NULL;
+  ID3D11Texture2D * pBackBuffer = NULL;
+  ID3D11Texture2D * pFrameGrabTexture = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
@@ -420,13 +422,22 @@ namespace Renderer
       return false;
     }
 
-    ID3D11Texture2D * pBackBuffer = NULL;
     pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
 
     pDevice->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTarget);
     pBackBuffer->Release();
 
     pContext->OMSetRenderTargets(1, &pRenderTarget, NULL);
+
+    // create staging texture for frame grabbing
+
+    D3D11_TEXTURE2D_DESC description;
+    pBackBuffer->GetDesc( &description );
+    description.BindFlags = 0;
+    description.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+    description.Usage = D3D11_USAGE_STAGING;
+
+    HRESULT hr = pDevice->CreateTexture2D( &description, NULL, &pFrameGrabTexture );
 
     return true;
   }
@@ -1136,6 +1147,34 @@ namespace Renderer
   void EndTextRendering()
   {
     __FlushRenderCache();
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+
+  bool GrabFrame( void * pPixelBuffer )
+  {
+    if (!pFrameGrabTexture)
+      return false;
+
+    pContext->CopyResource( pFrameGrabTexture, pBackBuffer );
+
+    D3D11_MAPPED_SUBRESOURCE resource;
+    unsigned int nSubresource = D3D11CalcSubresource( 0, 0, 0 );
+    if (pContext->Map( pFrameGrabTexture, nSubresource, D3D11_MAP_READ, 0, &resource ) != S_OK)
+      return false;
+    
+    unsigned char* pSrc = (unsigned char*)resource.pData;
+    unsigned char* pDst = (unsigned char*)pPixelBuffer;
+    for( int i = 0; i < nHeight; i++ )
+    {
+      memcpy( pDst, pSrc, nWidth * 4 );
+      pSrc += resource.RowPitch;
+      pDst += nWidth * 4;
+    }
+
+    pContext->Unmap( pFrameGrabTexture, nSubresource );
+
+    return true;
   }
 
 }
