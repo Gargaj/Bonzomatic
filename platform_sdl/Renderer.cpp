@@ -232,6 +232,7 @@ namespace Renderer
       printf("[SDL] glewInit failed\n");
       return false;
     }
+    GLenum i = glGetError(); // reset glew error
 
 #ifdef _WIN32
     if (settings->bVsync)
@@ -246,9 +247,7 @@ namespace Renderer
        1.0,  1.0,  0.5, 1.0, 1.0,
     };
 
-    GLenum i = 0;
     glGenBuffers( 1, &glhFullscreenQuadVB );
-    i = glGetError();
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
     glBindBuffer( GL_ARRAY_BUFFER, NULL );
