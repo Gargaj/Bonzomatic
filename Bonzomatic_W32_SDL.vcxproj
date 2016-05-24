@@ -39,14 +39,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glew;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(ProjectName)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glew;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(ProjectName)_$(Configuration)\</IntDir>
@@ -85,7 +85,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="external\glee\GLee.c" />
+    <ClCompile Include="external\glew\glew.c" />
     <ClCompile Include="external\jsonxx\jsonxx.cc" />
     <ClCompile Include="external\scintilla\lexers\LexA68k.cxx" />
     <ClCompile Include="external\scintilla\lexers\LexAbaqus.cxx" />

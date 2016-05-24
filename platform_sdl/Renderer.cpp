@@ -2,11 +2,14 @@
 #include <windows.h>
 #endif
 #include <SDL.h>
-#include <GLee.h>
+#include <GL/GLew.h>
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
 #else
 #include <GL/glu.h>
+#endif
+#ifdef _WIN32
+#include <GL/wGLew.h>
 #endif
 #include "../Renderer.h"
 
@@ -211,12 +214,24 @@ namespace Renderer
       settings->nWidth, settings->nHeight,
       flags);
     if (!mWindow)
+    {
+      printf("[SDL] SDL_CreateWindow failed\n");
       return false;
+    }
 
     if (!SDL_GL_CreateContext(mWindow))
+    {
+      printf("[SDL] SDL_GL_CreateContext failed\n");
       return false;
+    }
 
     SDL_StartTextInput();
+
+    if (glewInit() != GLEW_OK)
+    {
+      printf("[SDL] glewInit failed\n");
+      return false;
+    }
 
 #ifdef _WIN32
     if (settings->bVsync)
