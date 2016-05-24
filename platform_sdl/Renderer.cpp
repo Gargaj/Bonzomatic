@@ -227,6 +227,7 @@ namespace Renderer
 
     SDL_StartTextInput();
 
+    glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
     {
       printf("[SDL] glewInit failed\n");
