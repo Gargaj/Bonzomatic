@@ -584,7 +584,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform1fEXT( theShader, location, x );
+      glProgramUniform1f( theShader, location, x );
     }
   }
 
@@ -593,7 +593,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform2fEXT( theShader, location, x, y );
+      glProgramUniform2f( theShader, location, x, y );
     }
   }
 
@@ -674,7 +674,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szTextureName );
     if ( location != -1 )
     {
-      glProgramUniform1iEXT( theShader, location, ((GLTexture*)tex)->unit );
+      glProgramUniform1i( theShader, location, ((GLTexture*)tex)->unit );
       glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {
@@ -799,7 +799,7 @@ namespace Renderer
         GLint location = glGetUniformLocation( glhGUIProgram, "tex" );
         if ( location != -1 )
         {
-          glProgramUniform1iEXT( glhGUIProgram, location, ((GLTexture*)tex)->unit );
+          glProgramUniform1i( glhGUIProgram, location, ((GLTexture*)tex)->unit );
           glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
           switch( tex->type)
           {
@@ -848,13 +848,13 @@ namespace Renderer
     GLint location = glGetUniformLocation( glhGUIProgram, "matProj" );
     if ( location != -1 )
     {
-       glProgramUniformMatrix4fvEXT( glhGUIProgram, location, 1, GL_FALSE, pGUIMatrix );
+       glProgramUniformMatrix4fv( glhGUIProgram, location, 1, GL_FALSE, pGUIMatrix );
     }
 
     location = glGetUniformLocation( glhGUIProgram, "v2Offset" );
     if ( location != -1 )
     {
-      glProgramUniform2fEXT( glhGUIProgram, location, rect.left, rect.top );
+      glProgramUniform2f( glhGUIProgram, location, rect.left, rect.top );
     }
 
     // TODO: scissor rect
