@@ -2,7 +2,7 @@
 all: Bonzomatic
 
 SOURCES_C := \
-	external/glee/GLee.c \
+	external/glew/glew.c \
 	external/stb_image.c
 
 SOURCES_CC := \
@@ -162,7 +162,7 @@ INCLUDEPATHS := \
   external/scintilla/include \
 	external/scintilla/lexlib \
 	external/scintilla/src \
-	external/glee \
+	external/glew \
 	external/sdl/include \
 	external/bass
 
