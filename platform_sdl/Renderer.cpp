@@ -167,9 +167,9 @@ namespace Renderer
   int nWidth = 0;
   int nHeight = 0;
 
-  void MatrixOrthoOffCenterLH(float * pout, FLOAT l, FLOAT r, FLOAT b, FLOAT t, FLOAT zn, FLOAT zf)
+  void MatrixOrthoOffCenterLH(float * pout, float l, float r, float b, float t, float zn, float zf)
   {
-    ZeroMemory( pout, sizeof(float) * 4 * 4 );
+    memset( pout, 0, sizeof(float) * 4 * 4 );
     pout[0 + 0 * 4] = 2.0f / (r - l);
     pout[1 + 1 * 4] = 2.0f / (t - b);
     pout[2 + 2 * 4] = 1.0f / (zf -zn);
@@ -257,10 +257,10 @@ namespace Renderer
     glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
 
     char * szVertexShader =
-      "#version 430 core\n"
-      "attribute vec3 in_pos;\n"
-      "attribute vec2 in_texcoord;\n"
-      "varying vec2 out_texcoord;\n"
+      "#version 410 core\n"
+      "in vec3 in_pos;\n"
+      "in vec2 in_texcoord;\n"
+      "out vec2 out_texcoord;\n"
       "void main()\n"
       "{\n"
       "  gl_Position = vec4( in_pos.x, in_pos.y, in_pos.z, 1.0 );\n"
@@ -278,41 +278,43 @@ namespace Renderer
     glGetShaderiv(glhVertexShader, GL_COMPILE_STATUS, &result);
     if (!result)
     {
+      printf("[Renderer] Vertex shader compilation failed\n");
       return false;
     }
 
 #define GUIQUADVB_SIZE (1024 * 6)
 
     char * defaultGUIVertexShader =
-      "#version 430 core\n"
-      "attribute vec3 in_pos;\n"
-      "attribute vec4 in_color;\n"
-      "attribute vec2 in_texcoord;\n"
-      "attribute float in_factor;\n"
-      "varying vec4 out_color;\n"
-      "varying vec2 out_texcoord;\n"
-      "varying float out_factor;\n"
+      "#version 410 core\n"
+      "in vec3 in_pos;\n"
+      "in vec4 in_color;\n"
+      "in vec2 in_texcoord;\n"
+      "in float in_factor;\n"
+      "out vec4 out_color;\n"
+      "out vec2 out_texcoord;\n"
+      "out float out_factor;\n"
       "uniform vec2 v2Offset;\n"
       "uniform mat4 matProj;\n"
       "void main()\n"
       "{\n"
       "  vec4 pos = vec4( in_pos + vec3(v2Offset,0), 1.0 );\n"
-      "  gl_Position = mul( pos, matProj );\n"
+      "  gl_Position = matProj * pos;\n"
       "  out_color = in_color;\n"
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
       "}\n";
     char * defaultGUIPixelShader =
-      "#version 430 core\n"
+      "#version 410 core\n"
       "uniform sampler2D tex;\n"
-      "varying vec4 out_color;\n"
-      "varying vec2 out_texcoord;\n"
-      "varying float out_factor;\n"
+      "in vec4 out_color;\n"
+      "in vec2 out_texcoord;\n"
+      "in float out_factor;\n"
+      "out vec4 frag_color;\n"
       "void main()\n"
       "{\n"
       "  vec4 v4Texture = out_color * texture( tex, out_texcoord );\n"
       "  vec4 v4Color = out_color;\n"
-      "  gl_FragColor = mix( v4Texture, v4Color, out_factor );\n"
+      "  frag_color = mix( v4Texture, v4Color, out_factor );\n"
       "}\n";
 
     glhGUIProgram = glCreateProgram();
@@ -326,6 +328,7 @@ namespace Renderer
     glGetShaderiv(vshd, GL_COMPILE_STATUS, &result);
     if (!result)
     {
+      printf("[Renderer] Default GUI vertex shader compilation failed\n");
       return false;
     }
 
@@ -338,6 +341,7 @@ namespace Renderer
     glGetShaderiv(fshd, GL_COMPILE_STATUS, &result);
     if (!result)
     {
+      printf("[Renderer] Default GUI pixel shader compilation failed\n");
       return false;
     }
 
