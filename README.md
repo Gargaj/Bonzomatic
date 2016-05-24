@@ -53,7 +53,7 @@ Please use Visual C++ 2010 - nothing else is needed right now.
 
 ### Libraries and other included software
 - Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
-- GLee extension library by Ben Woodhouse (http://elf-stone.com/downloads/GLee/)
+- OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net/)
 - BASS.DLL by Ian Luck (http://www.un4seen.com/)
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - Simple DirectMedia Layer by the SDL dev team (https://www.libsdl.org/)
