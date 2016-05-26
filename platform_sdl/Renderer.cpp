@@ -299,7 +299,7 @@ namespace Renderer
       "void main()\n"
       "{\n"
       "  vec4 pos = vec4( in_pos + vec3(v2Offset,0), 1.0 );\n"
-      "  gl_Position = matProj * pos;\n"
+      "  gl_Position = pos * matProj;\n"
       "  out_color = in_color;\n"
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
