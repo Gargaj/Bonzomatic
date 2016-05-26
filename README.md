@@ -1,5 +1,7 @@
 # Bonzomatic
 
+[![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
 
