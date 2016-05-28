@@ -46,7 +46,11 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 ```
 
 ## Building
+### Windows
 Please use Visual C++ 2010 - nothing else is needed right now.
+
+### OSX / Linux
+You need ```libsdl2-dev```; after that you just ```make```, and it should work.
 
 ## Credits and acknowledgements
 ### Original / parent project authors
