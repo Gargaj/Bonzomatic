@@ -2,7 +2,7 @@
 #include <windows.h>
 #endif
 #include <SDL.h>
-#include <GL/GLew.h>
+#include <GL/glew.h>
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
 #else
