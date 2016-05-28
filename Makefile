@@ -149,10 +149,10 @@ SOURCES_CPP := \
 	Platform.cpp \
 	ShaderEditor.cpp \
 	platform_sdl/Renderer.cpp \
+	platform_sdl/FFT.cpp \
 	platform_x11/MIDI.cpp \
 	platform_x11/Misc.cpp \
 	platform_x11/Clipboard.cpp \
-	platform_x11/FFT.cpp \
 	platform_x11/SetupDialog.cpp \
 	platform_x11/Timer.cpp \
 	platform_x11/Platform_DynamicLoad.cpp
@@ -175,7 +175,7 @@ CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 UNAME_S := $(shell uname -s)
 LDFLAGS := -lGL `pkg-config --libs sdl2`
 ifeq ($(UNAME_S),Darwin)
-  LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2`
+  LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2` -L. -lbass
 endif
 
 define MAKE_RULES
