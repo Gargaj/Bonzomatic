@@ -872,7 +872,8 @@ namespace Renderer
       glProgramUniform2f( glhGUIProgram, location, rect.left, rect.top );
     }
 
-    // TODO: scissor rect
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(rect.left, nHeight - rect.bottom, rect.right - rect.left, rect.bottom - rect.top);
   }
   void EndTextRendering()
   {
@@ -893,7 +894,8 @@ namespace Renderer
 
     glUseProgram(NULL);
 
-    glDisable( GL_BLEND );
+    glDisable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
   }
 
   //////////////////////////////////////////////////////////////////////////
