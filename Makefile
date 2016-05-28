@@ -172,7 +172,11 @@ OBJDIR ?= .obj
 CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl2`
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
-LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2`
+UNAME_S := $(shell uname -s)
+LDFLAGS := -lGL `pkg-config --libs sdl2`
+ifeq ($(UNAME_S),Darwin)
+  LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2`
+endif
 
 define MAKE_RULES
   $1.MODULE := $(addprefix $(OBJDIR)/, $(1:$(2)=$(3)))
