@@ -2,7 +2,7 @@
 all: Bonzomatic
 
 SOURCES_C := \
-	external/glee/GLee.c \
+	external/glew/glew.c \
 	external/stb_image.c
 
 SOURCES_CC := \
@@ -162,17 +162,21 @@ INCLUDEPATHS := \
   external/scintilla/include \
 	external/scintilla/lexlib \
 	external/scintilla/src \
-	external/glee \
+	external/glew \
 	external/sdl/include \
 	external/bass
 
 CXX ?= cpp
 OBJDIR ?= .obj
 
-CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl`
+CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl2`
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
-LDFLAGS := -lGL `pkg-config --libs sdl`
+UNAME_S := $(shell uname -s)
+LDFLAGS := -lGL `pkg-config --libs sdl2`
+ifeq ($(UNAME_S),Darwin)
+  LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2`
+endif
 
 define MAKE_RULES
   $1.MODULE := $(addprefix $(OBJDIR)/, $(1:$(2)=$(3)))
@@ -201,4 +205,3 @@ Bonzomatic: $(MODULES) Makefile
 
 clean:
 	@rm -r Bonzomatic $(OBJDIR)
-

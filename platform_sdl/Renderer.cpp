@@ -1,14 +1,21 @@
-#ifdef _WIN32
+﻿#ifdef _WIN32
 #include <windows.h>
 #endif
 #include <SDL.h>
-#include <GLee.h>
+#include <GL/GLew.h>
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
 #else
 #include <GL/glu.h>
 #endif
+#ifdef _WIN32
+#include <GL/wGLew.h>
+#endif
 #include "../Renderer.h"
+
+#include <locale>
+#include <codecvt>
+#include <string>
 
 #define STBI_HEADER_FILE_ONLY
 #include <stb_image.c>
@@ -17,7 +24,7 @@
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
-const char * shaderType = 
+const char * shaderType =
   "attribute const in inout out uniform varying invariant "
   "centroid flat smooth noperspective layout patch sample "
   "subroutine lowp mediump highp precision "
@@ -29,7 +36,7 @@ const char * shaderType =
   "sampler1DArrayShadow sampler2DArrayShadow "
   "samplerCube samplerCubeShadow samplerCubeArrayShadow ";
 
-const char * shaderBuiltin = 
+const char * shaderBuiltin =
   "radians degrees sin cos tan asin acos atan sinh "
   "cosh tanh asinh acosh atanh pow exp log exp2 "
   "log2 sqrt inversesqrt abs sign floor trunc round "
@@ -104,8 +111,8 @@ const char * shaderBuiltin =
 namespace Renderer
 {
   char * defaultShaderFilename = "shader.glsl";
-  char defaultShader[65536] = 
-    "#version 430 core\n"
+  char defaultShader[65536] =
+    "#version 410 core\n"
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
@@ -146,13 +153,32 @@ namespace Renderer
     "  out_color = f + t;\n"
     "}";
 
-  SDL_Surface * mScreen = NULL;
+  SDL_Window * mWindow = NULL;
   bool run = true;
 
   GLuint theShader = NULL;
+  GLuint glhVertexShader = NULL;
+  GLuint glhFullscreenQuadVB = NULL;
+  GLuint glhFullscreenQuadVA = NULL;
+  GLuint glhGUIVB = NULL;
+  GLuint glhGUIVA = NULL;
+  GLuint glhGUIProgram = NULL;
 
   int nWidth = 0;
   int nHeight = 0;
+
+  void MatrixOrthoOffCenterLH(float * pout, float l, float r, float b, float t, float zn, float zf)
+  {
+    memset( pout, 0, sizeof(float) * 4 * 4 );
+    pout[0 + 0 * 4] = 2.0f / (r - l);
+    pout[1 + 1 * 4] = 2.0f / (t - b);
+    pout[2 + 2 * 4] = 1.0f / (zf -zn);
+    pout[3 + 0 * 4] = -1.0f -2.0f *l / (r - l);
+    pout[3 + 1 * 4] = 1.0f + 2.0f * t / (b - t);
+    pout[3 + 2 * 4] = zn / (zn -zf);
+    pout[3 + 3 * 4] = 1.0;
+  }
+
   bool Open( RENDERER_SETTINGS * settings )
   {
     theShader = NULL;
@@ -162,9 +188,9 @@ namespace Renderer
       return false;
     }
 
-    uint32_t flags = SDL_HWSURFACE|SDL_OPENGLBLIT;
+    uint32_t flags = SDL_WINDOW_OPENGL;
     if (settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN)
-      flags |= SDL_FULLSCREEN;
+      flags |= SDL_WINDOW_FULLSCREEN;
 
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
@@ -174,23 +200,165 @@ namespace Renderer
     SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, true );
 
+    SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
-    mScreen = SDL_SetVideoMode( settings->nWidth, settings->nHeight, 32, flags );
-    if (!mScreen)
+
+    mWindow = SDL_CreateWindow("BONZOMATIC - SDL edition",
+      SDL_WINDOWPOS_CENTERED,
+      SDL_WINDOWPOS_CENTERED,
+      settings->nWidth, settings->nHeight,
+      flags);
+    if (!mWindow)
     {
-      printf("[Renderer] SDL_SetVideoMode failed\n");
-      SDL_Quit();
+      printf("[SDL] SDL_CreateWindow failed\n");
       return false;
     }
 
-    SDL_EnableUNICODE(true);
-    SDL_EnableKeyRepeat(250, 20);
+    if (!SDL_GL_CreateContext(mWindow))
+    {
+      printf("[SDL] SDL_GL_CreateContext failed\n");
+      return false;
+    }
+
+    SDL_StartTextInput();
+
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK)
+    {
+      printf("[SDL] glewInit failed\n");
+      return false;
+    }
+    GLenum i = glGetError(); // reset glew error
 
 #ifdef _WIN32
     if (settings->bVsync)
       wglSwapIntervalEXT(1);
 #endif
+
+    static float pFullscreenQuadVertices[] =
+    {
+      -1.0, -1.0,  0.5, 0.0, 0.0,
+      -1.0,  1.0,  0.5, 0.0, 1.0,
+       1.0, -1.0,  0.5, 1.0, 0.0,
+       1.0,  1.0,  0.5, 1.0, 1.0,
+    };
+
+    glGenBuffers( 1, &glhFullscreenQuadVB );
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
+    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+
+    glGenVertexArrays(1, &glhFullscreenQuadVA);
+
+    glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
+
+    char * szVertexShader =
+      "#version 410 core\n"
+      "in vec3 in_pos;\n"
+      "in vec2 in_texcoord;\n"
+      "out vec2 out_texcoord;\n"
+      "void main()\n"
+      "{\n"
+      "  gl_Position = vec4( in_pos.x, in_pos.y, in_pos.z, 1.0 );\n"
+      "  out_texcoord = in_texcoord;\n"
+      "}";
+    GLint nShaderSize = strlen(szVertexShader);
+
+    glShaderSource(glhVertexShader, 1, (const GLchar**)&szVertexShader, &nShaderSize);
+    glCompileShader(glhVertexShader);
+
+    GLint size = 0;
+    GLint result = 0;
+    char szErrorBuffer[5000];
+    glGetShaderInfoLog(glhVertexShader, 4000, &size, szErrorBuffer);
+    glGetShaderiv(glhVertexShader, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+      printf("[Renderer] Vertex shader compilation failed\n");
+      return false;
+    }
+
+#define GUIQUADVB_SIZE (1024 * 6)
+
+    char * defaultGUIVertexShader =
+      "#version 410 core\n"
+      "in vec3 in_pos;\n"
+      "in vec4 in_color;\n"
+      "in vec2 in_texcoord;\n"
+      "in float in_factor;\n"
+      "out vec4 out_color;\n"
+      "out vec2 out_texcoord;\n"
+      "out float out_factor;\n"
+      "uniform vec2 v2Offset;\n"
+      "uniform mat4 matProj;\n"
+      "void main()\n"
+      "{\n"
+      "  vec4 pos = vec4( in_pos + vec3(v2Offset,0), 1.0 );\n"
+      "  gl_Position = pos * matProj;\n"
+      "  out_color = in_color;\n"
+      "  out_texcoord = in_texcoord;\n"
+      "  out_factor = in_factor;\n"
+      "}\n";
+    char * defaultGUIPixelShader =
+      "#version 410 core\n"
+      "uniform sampler2D tex;\n"
+      "in vec4 out_color;\n"
+      "in vec2 out_texcoord;\n"
+      "in float out_factor;\n"
+      "out vec4 frag_color;\n"
+      "void main()\n"
+      "{\n"
+      "  vec4 v4Texture = out_color * texture( tex, out_texcoord );\n"
+      "  vec4 v4Color = out_color;\n"
+      "  frag_color = mix( v4Texture, v4Color, out_factor );\n"
+      "}\n";
+
+    glhGUIProgram = glCreateProgram();
+
+    GLuint vshd = glCreateShader(GL_VERTEX_SHADER);
+    nShaderSize = strlen(defaultGUIVertexShader);
+
+    glShaderSource(vshd, 1, (const GLchar**)&defaultGUIVertexShader, &nShaderSize);
+    glCompileShader(vshd);
+    glGetShaderInfoLog(vshd, 4000, &size, szErrorBuffer);
+    glGetShaderiv(vshd, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+      printf("[Renderer] Default GUI vertex shader compilation failed\n");
+      return false;
+    }
+
+    GLuint fshd = glCreateShader(GL_FRAGMENT_SHADER);
+    nShaderSize = strlen(defaultGUIPixelShader);
+
+    glShaderSource(fshd, 1, (const GLchar**)&defaultGUIPixelShader, &nShaderSize);
+    glCompileShader(fshd);
+    glGetShaderInfoLog(fshd, 4000, &size, szErrorBuffer);
+    glGetShaderiv(fshd, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+      printf("[Renderer] Default GUI pixel shader compilation failed\n");
+      return false;
+    }
+
+    glAttachShader(glhGUIProgram, vshd);
+    glAttachShader(glhGUIProgram, fshd);
+    glLinkProgram(glhGUIProgram);
+    glGetProgramiv(glhGUIProgram, GL_LINK_STATUS, &result);
+    if (!result)
+    {
+      return false;
+    }
+
+    glGenBuffers( 1, &glhGUIVB );
+    glBindBuffer( GL_ARRAY_BUFFER, glhGUIVB );
+
+    glGenVertexArrays(1, &glhGUIVA);
 
     run = true;
 
@@ -208,17 +376,31 @@ namespace Renderer
     SDL_Event	E;
     while (SDL_PollEvent(&E))
     {
-      if (E.type == SDL_QUIT) 
+      if (E.type == SDL_QUIT)
       {
         run = false;
       }
+      else if (E.type == SDL_TEXTINPUT)
+      {
+        keyEventBuffer[keyEventBufferCount].ctrl  = false;
+        keyEventBuffer[keyEventBufferCount].alt   = false;
+        keyEventBuffer[keyEventBufferCount].shift = false;
+        keyEventBuffer[keyEventBufferCount].scanCode = 0;
+
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
+        std::u16string dest = convert.from_bytes(E.text.text);
+
+        keyEventBuffer[keyEventBufferCount].character = dest[0];
+        keyEventBufferCount++;
+      }
       else if (E.type == SDL_KEYDOWN)
       {
-        if (E.key.keysym.sym == SDLK_F4 && (E.key.keysym.mod == KMOD_LALT || E.key.keysym.mod == KMOD_RALT)) 
+        if (E.key.keysym.sym == SDLK_F4 && (E.key.keysym.mod == KMOD_LALT || E.key.keysym.mod == KMOD_RALT))
         {
           run = false;
         }
-        int sciKey;
+        int sciKey = 0;
+        bool bNormalKey = false;
         switch(E.key.keysym.sym)
         {
           case SDLK_DOWN:         sciKey = SCK_DOWN;      break;
@@ -238,14 +420,26 @@ namespace Renderer
           case SDLK_KP_PLUS:      sciKey = SCK_ADD;       break;
           case SDLK_KP_MINUS:     sciKey = SCK_SUBTRACT;  break;
           case SDLK_KP_DIVIDE:    sciKey = SCK_DIVIDE;    break;
-          case SDLK_LSUPER:       sciKey = SCK_WIN;       break;
-          case SDLK_RSUPER:       sciKey = SCK_RWIN;      break;
+//           case SDLK_LSUPER:       sciKey = SCK_WIN;       break;
+//           case SDLK_RSUPER:       sciKey = SCK_RWIN;      break;
           case SDLK_MENU:         sciKey = SCK_MENU;      break;
-          case SDLK_SLASH:        sciKey = '/';           break;
-          case SDLK_ASTERISK:     sciKey = '`';           break;
-          case SDLK_LEFTBRACKET:  sciKey = '[';           break;
-          case SDLK_BACKSLASH:    sciKey = '\\';          break;
-          case SDLK_RIGHTBRACKET: sciKey = ']';           break;
+//           case SDLK_SLASH:        sciKey = '/';           break;
+//           case SDLK_ASTERISK:     sciKey = '`';           break;
+//           case SDLK_LEFTBRACKET:  sciKey = '[';           break;
+//           case SDLK_BACKSLASH:    sciKey = '\\';          break;
+//           case SDLK_RIGHTBRACKET: sciKey = ']';           break;
+          case SDLK_F1:           sciKey = 282;           break;
+          case SDLK_F2:           sciKey = 283;           break;
+          case SDLK_F3:           sciKey = 284;           break;
+          case SDLK_F4:           sciKey = 285;           break;
+          case SDLK_F5:           sciKey = 286;           break;
+          case SDLK_F6:           sciKey = 287;           break;
+          case SDLK_F7:           sciKey = 288;           break;
+          case SDLK_F8:           sciKey = 289;           break;
+          case SDLK_F9:           sciKey = 290;           break;
+          case SDLK_F10:          sciKey = 291;           break;
+          case SDLK_F11:          sciKey = 292;           break;
+          case SDLK_F12:          sciKey = 293;           break;
           case SDLK_LSHIFT:
           case SDLK_RSHIFT:
           case SDLK_LALT:
@@ -255,16 +449,17 @@ namespace Renderer
             sciKey = 0;
             break;
           default:
+            bNormalKey = true;
             sciKey = E.key.keysym.sym;
         }
 
-        if (sciKey)
+        if ((bNormalKey && E.key.keysym.mod) || !bNormalKey)
         {
           keyEventBuffer[keyEventBufferCount].ctrl  = E.key.keysym.mod & KMOD_LCTRL  || E.key.keysym.mod & KMOD_RCTRL;
           keyEventBuffer[keyEventBufferCount].alt   = E.key.keysym.mod & KMOD_LALT   || E.key.keysym.mod & KMOD_RALT;
           keyEventBuffer[keyEventBufferCount].shift = E.key.keysym.mod & KMOD_LSHIFT || E.key.keysym.mod & KMOD_RSHIFT;
           keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
-          keyEventBuffer[keyEventBufferCount].character = E.key.keysym.unicode;
+          keyEventBuffer[keyEventBufferCount].character = 0;
           keyEventBufferCount++;
         }
 
@@ -284,10 +479,10 @@ namespace Renderer
         mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
         switch(E.button.button)
         {
-        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
-        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-        case SDL_BUTTON_LEFT:   
-        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+          case SDL_BUTTON_LEFT:
+          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
       }
@@ -298,25 +493,20 @@ namespace Renderer
         mouseEventBuffer[mouseEventBufferCount].y = E.button.y;
         switch(E.button.button)
         {
-        case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
-        case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
-        case SDL_BUTTON_LEFT:   
-        default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
+          case SDL_BUTTON_MIDDLE: mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_MIDDLE; break;
+          case SDL_BUTTON_RIGHT:  mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_RIGHT; break;
+          case SDL_BUTTON_LEFT:
+          default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
         }
         mouseEventBufferCount++;
       }
     }
     glClearColor(0.08f, 0.18f, 0.18f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
   }
   void EndFrame()
   {
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(mWindow);
   }
   bool WantsToQuit()
   {
@@ -329,15 +519,26 @@ namespace Renderer
 
   void RenderFullscreenQuad()
   {
+    glBindVertexArray(glhFullscreenQuadVA);
+
     glUseProgram(theShader);
-    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.00f, -1.00f);
-      glTexCoord2f(1.0f, 0.0f); glVertex2f( 1.00f, -1.00f);
-      glTexCoord2f(1.0f, 1.0f); glVertex2f( 1.00f,  1.00f);
-      glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.00f,  1.00f);
-    glEnd();
-    glUseProgram(0);
+
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+
+    GLuint position = glGetAttribLocation( theShader, "in_pos" );
+    glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+
+    GLuint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
+    glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+
+    glEnableVertexAttribArray( position );
+    glEnableVertexAttribArray( texcoord );
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+    glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+    glDisableVertexAttribArray( texcoord );
+    glDisableVertexAttribArray( position );
+
+    glUseProgram(NULL);
   }
 
   bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
@@ -358,6 +559,7 @@ namespace Renderer
       return false;
     }
 
+    glAttachShader(prg, glhVertexShader);
     glAttachShader(prg, shd);
     glLinkProgram(prg);
     glGetProgramInfoLog(prg, nErrorBufferSize - size, &size, szErrorBuffer + size);
@@ -369,7 +571,8 @@ namespace Renderer
       return false;
     }
 
-    glDeleteProgram(theShader);
+    if (theShader)
+      glDeleteProgram(theShader);
 
     theShader = prg;
 
@@ -381,7 +584,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform1fEXT( theShader, location, x );
+      glProgramUniform1f( theShader, location, x );
     }
   }
 
@@ -390,7 +593,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
     {
-      glProgramUniform2fEXT( theShader, location, x, y );
+      glProgramUniform2f( theShader, location, x, y );
     }
   }
 
@@ -471,7 +674,7 @@ namespace Renderer
     GLint location = glGetUniformLocation( theShader, szTextureName );
     if ( location != -1 )
     {
-      glProgramUniform1iEXT( theShader, location, ((GLTexture*)tex)->unit );
+      glProgramUniform1i( theShader, location, ((GLTexture*)tex)->unit );
       glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
       switch( tex->type)
       {
@@ -490,52 +693,16 @@ namespace Renderer
     return true;
   }
 
-  void StartTextRendering()
-  {
-    glUseProgram(0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(0, nWidth, 0, nHeight, 0, 500);
-    glTranslatef(0, nHeight, 0);
-    glScalef(1, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-    for (int i=0; i<8; i++)
-    {
-      glActiveTexture( GL_TEXTURE0 + i );
-      glBindTexture(GL_TEXTURE_2D, NULL);
-    }
-    glActiveTexture( GL_TEXTURE0 );
-    glEnable(GL_TEXTURE_2D);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
-  void SetTextRenderingViewport( Scintilla::PRectangle rect )
-  {
-    glEnable(GL_SCISSOR_TEST);
-    glScissor( rect.left, nHeight - rect.bottom, rect.right - rect.left, rect.bottom - rect.top );
-    glLoadIdentity();
-    glTranslatef( rect.left, rect.top, 0.0 );
-  }
-  void EndTextRendering()
-  {
-    glPopAttrib();
-    glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_BLEND);
-  }
-
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
   {
     GLuint glTexId = 0;
     glGenTextures(1, &glTexId);
     glBindTexture(GL_TEXTURE_2D, glTexId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
-    
+    unsigned int * p32bitData = new unsigned int[ w * h ];
+    for(int i=0; i<w*h; i++) p32bitData[i] = (data[i] << 24) | 0xFFFFFF;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, p32bitData);
+    delete[] p32bitData;
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GLTexture * tex = new GLTexture();
@@ -552,29 +719,167 @@ namespace Renderer
     glDeleteTextures(1, &((GLTexture*)tex)->ID );
   }
 
+  //////////////////////////////////////////////////////////////////////////
+  // text rendering
+
+  int nDrawCallCount = 0;
+  Texture * lastTexture = NULL;
+  void StartTextRendering()
+  {
+    glUseProgram(glhGUIProgram);
+    glBindVertexArray(glhGUIVA);
+
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+  }
+
+  int bufferPointer = 0;
+  unsigned char buffer[GUIQUADVB_SIZE * sizeof(float) * 7];
+  bool lastModeIsQuad = true;
+  void __FlushRenderCache()
+  {
+    if (!bufferPointer) return;
+
+    glBindBuffer( GL_ARRAY_BUFFER, glhGUIVB );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 7 * bufferPointer, buffer, GL_DYNAMIC_DRAW );
+
+    GLuint position = glGetAttribLocation( glhGUIProgram, "in_pos" );
+    glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(0 * sizeof(GLfloat)) );
+    glEnableVertexAttribArray( position );
+
+    GLuint color = glGetAttribLocation( glhGUIProgram, "in_color" );
+    glVertexAttribPointer( color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(float) * 7, (GLvoid*)(3 * sizeof(GLfloat)) );
+    glEnableVertexAttribArray( color );
+
+    GLuint texcoord = glGetAttribLocation( glhGUIProgram, "in_texcoord" );
+    glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(4 * sizeof(GLfloat)) );
+    glEnableVertexAttribArray( texcoord );
+
+    GLuint factor = glGetAttribLocation( glhGUIProgram, "in_factor" );
+    glVertexAttribPointer( factor, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(6 * sizeof(GLfloat)) );
+    glEnableVertexAttribArray( factor );
+
+    if (lastModeIsQuad)
+    {
+      glDrawArrays( GL_TRIANGLES, 0, bufferPointer );
+    }
+    else
+    {
+      glDrawArrays( GL_LINES, 0, bufferPointer );
+    }
+
+    bufferPointer = 0;
+  }
+  void __WriteVertexToBuffer( const Vertex & v )
+  {
+    if (bufferPointer >= GUIQUADVB_SIZE)
+    {
+      __FlushRenderCache();
+    }
+
+    float * f = (float*)(buffer + bufferPointer * sizeof(float) * 7);
+    *(f++) = v.x;
+    *(f++) = v.y;
+    *(f++) = 0.0;
+    *(unsigned int *)(f++) = v.c;
+    *(f++) = v.u;
+    *(f++) = v.v;
+    *(f++) = lastTexture ? 0.0f : 1.0f;
+    bufferPointer++;
+  }
   void BindTexture( Texture * tex )
   {
-    if (tex) glEnable(GL_TEXTURE_2D);
-    else glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, tex ? ((GLTexture*)tex)->ID : NULL );
+    if (lastTexture != tex)
+    {
+      lastTexture = tex;
+      if (tex)
+      {
+        __FlushRenderCache();
+
+        GLint location = glGetUniformLocation( glhGUIProgram, "tex" );
+        if ( location != -1 )
+        {
+          glProgramUniform1i( glhGUIProgram, location, ((GLTexture*)tex)->unit );
+          glActiveTexture( GL_TEXTURE0 + ((GLTexture*)tex)->unit );
+          switch( tex->type)
+          {
+            case TEXTURETYPE_1D: glBindTexture( GL_TEXTURE_1D, ((GLTexture*)tex)->ID ); break;
+            case TEXTURETYPE_2D: glBindTexture( GL_TEXTURE_2D, ((GLTexture*)tex)->ID ); break;
+          }
+        }
+
+      }
+    }
   }
 
   void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d )
   {
-    glBegin(GL_QUADS);
-    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
-    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
-    glColor4ubv( (GLubyte*)&c.c ); glTexCoord2f( c.u, c.v ); glVertex2f( c.x, c.y );
-    glColor4ubv( (GLubyte*)&d.c ); glTexCoord2f( d.u, d.v ); glVertex2f( d.x, d.y );
-    glEnd();
+    if (!lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = true;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(d);
+    __WriteVertexToBuffer(b);
+    __WriteVertexToBuffer(c);
+    __WriteVertexToBuffer(d);
   }
 
   void RenderLine( const Vertex & a, const Vertex & b )
   {
-    glBegin(GL_LINES);
-    glColor4ubv( (GLubyte*)&a.c ); glTexCoord2f( a.u, a.v ); glVertex2f( a.x, a.y );
-    glColor4ubv( (GLubyte*)&b.c ); glTexCoord2f( b.u, b.v ); glVertex2f( b.x, b.y );
-    glEnd();
+    if (lastModeIsQuad)
+    {
+      __FlushRenderCache();
+      lastModeIsQuad = false;
+    }
+    __WriteVertexToBuffer(a);
+    __WriteVertexToBuffer(b);
   }
+
+  void SetTextRenderingViewport( Scintilla::PRectangle rect )
+  {
+    __FlushRenderCache();
+
+    float pGUIMatrix[16];
+    MatrixOrthoOffCenterLH( pGUIMatrix, 0.0f, (float)nWidth, (float)nHeight, 0.0f, -1.0f, 1.0f );
+
+    GLint location = glGetUniformLocation( glhGUIProgram, "matProj" );
+    if ( location != -1 )
+    {
+       glProgramUniformMatrix4fv( glhGUIProgram, location, 1, GL_FALSE, pGUIMatrix );
+    }
+
+    location = glGetUniformLocation( glhGUIProgram, "v2Offset" );
+    if ( location != -1 )
+    {
+      glProgramUniform2f( glhGUIProgram, location, rect.left, rect.top );
+    }
+
+    // TODO: scissor rect
+  }
+  void EndTextRendering()
+  {
+    __FlushRenderCache();
+
+    glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
+    glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+
+    GLuint position = glGetAttribLocation( glhGUIProgram, "in_pos" );
+    GLuint color = glGetAttribLocation( glhGUIProgram, "in_color" );
+    GLuint texcoord = glGetAttribLocation( glhGUIProgram, "in_texcoord" );
+    GLuint factor = glGetAttribLocation( glhGUIProgram, "in_factor" );
+
+    glDisableVertexAttribArray( factor );
+    glDisableVertexAttribArray( texcoord );
+    glDisableVertexAttribArray( color );
+    glDisableVertexAttribArray( position );
+
+    glUseProgram(NULL);
+
+    glDisable( GL_BLEND );
+  }
+
 
 }

@@ -39,14 +39,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glew;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(ProjectName)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glee;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
+    <IncludePath>external;external\scintilla\include;external\scintilla\lexlib;external\scintilla\src;external\glew;external\sdl\include;external\bass;$(IncludePath)</IncludePath>
     <LibraryPath>external\bass\;external\sdl\lib\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
     <IntDir>$(ProjectName)_$(Configuration)\</IntDir>
@@ -62,7 +62,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>bass.lib;sdl.lib;opengl32.lib;glu32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bass.lib;sdl2.lib;opengl32.lib;glu32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,11 +81,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>bass.lib;sdl.lib;opengl32.lib;glu32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bass.lib;sdl2.lib;opengl32.lib;glu32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="external\glee\GLee.c" />
+    <ClCompile Include="external\glew\glew.c" />
     <ClCompile Include="external\jsonxx\jsonxx.cc" />
     <ClCompile Include="external\scintilla\lexers\LexA68k.cxx" />
     <ClCompile Include="external\scintilla\lexers\LexAbaqus.cxx" />
