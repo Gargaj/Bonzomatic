@@ -157,6 +157,23 @@ SOURCES_CPP := \
 	platform_x11/Timer.cpp \
 	platform_x11/Platform_DynamicLoad.cpp
 
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+	SOURCES_CPP := \
+		main.cpp \
+		Platform.cpp \
+		ShaderEditor.cpp \
+		platform_sdl/Renderer.cpp \
+		platform_sdl/FFT.cpp \
+		platform_x11/MIDI.cpp \
+		platform_x11/Misc.cpp \
+		platform_x11/SetupDialog.cpp \
+		platform_x11/Timer.cpp \
+		platform_x11/Platform_DynamicLoad.cpp \
+		platform_osx/Clipboard.cpp
+endif
+
 INCLUDEPATHS := \
 	external \
 	external/scintilla/include \
@@ -172,7 +189,6 @@ OBJDIR ?= .obj
 CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-config --cflags sdl2`
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
-UNAME_S := $(shell uname -s)
 LDFLAGS := -lGL `pkg-config --libs sdl2` -L. -lbass64 -Wl,-rpath,.
 ifeq ($(UNAME_S),Darwin)
   LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2` -L. -lbass
