@@ -1,7 +1,5 @@
 # Bonzomatic
 
-[![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
 
@@ -11,7 +9,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 
 ## Keys
 - F2: toggle texture preview
-- F5: recompile shader
+- F5 or Ctrl-R: recompile shader
 - F11: hide shader overlay
 - Alt-F4: exbobolate your planet
 
@@ -70,4 +68,4 @@ These software are available under their respective licenses.
 The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
 
 ## Contact / discussion forum
-If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881
+If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
