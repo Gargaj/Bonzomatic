@@ -236,7 +236,10 @@ int main()
   static float fftDataSmoothed[FFT_SIZE];
   memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
 
-  unsigned int * pFrameContents = new unsigned int[ settings.nWidth * settings.nHeight ];
+  // if we want to do some sort of frame capturing code
+  // (for e.g. sending frames through the network)
+  // we'd do it here, and then below.
+  unsigned int * pFrameContents = NULL;// new unsigned int[ settings.nWidth * settings.nHeight ];
   
   bool bShowGui = true;
   Timer::Start();
@@ -407,9 +410,13 @@ int main()
     {
       if (Renderer::GrabFrame( pFrameContents ))
       {
+        // send framebuffer through network here.
       }
     }
   }
+
+  if (pFrameContents)
+    delete[] pFrameContents;
 
   delete surface;
 
