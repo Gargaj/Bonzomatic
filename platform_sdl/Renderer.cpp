@@ -13,9 +13,7 @@
 #endif
 #include "../Renderer.h"
 
-#include <locale>
-#include <codecvt>
-#include <string>
+#include "UniConversion.h"
 
 #define STBI_HEADER_FILE_ONLY
 #include <stb_image.c>
@@ -400,10 +398,15 @@ namespace Renderer
         keyEventBuffer[keyEventBufferCount].shift = false;
         keyEventBuffer[keyEventBufferCount].scanCode = 0;
 
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
-        std::u16string dest = convert.from_bytes(E.text.text);
+        unsigned int c = E.text.text[0];
+        unsigned int charLength = Scintilla::UTF8CharLength(E.text.text[0]);
+        if (charLength > 1)
+        {
+          c = 0;
+          Scintilla::UTF16FromUTF8( E.text.text, charLength, (wchar_t*)&c, sizeof(unsigned int) );
+        }
 
-        keyEventBuffer[keyEventBufferCount].character = dest[0];
+        keyEventBuffer[keyEventBufferCount].character = c;
         keyEventBufferCount++;
       }
       else if (E.type == SDL_KEYDOWN)
