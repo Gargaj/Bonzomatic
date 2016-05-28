@@ -158,8 +158,8 @@ SOURCES_CPP := \
 	platform_x11/Platform_DynamicLoad.cpp
 
 INCLUDEPATHS := \
-  external \
-  external/scintilla/include \
+	external \
+	external/scintilla/include \
 	external/scintilla/lexlib \
 	external/scintilla/src \
 	external/glew \
@@ -173,7 +173,7 @@ CXXFLAGS := -std=c++11 -g -Os -Wall -DSCI_LEXER -DSCI_NAMESPACE -DGTK `pkg-confi
 CXXFLAGS += $(foreach p,$(INCLUDEPATHS),$(addprefix -I,$p))
 #CXXFLAGS += -Werror
 UNAME_S := $(shell uname -s)
-LDFLAGS := -lGL `pkg-config --libs sdl2`
+LDFLAGS := -lGL `pkg-config --libs sdl2` -L. -lbass64 -Wl,-rpath,.
 ifeq ($(UNAME_S),Darwin)
   LDFLAGS := -framework CoreFoundation -framework OpenGL `pkg-config --libs sdl2` -L. -lbass
 endif
