@@ -179,6 +179,10 @@ namespace Renderer
     pout[3 + 3 * 4] = 1.0;
   }
 
+  int readIndex = 0;
+  int writeIndex = 1;
+  GLuint pbo[2];
+
   bool Open( RENDERER_SETTINGS * settings )
   {
     theShader = NULL;
@@ -359,6 +363,15 @@ namespace Renderer
     glBindBuffer( GL_ARRAY_BUFFER, glhGUIVB );
 
     glGenVertexArrays(1, &glhGUIVA);
+
+    //create PBOs to hold the data. this allocates memory for them too
+    glGenBuffers(2, pbo);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    //unbind buffers for now
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
 
     run = true;
 
@@ -881,5 +894,25 @@ namespace Renderer
     glDisable( GL_BLEND );
   }
 
+  //////////////////////////////////////////////////////////////////////////
+
+  bool GrabFrame( void * pPixelBuffer )
+  {
+    writeIndex = (writeIndex + 1) % 2;
+    readIndex = (readIndex + 1) % 2;
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[writeIndex]);
+    glReadPixels(0, 0, nWidth, nHeight, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[readIndex]);
+    unsigned char * downsampleData = (unsigned char *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    if (downsampleData) 
+    {
+      memcpy( pPixelBuffer, downsampleData, sizeof(unsigned int) * nWidth * nHeight );
+      glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+
+    return true;
+  }
 
 }
