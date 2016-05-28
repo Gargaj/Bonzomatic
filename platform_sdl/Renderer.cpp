@@ -459,6 +459,8 @@ namespace Renderer
           case SDLK_RALT:
           case SDLK_LCTRL:
           case SDLK_RCTRL:
+          case SDLK_LGUI:
+          case SDLK_RGUI:
             sciKey = 0;
             break;
           default:
@@ -468,7 +470,7 @@ namespace Renderer
 
         if ((bNormalKey && E.key.keysym.mod) || !bNormalKey)
         {
-          keyEventBuffer[keyEventBufferCount].ctrl  = E.key.keysym.mod & KMOD_LCTRL  || E.key.keysym.mod & KMOD_RCTRL;
+          keyEventBuffer[keyEventBufferCount].ctrl  = E.key.keysym.mod & KMOD_LCTRL  || E.key.keysym.mod & KMOD_RCTRL || E.key.keysym.mod & KMOD_LGUI || E.key.keysym.mod & KMOD_RGUI;
           keyEventBuffer[keyEventBufferCount].alt   = E.key.keysym.mod & KMOD_LALT   || E.key.keysym.mod & KMOD_RALT;
           keyEventBuffer[keyEventBufferCount].shift = E.key.keysym.mod & KMOD_LSHIFT || E.key.keysym.mod & KMOD_RSHIFT;
           keyEventBuffer[keyEventBufferCount].scanCode = sciKey;
@@ -905,7 +907,7 @@ namespace Renderer
     glReadPixels(0, 0, nWidth, nHeight, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[readIndex]);
     unsigned char * downsampleData = (unsigned char *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-    if (downsampleData) 
+    if (downsampleData)
     {
       memcpy( pPixelBuffer, downsampleData, sizeof(unsigned int) * nWidth * nHeight );
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
