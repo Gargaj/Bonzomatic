@@ -188,7 +188,7 @@ namespace Renderer
     theShader = NULL;
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0)
     {
-      printf("[Renderer] SDL_Init failed\n");
+      printf("[Renderer] SDL_Init failed: %s\n",SDL_GetError());
       return false;
     }
 
@@ -219,13 +219,13 @@ namespace Renderer
       flags);
     if (!mWindow)
     {
-      printf("[SDL] SDL_CreateWindow failed\n");
+      printf("[SDL] SDL_CreateWindow failed: %s\n",SDL_GetError());
       return false;
     }
 
     if (!SDL_GL_CreateContext(mWindow))
     {
-      printf("[SDL] SDL_GL_CreateContext failed\n");
+      printf("[SDL] SDL_GL_CreateContext failed: %s\n",SDL_GetError());
       return false;
     }
 
