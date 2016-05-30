@@ -12,6 +12,7 @@
 #include <GL/wGLew.h>
 #endif
 #include "../Renderer.h"
+#include <string.h>
 
 #include "UniConversion.h"
 
