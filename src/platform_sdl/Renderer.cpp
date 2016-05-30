@@ -16,9 +16,9 @@
 
 #include "UniConversion.h"
 
-#define STBI_HEADER_FILE_ONLY
-#include <stb_image.c>
-#include "../external/scintilla/include/Scintilla.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include "Scintilla.h"
 
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
@@ -910,7 +910,7 @@ namespace Renderer
     readIndex = (readIndex + 1) % 2;
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[writeIndex]);
-    glReadPixels(0, 0, nWidth, nHeight, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glReadPixels(0, 0, nWidth, nHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[readIndex]);
     unsigned char * downsampleData = (unsigned char *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (downsampleData)

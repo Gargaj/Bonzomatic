@@ -8,8 +8,8 @@
 #include "MIDI.h"
 #include "Timer.h"
 #include "Misc.h"
-#include "external/scintilla/src/UniConversion.h"
-#include "external/jsonxx/jsonxx.h"
+#include "UniConversion.h"
+#include "jsonxx.h"
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
