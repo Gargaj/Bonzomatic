@@ -374,7 +374,7 @@ elseif (UNIX)
 	#target_compile_options(${BZC_EXE_NAME} PUBLIC -Werror -pedantic-errors -Wall -Wno-format-security)
 elseif (MSVC)
 	set_target_properties(${BZC_EXE_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
-	target_compile_options(${BZC_EXE_NAME} PUBLIC /W4)
+	target_compile_options(${BZC_EXE_NAME} PUBLIC "$<$<CONFIG:Release>:/MT>")
 endif ()
 target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 
