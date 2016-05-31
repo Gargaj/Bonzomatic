@@ -275,7 +275,7 @@ elseif (MSVC)
 	if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -287,7 +287,7 @@ elseif (MSVC)
 	elseif (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX9")
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -299,7 +299,7 @@ elseif (MSVC)
 	else ()
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
