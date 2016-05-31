@@ -10,6 +10,7 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 
 option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
+option(BONZOMATIC_USE_RETINA "(OSX) make the app use Retina displays" ON)
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or SDL)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 SDL) 
 
@@ -362,7 +363,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 # create the executable
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 target_include_directories(${BZC_EXE_NAME} PUBLIC ${BZC_PROJECT_INCLUDES})
-if (APPLE AND GLFW_USE_RETINA)
+if (APPLE AND BONZOMATIC_USE_RETINA)
 	# Add special plist to enable Retina display support
 	set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
 endif ()
