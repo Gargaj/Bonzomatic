@@ -39,7 +39,7 @@ if (APPLE OR UNIX)
 	endif ()
 elseif (MSVC)
 	set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/sdl/include)
-	set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} SDL2 SDL2main)
+	set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/sdl/lib/SDL2.lib ${CMAKE_SOURCE_DIR}/external/sdl/lib/SDL2main.lib)
 endif ()
 
 ##############################################################################
@@ -275,7 +275,7 @@ elseif (MSVC)
 	if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -287,7 +287,7 @@ elseif (MSVC)
 	elseif (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX9")
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -299,7 +299,7 @@ elseif (MSVC)
 	else ()
 		set(BZC_PLATFORM_SRCS
 			${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
-			${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
+			${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
 			${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -316,6 +316,7 @@ elseif (MSVC)
 		${CMAKE_SOURCE_DIR}/data/windows/SetupDialog.rc
 	)
 	source_group("Data" FILES ${BZC_RESOURCES_DATA})
+	set(BZC_PROJECT_INCLUDES ${CMAKE_SOURCE_DIR}/data/windows ${BZC_PROJECT_INCLUDES})
 endif ()
 
 set(BZC_PROJECT_SRCS ${BZC_PROJECT_SRCS} ${BZC_PLATFORM_SRCS} ${BZC_RESOURCES_DATA})
