@@ -1,0 +1,18 @@
+version: 1.0.0.{build}
+configuration: Release
+
+clone_depth: 50
+
+environment:
+  matrix:
+    - flavor: SDL
+    - flavor: DX9
+    - flavor: DX11
+    
+before_build:
+- ps: cmake -DBONZOMATIC_64BIT=OFF -DBONZOMATIC_WINDOWS_FLAVOR:STRING="$env:flavor" -G "Visual Studio 12" .
+
+build:
+  project: Bonzomatic.sln
+  parallel: true
+  verbosity: minimal
