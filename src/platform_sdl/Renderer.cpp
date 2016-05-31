@@ -915,7 +915,14 @@ namespace Renderer
     unsigned char * downsampleData = (unsigned char *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (downsampleData)
     {
-      memcpy( pPixelBuffer, downsampleData, sizeof(unsigned int) * nWidth * nHeight );
+      unsigned char * src = downsampleData;
+      unsigned char * dst = (unsigned char*)pPixelBuffer + nWidth * (nHeight - 1) * sizeof(unsigned int);
+      for (int i=0; i<nHeight; i++)
+      {
+        memcpy( dst, src, sizeof(unsigned int) * nWidth );
+        src += sizeof(unsigned int) * nWidth;
+        dst -= sizeof(unsigned int) * nWidth;
+      }
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
