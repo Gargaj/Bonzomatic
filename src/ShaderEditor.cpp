@@ -1,7 +1,7 @@
 #include <cstring>
-#include "../ShaderEditor.h"
-#include "../Renderer.h"
-#include "external/scintilla/lexlib/PropSetSimple.h"
+#include "ShaderEditor.h"
+#include "Renderer.h"
+#include "PropSetSimple.h"
 #include "Clipboard.h"
 
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )

@@ -8,9 +8,9 @@
 
 #include "../Renderer.h"
 
-#define STBI_HEADER_FILE_ONLY
-#include <stb_image.c>
-#include "../external/scintilla/include/Scintilla.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include "Scintilla.h"
 
 const char * shaderKeyword =
   " register packoffset static const"

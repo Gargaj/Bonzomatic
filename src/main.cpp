@@ -8,8 +8,8 @@
 #include "MIDI.h"
 #include "Timer.h"
 #include "Misc.h"
-#include "external/scintilla/src/UniConversion.h"
-#include "external/jsonxx/jsonxx.h"
+#include "UniConversion.h"
+#include "jsonxx.h"
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
@@ -40,8 +40,36 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
+#ifdef __APPLE__
+#include <sys/param.h> // For MAXPATHLEN
+#include "CoreFoundation/CoreFoundation.h"
+static void changeToAppsCurrentDirectory()
+{
+  char appPath[MAXPATHLEN];
+  CFBundleRef bundle = CFBundleGetMainBundle();
+  if (!bundle) return;
+
+  CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
+  CFURLRef pathURL = CFURLCreateCopyDeletingLastPathComponent(NULL, bundleURL);
+  if (!CFURLGetFileSystemRepresentation(pathURL, true, (UInt8*)appPath, MAXPATHLEN))
+  {
+    CFRelease(bundleURL);
+    CFRelease(pathURL);
+    return;
+  }
+  CFRelease(bundleURL);
+  CFRelease(pathURL);
+
+  chdir(appPath);
+}
+#endif
+
 int main()
 {
+#ifdef __APPLE__
+  changeToAppsCurrentDirectory();
+#endif
+
   RENDERER_SETTINGS settings;
   settings.bVsync = false;
 #ifdef _DEBUG

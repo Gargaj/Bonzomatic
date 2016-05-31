@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../external/scintilla/include/Platform.h"
+#include "Platform.h"
 
 #ifdef SCI_NAMESPACE
 using namespace Scintilla;
