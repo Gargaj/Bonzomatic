@@ -112,6 +112,17 @@ set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/js
 set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
 
 ##############################################################################
+# NDI
+if (MSVC)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} "c:/Program Files/NewTek/NewTek NDI SDK/Include/")
+  if (BONZOMATIC_64BIT)
+    link_directories("c:/Program Files/NewTek/NewTek NDI SDK/Lib/x64/")
+  elseif ()
+    link_directories("c:/Program Files/NewTek/NewTek NDI SDK/Lib/x86/")
+  endif ()
+endif ()
+
+##############################################################################
 # SCINTILLA
 set(SCINTILLA_SRCS
   ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexA68k.cxx
@@ -411,5 +422,10 @@ target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 
 if (MSVC)
   add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  if (BONZOMATIC_64BIT)
+    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x64/Processing.NDI.Lib.x64.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  elseif ()
+    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x86/Processing.NDI.Lib.x86.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  endif ()
 endif ()
 

@@ -11,8 +11,6 @@
 #include "UniConversion.h"
 #include "jsonxx.h"
 
-#include "Misc.h"
-
 #ifdef WIN32
 #include <windows.h>
 #include <Processing.NDI.Lib.h>
@@ -116,6 +114,8 @@ int main()
   options.nFontSize = 16;
 #ifdef _WIN32
   options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+#elif __APPLE__
+  options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
 #endif
@@ -290,7 +290,7 @@ int main()
   bool bNDIEnabled = false;
   unsigned int * pBuffer[2] = { NULL, NULL };
   unsigned int nBufferIndex = 0;
-  if (sNDIConnectionString.length())
+  //if (sNDIConnectionString.length())
   {
     if (!NDIlib_initialize())
     {
@@ -383,7 +383,7 @@ int main()
           bTexPreviewVisible = true;
         }
       }
-      else if (Renderer::keyEventBuffer[i].scanCode == 286) // F5
+      else if (Renderer::keyEventBuffer[i].scanCode == 286 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'r')) // F5
       {
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
@@ -493,7 +493,7 @@ int main()
 
       char szLayout[255];
       Misc::GetKeymapName(szLayout);
-      std::string sHelp = "F2 - toggle texture preview   F5 - recompile shader   F11 - hide GUI   Current keymap: ";
+      std::string sHelp = "F2 - toggle texture preview   F5 or Ctrl-R - recompile shader   F11 - hide GUI   Current keymap: ";
       sHelp += szLayout;
       surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
