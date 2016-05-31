@@ -43,7 +43,7 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
 #ifdef __APPLE__
 #include <sys/param.h> // For MAXPATHLEN
 #include "CoreFoundation/CoreFoundation.h"
-static void changeToResourcesDirectory(void)
+static void changeToAppsCurrentDirectory()
 {
   char appPath[MAXPATHLEN];
   CFBundleRef bundle = CFBundleGetMainBundle();
@@ -67,7 +67,7 @@ static void changeToResourcesDirectory(void)
 int main()
 {
 #ifdef __APPLE__
-  changeToResourcesDirectory();
+  changeToAppsCurrentDirectory();
 #endif
 
   RENDERER_SETTINGS settings;
