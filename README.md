@@ -1,6 +1,7 @@
 # Bonzomatic
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7/branch/master?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic/branch/master)
+[![Build Status](https://travis-ci.org/Gargaj/Bonzomatic.svg)](https://travis-ci.org/Gargaj/Bonzomatic)
 
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
