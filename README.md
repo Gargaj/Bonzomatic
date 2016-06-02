@@ -1,6 +1,6 @@
 # Bonzomatic
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7/branch/master?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
 [![Build Status](https://travis-ci.org/Gargaj/Bonzomatic.svg)](https://travis-ci.org/Gargaj/Bonzomatic)
 
 ## What's this?

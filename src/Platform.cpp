@@ -26,6 +26,14 @@ using namespace Scintilla;
 
 //////////////////////////////////////////////////////////////////////////
 
+// this is only used if we support loading external lexers, which we don't
+DynamicLibrary *DynamicLibrary::Load(const char *modulePath)
+{
+  return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 ColourDesired MakeRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a=0xFF)
 {
   return a<<24 | b<<16 | g<<8 | r;
