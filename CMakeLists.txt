@@ -263,12 +263,11 @@ source_group("Bonzomatic" FILES ${BZC_PROJECT_SRCS})
 if (APPLE)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_x11/Platform_DynamicLoad.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Clipboard.cpp
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
@@ -279,12 +278,11 @@ if (APPLE)
 elseif (UNIX)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_x11/Platform_DynamicLoad.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Clipboard.cpp
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
@@ -292,36 +290,33 @@ elseif (MSVC)
   if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Timer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Platform_DynamicLoad.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Clipboard.cpp
       ${CMAKE_SOURCE_DIR}/data/windows/resource.h
     )
   elseif (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX9")
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Timer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Platform_DynamicLoad.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Clipboard.cpp
       ${CMAKE_SOURCE_DIR}/data/windows/resource.h
     )
   else ()
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_sdl/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Timer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Platform_DynamicLoad.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Clipboard.cpp
       ${CMAKE_SOURCE_DIR}/data/windows/resource.h
     )
