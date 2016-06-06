@@ -17,6 +17,9 @@ set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selec
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 SDL) 
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+if (APPLE)
+  set(CMAKE_FIND_FRAMEWORK LAST)
+endif ()
 
 add_definitions(-DSCI_LEXER -DSCI_NAMESPACE)
 if (UNIX)
@@ -35,7 +38,7 @@ if (MSVC)
 endif ()
 
 # Dont compile sdl and glew for windows dx targets
-if ( APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")))
+if (APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")))
   ##############################################################################
   # SDL
   if (APPLE OR UNIX)
@@ -44,15 +47,15 @@ if ( APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")))
       message(FATAL_ERROR "SDL2 not found!")
     endif ()
     # fix sdl whitespaces problems
-    string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
-    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${SDL2_INCLUDE_DIRS})
+    #string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${SDL2_INCLUDE_DIR})
     if (APPLE)
       find_library(COCOA_FRAMEWORK Cocoa)
       find_library(OPENGL_FRAMEWORK OpenGL)
       find_library(CARBON_FRAMEWORK Carbon)
-      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK} SDL2 SDL2main)
+      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK} ${SDL2_LIBRARY})
     elseif (UNIX)
-      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} SDL2 SDL2main)
+      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${SDL2_LIBRARY})
     endif ()
   elseif (MSVC)
     set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/sdl/include)
@@ -67,8 +70,14 @@ if ( APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")))
   add_library(bzc_glew STATIC ${GLEW_SRCS})
   target_include_directories(bzc_glew PUBLIC ${CMAKE_SOURCE_DIR}/external/glew)
   target_compile_definitions(bzc_glew PUBLIC -DGLEW_STATIC)
+  if (MSVC)
+    target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
+  endif ()
   set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glew)
   set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_glew)
+else ()
+  # for windows, use DirectX
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} $ENV{DXSDK_DIR}/Include)
 endif ()
 
 ##############################################################################
@@ -99,6 +108,9 @@ set(JSONXX_SRCS
 )
 add_library(bzc_jsonxx STATIC ${JSONXX_SRCS})
 target_include_directories(bzc_jsonxx PUBLIC ${CMAKE_SOURCE_DIR}/external/jsonxx)
+if (MSVC)
+  target_compile_options(bzc_jsonxx PUBLIC "$<$<CONFIG:Release>:/MT>")
+endif ()
 set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/jsonxx)
 set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
 
@@ -246,6 +258,9 @@ target_include_directories(bzc_scintilla PUBLIC
   ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib
   ${CMAKE_SOURCE_DIR}/external/scintilla/src
 )
+if (MSVC)
+  target_compile_options(bzc_scintilla PUBLIC "$<$<CONFIG:Release>:/MT>")
+endif ()
 set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
     ${CMAKE_SOURCE_DIR}/external/scintilla/include
     ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib
@@ -386,14 +401,6 @@ elseif (UNIX)
   endif ()
 elseif (MSVC)
   set_target_properties(${BZC_EXE_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
-  if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")
-    target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
-  endif ()
-  
-  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} $ENV{DXSDK_DIR}/Include)  
-  
-  target_compile_options(bzc_jsonxx PUBLIC "$<$<CONFIG:Release>:/MT>")
-  target_compile_options(bzc_scintilla PUBLIC "$<$<CONFIG:Release>:/MT>")
   target_compile_options(${BZC_EXE_NAME} PUBLIC "$<$<CONFIG:Release>:/MT>")
 endif ()
 target_include_directories(${BZC_EXE_NAME} PUBLIC ${BZC_PROJECT_INCLUDES})
