@@ -18,6 +18,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5;
       sudo apt-get update;
+      sudo apt-get install -q -y xorg-dev;
     fi
 
 script:

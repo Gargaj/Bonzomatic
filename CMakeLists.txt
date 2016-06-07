@@ -51,14 +51,13 @@ if (APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
     set(GLFW_USE_RETINA OFF CACHE BOOL "" FORCE)
     set(GLFW_USE_MENUBAR ON CACHE BOOL "" FORCE)
     mark_as_advanced(GLFW_USE_CHDIR GLFW_USE_RETINA GLFW_USE_MENUBAR)
-  endif (APPLE)
+  elseif (MSVC)
+    set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(USE_MSVC_RUNTIME_LIBRARY_DLL)
+  endif()
   add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw/)
   set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glfw/include)
   set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} glfw ${GLFW_LIBRARIES})
-  if (APPLE)
-
-  endif ()
-
 
   ##############################################################################
   # GLEW
