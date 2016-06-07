@@ -12,9 +12,8 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 
 option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
-option(BONZOMATIC_USE_RETINA "(OSX) make the app use Retina displays" ON)
-set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or SDL)")
-set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 SDL) 
+set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
+set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 if (APPLE)
@@ -37,31 +36,30 @@ if (MSVC)
   endif ()
 endif ()
 
-# Dont compile sdl and glew for windows dx targets
-if (APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "SDL")))
+# Dont compile glfw and glew for windows dx targets
+if (APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
   ##############################################################################
-  # SDL
-  if (APPLE OR UNIX)
-    find_package(SDL2 REQUIRED)
-    if (NOT SDL2_FOUND)
-      message(FATAL_ERROR "SDL2 not found!")
-    endif ()
-    # fix sdl whitespaces problems
-    #string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
-    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${SDL2_INCLUDE_DIR})
-    if (APPLE)
-      find_library(COCOA_FRAMEWORK Cocoa)
-      find_library(OPENGL_FRAMEWORK OpenGL)
-      find_library(CARBON_FRAMEWORK Carbon)
-      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK} ${SDL2_LIBRARY})
-    elseif (UNIX)
-      set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${SDL2_LIBRARY})
-    endif ()
-  elseif (MSVC)
-    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/sdl/include)
-    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/sdl/lib/SDL2.lib ${CMAKE_SOURCE_DIR}/external/sdl/lib/SDL2main.lib)
+  # GLFW
+  # GLFW settings and project inclusion
+  set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+  set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+  mark_as_advanced(GLFW_BUILD_EXAMPLES GLFW_BUILD_TESTS GLFW_BUILD_DOCS GLFW_INSTALL)
+  if (APPLE)
+    set(GLFW_USE_CHDIR OFF CACHE BOOL "" FORCE)
+    set(GLFW_USE_RETINA OFF CACHE BOOL "" FORCE)
+    set(GLFW_USE_MENUBAR ON CACHE BOOL "" FORCE)
+    mark_as_advanced(GLFW_USE_CHDIR GLFW_USE_RETINA GLFW_USE_MENUBAR)
+  endif (APPLE)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw/)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glfw/include)
+  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} glfw ${GLFW_LIBRARIES})
+  if (APPLE)
+
   endif ()
-  
+
+
   ##############################################################################
   # GLEW
   set(GLEW_SRCS
@@ -277,7 +275,7 @@ file(GLOB BZC_PROJECT_SRCS
 source_group("Bonzomatic" FILES ${BZC_PROJECT_SRCS})
 if (APPLE)
   set(BZC_PLATFORM_SRCS
-    ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
@@ -292,7 +290,7 @@ if (APPLE)
   source_group("Data" FILES ${BZC_RESOURCES_DATA})
 elseif (UNIX)
   set(BZC_PLATFORM_SRCS
-    ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
@@ -326,7 +324,7 @@ elseif (MSVC)
     )
   else ()
     set(BZC_PLATFORM_SRCS
-      ${CMAKE_SOURCE_DIR}/src/platform_sdl/Renderer.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
@@ -372,6 +370,12 @@ if (APPLE)
   set(BZC_PROJECT_SRCS ${BZC_PROJECT_SRCS} ${OSX_LIB_FILES})
 
   set(BZC_PROJECT_SRCS ${GUI_TYPE} ${BZC_PROJECT_SRCS})
+
+  find_library(COCOA_FRAMEWORK Cocoa)
+  find_library(OPENGL_FRAMEWORK OpenGL)
+  find_library(CARBON_FRAMEWORK Carbon)
+  mark_as_advanced(COCOA_FRAMEWORK OPENGL_FRAMEWORK CARBON_FRAMEWORK)
+  set(PLATFORM_LIBS ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK})
 elseif (UNIX)
   set(PLATFORM_LIBS GL)
 elseif (MSVC)
@@ -388,7 +392,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 
 # create the executable
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
-if (APPLE AND BONZOMATIC_USE_RETINA)
+if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
   set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
 endif ()
@@ -408,5 +412,5 @@ target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 
 if (MSVC)
   add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/sdl/lib/SDL2.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
 endif ()
+
