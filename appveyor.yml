@@ -5,7 +5,7 @@ clone_depth: 50
 
 environment:
   matrix:
-    - flavor: SDL
+    - flavor: GLFW
     - flavor: DX9
     - flavor: DX11
     
