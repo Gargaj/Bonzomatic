@@ -277,6 +277,22 @@ namespace Renderer
         mouseEventBufferCount++;
       } break;
 
+    case WM_MOUSEWHEEL:
+      {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_SCROLL;
+        mouseEventBuffer[mouseEventBufferCount].x = 0;
+        mouseEventBuffer[mouseEventBufferCount].y = (SHORT) HIWORD(wParam) / (double) WHEEL_DELTA;
+        mouseEventBufferCount++;
+      } break;
+
+    case WM_MOUSEHWHEEL:
+      {
+        mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_SCROLL;
+        mouseEventBuffer[mouseEventBufferCount].x = -((SHORT) HIWORD(wParam) / (double) WHEEL_DELTA);
+        mouseEventBuffer[mouseEventBufferCount].y = 0;
+        mouseEventBufferCount++;
+      } break;
+
     case WM_SYSCOMMAND: 
       {
         switch (wParam) 
