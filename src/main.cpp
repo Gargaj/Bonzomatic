@@ -292,6 +292,9 @@ int main()
           case Renderer::MOUSEEVENTTYPE_UP:
             mShaderEditor.ButtonUp( Scintilla::Point( Renderer::mouseEventBuffer[i].x, Renderer::mouseEventBuffer[i].y ), time * 1000, false );
             break;
+          case Renderer::MOUSEEVENTTYPE_SCROLL:
+            mShaderEditor.WndProc( SCI_LINESCROLL, -Renderer::mouseEventBuffer[i].x, -Renderer::mouseEventBuffer[i].y);
+            break;
         }
       }
     }

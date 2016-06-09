@@ -189,6 +189,7 @@ namespace Renderer
   void character_callback(GLFWwindow* window, unsigned int codepoint);
   void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
   void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+  void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
   bool Open( RENDERER_SETTINGS * settings )
   {
@@ -237,6 +238,7 @@ namespace Renderer
     glfwSetCharCallback(mWindow, character_callback);
     glfwSetCursorPosCallback(mWindow, cursor_position_callback);
     glfwSetMouseButtonCallback(mWindow, mouse_button_callback);
+    glfwSetScrollCallback(mWindow, scroll_callback);
 
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
@@ -508,6 +510,13 @@ namespace Renderer
       case GLFW_MOUSE_BUTTON_LEFT:
       default:                mouseEventBuffer[mouseEventBufferCount].button = MOUSEBUTTON_LEFT; break;
     }
+    mouseEventBufferCount++;
+  }
+  void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+  {
+    mouseEventBuffer[mouseEventBufferCount].eventType = MOUSEEVENTTYPE_SCROLL;
+    mouseEventBuffer[mouseEventBufferCount].x = xoffset;
+    mouseEventBuffer[mouseEventBufferCount].y = yoffset;
     mouseEventBufferCount++;
   }
 
