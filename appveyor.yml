@@ -6,11 +6,21 @@ clone_depth: 50
 environment:
   matrix:
     - flavor: GLFW
+      x64: OFF
+    - flavor: GLFW
+      x64: ON
     - flavor: DX9
+      x64: OFF
+    - flavor: DX9
+      x64: ON
     - flavor: DX11
+      x64: OFF
+    - flavor: DX11
+      x64: ON
     
 before_build:
-- ps: cmake -DBONZOMATIC_64BIT=OFF -DBONZOMATIC_WINDOWS_FLAVOR:STRING="$env:flavor" -G "Visual Studio 12" .
+- ps: $env:compiler = @("Visual Studio 12 2013","Visual Studio 12 2013 Win64")[[byte]($env:x64.CompareTo("ON") -eq 0)]
+- ps: cmake -DBONZOMATIC_64BIT="$env:x64" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="$env:flavor" -G "$env:compiler" .
 
 build:
   project: Bonzomatic.sln

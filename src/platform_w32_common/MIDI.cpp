@@ -44,7 +44,7 @@ namespace MIDI
       midiInGetDevCaps(i,&caps,sizeof(MIDIINCAPS));
       //_tprintf(_T("%d - %d - %d - %08X - %s\n"),i,caps.wMid,caps.wPid,caps.vDriverVersion,caps.szPname);
 
-      midiInOpen(&hMIDIInput[i],i,(DWORD)MyMidiInProc,NULL,CALLBACK_FUNCTION);
+      midiInOpen(&hMIDIInput[i],i,(DWORD_PTR)MyMidiInProc,NULL,CALLBACK_FUNCTION);
 
       midiInStart(hMIDIInput[i]);
     }

@@ -10,7 +10,7 @@ class CSetupDialog;
 
 CSetupDialog * pGlobal = NULL;
 
-BOOL CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 class CSetupDialog
 {
@@ -122,7 +122,7 @@ public:
   }
 };
 
-BOOL CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_INITDIALOG) {
     pGlobal = (CSetupDialog *)lParam; // todo: split to multiple hWnd-s! (if needed)
