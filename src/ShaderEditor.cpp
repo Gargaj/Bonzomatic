@@ -87,6 +87,8 @@ void ShaderEditor::Initialise()
   WndProc( SCI_SETBUFFEREDDRAW, NULL, NULL );
   WndProc( SCI_SETCODEPAGE, SC_CP_UTF8, NULL );
 
+  WndProc( SCI_SETWRAPMODE, SC_WRAP_WORD, NULL );
+
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
 
   SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
