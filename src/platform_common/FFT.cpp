@@ -8,23 +8,14 @@ namespace FFT
   bool Open()
   {
     const int freq = 44100;
+    const int channels = 1;
     int device = -1;
-
-    if( !BASS_Init( device, freq, 0, 0, 0 ) )
-    {
-      printf("[FFT] BASS_Init failed: %08X\n",BASS_ErrorGetCode());
-      return false;
-    }
 
     if( !BASS_RecordInit( device ) )
     {
       printf("[FFT] BASS_RecordInit failed: %08X\n",BASS_ErrorGetCode());
       return false;
     }
-
-    //DWORD usedDevice = BASS_RecordGetDevice();
-
-    const int channels = 1;
 
     hRecord = BASS_RecordStart( freq, channels, BASS_SAMPLE_8BITS, 0, 0 );
     if (!hRecord)
@@ -84,6 +75,5 @@ namespace FFT
     }
 
     BASS_RecordFree();
-    BASS_Free();
   }
 }
