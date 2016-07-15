@@ -1,4 +1,4 @@
-﻿#ifdef _WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -674,7 +674,7 @@ namespace Renderer
 
     float * data = new float[w];
     for ( int i = 0; i < w; ++i )
-      data[i] = 1.0f;
+      data[i] = 0.0f;
 
     glTexImage1D( GL_TEXTURE_1D, 0, GL_R32F, w, 0, GL_RED, GL_FLOAT, data );
 
