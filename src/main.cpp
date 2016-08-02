@@ -132,7 +132,8 @@ int main()
   float fNDIFrameRate = 60.0;
   std::string sNDIIdentifier;
   bool bNDIProgressive = true;
-
+  bool bNDIEnabled = true;
+  
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
   if (fConf)
@@ -201,6 +202,8 @@ int main()
     }
     if (o.has<jsonxx::Object>("ndi"))
     {
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
+        bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
         sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
@@ -287,10 +290,9 @@ int main()
 
   NDIlib_video_frame_t pNDIFrame;
   NDIlib_send_instance_t pNDI_send;
-  bool bNDIEnabled = false;
   unsigned int * pBuffer[2] = { NULL, NULL };
   unsigned int nBufferIndex = 0;
-  //if (sNDIConnectionString.length())
+  if (bNDIEnabled)
   {
     if (!NDIlib_initialize())
     {
@@ -331,8 +333,6 @@ int main()
     pBuffer[1] = new unsigned int[settings.nWidth * settings.nHeight * 4];
     pNDIFrame.p_data = NULL;
     pNDIFrame.line_stride_in_bytes = settings.nWidth * 4;
-
-    bNDIEnabled = true;
   }
   
   bool bShowGui = true;
@@ -503,7 +503,7 @@ int main()
 
     Renderer::EndFrame();
 
-    if (bNDIEnabled)
+    if (pBuffer[0] && pBuffer[1])
     {
       pNDIFrame.p_data = (BYTE*)pBuffer[ nBufferIndex ];
       nBufferIndex = (nBufferIndex + 1) & 1;
@@ -517,7 +517,7 @@ int main()
     }
   }
 
-  if (bNDIEnabled)
+  if (pBuffer[0] && pBuffer[1])
   {
     NDIlib_send_send_video_async(pNDI_send, NULL); // stop async thread
 

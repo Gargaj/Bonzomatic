@@ -30,9 +30,9 @@ if (MSVC)
   #set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /VERBOSE")
   #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /VERBOSE")
   if (BONZOMATIC_64BIT)
-    link_directories($ENV{DXSDK_DIR}/lib/x64)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x64)
   else ()
-    link_directories($ENV{DXSDK_DIR}/lib/x86)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x86)
   endif ()
 endif ()
 
@@ -116,9 +116,9 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
 if (MSVC)
   set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} "c:/Program Files/NewTek/NewTek NDI SDK/Include/")
   if (BONZOMATIC_64BIT)
-    link_directories("c:/Program Files/NewTek/NewTek NDI SDK/Lib/x64/")
-  elseif ()
-    link_directories("c:/Program Files/NewTek/NewTek NDI SDK/Lib/x86/")
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x64/")
+  else ()
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x86/")
   endif ()
 endif ()
 
@@ -401,6 +401,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 ##############################################################################
 
 # create the executable
+link_directories(${BZC_LINK_DIRS})
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
