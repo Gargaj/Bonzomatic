@@ -122,6 +122,7 @@ int main()
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
+  float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -193,6 +194,7 @@ int main()
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
+  Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
 
   bool shaderInitSuccessful = false;
   char szShader[65535];
@@ -263,6 +265,11 @@ int main()
   memset(fftData, 0, sizeof(float) * FFT_SIZE);
   static float fftDataSmoothed[FFT_SIZE];
   memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
+
+  static float fftDataSlightlySmoothed[FFT_SIZE];
+  memset(fftDataSlightlySmoothed, 0, sizeof(float) * FFT_SIZE);
+  static float fftDataIntegrated[FFT_SIZE];
+  memset(fftDataIntegrated, 0, sizeof(float) * FFT_SIZE);
 
   // if we want to do some sort of frame capturing code
   // (for e.g. sending frames through the network)
@@ -372,15 +379,26 @@ int main()
     if (FFT::GetFFT(fftData))
     {
       Renderer::UpdateR32Texture( texFFT, fftData );
+
+      const static float maxIntegralValue = 1024.0f;
       for ( int i = 0; i < FFT_SIZE; i++ )
       {
         fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
+
+        fftDataSlightlySmoothed[i] = fftDataSlightlySmoothed[i] * fFFTSlightSmoothingFactor + (1 - fFFTSlightSmoothingFactor) * fftData[i];
+        fftDataIntegrated[i] = fftDataIntegrated[i] + fftDataSlightlySmoothed[i];
+        if (fftDataIntegrated[i] > maxIntegralValue) {
+          fftDataIntegrated[i] -= maxIntegralValue;
+        }
       }
+
       Renderer::UpdateR32Texture( texFFTSmoothed, fftDataSmoothed );
+      Renderer::UpdateR32Texture( texFFTIntegrated, fftDataIntegrated );
     }
 
     Renderer::SetShaderTexture( "texFFT", texFFT );
     Renderer::SetShaderTexture( "texFFTSmoothed", texFFTSmoothed );
+    Renderer::SetShaderTexture( "texFFTIntegrated", texFFTIntegrated );
 
     for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
     {
