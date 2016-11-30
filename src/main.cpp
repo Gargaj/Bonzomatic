@@ -327,7 +327,7 @@ int main()
     pNDIFrame.frame_rate_N = fNDIFrameRate * 100;
     pNDIFrame.frame_rate_D = 100;
     pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
-    pNDIFrame.is_progressive = bNDIProgressive;
+    pNDIFrame.frame_format_type = bNDIProgressive ? NDIlib_frame_format_type_progressive : NDIlib_frame_format_type_interleaved;
     pNDIFrame.timecode = NDIlib_send_timecode_synthesize;
     pBuffer[0] = new unsigned int[settings.nWidth * settings.nHeight * 4];
     pBuffer[1] = new unsigned int[settings.nWidth * settings.nHeight * 4];
