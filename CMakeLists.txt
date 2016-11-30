@@ -40,9 +40,9 @@ if (MSVC)
   #set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /VERBOSE")
   #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /VERBOSE")
   if (BONZOMATIC_64BIT)
-    link_directories($ENV{DXSDK_DIR}/lib/x64)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x64)
   else ()
-    link_directories($ENV{DXSDK_DIR}/lib/x86)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x86)
   endif ()
 endif ()
 
@@ -124,6 +124,17 @@ if (MSVC)
 endif ()
 set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/jsonxx)
 set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
+
+##############################################################################
+# NDI
+if (MSVC)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} "c:/Program Files/NewTek/NewTek NDI SDK/Include/")
+  if (BONZOMATIC_64BIT)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x64/")
+  else ()
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x86/")
+  endif ()
+endif ()
 
 ##############################################################################
 # SCINTILLA
@@ -404,6 +415,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 ##############################################################################
 
 # create the executable
+link_directories(${BZC_LINK_DIRS})
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
@@ -428,6 +440,11 @@ if (MSVC)
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x64/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
   elseif ()
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x86/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  endif ()
+  if (BONZOMATIC_64BIT)
+    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x64/Processing.NDI.Lib.x64.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  elseif ()
+    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x86/Processing.NDI.Lib.x86.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
   endif ()
 endif ()
 
