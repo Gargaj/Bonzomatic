@@ -13,7 +13,9 @@
 
 #ifdef WIN32
 #include <windows.h>
+#ifdef BONZOMATIC_ENABLE_NDI
 #include <Processing.NDI.Lib.h>
+#endif
 #endif
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
@@ -129,11 +131,13 @@ int main()
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
+#ifdef BONZOMATIC_ENABLE_NDI
   std::string sNDIConnectionString;
   float fNDIFrameRate = 60.0;
   std::string sNDIIdentifier;
   bool bNDIProgressive = true;
   bool bNDIEnabled = true;
+#endif // BONZOMATIC_ENABLE_NDI
   
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -201,6 +205,7 @@ int main()
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
     }
+#ifdef BONZOMATIC_ENABLE_NDI
     if (o.has<jsonxx::Object>("ndi"))
     {
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
@@ -213,7 +218,8 @@ int main()
         fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
         bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
-  }
+    }
+#endif // BONZOMATIC_ENABLE_NDI
   }
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -297,11 +303,10 @@ int main()
   memset(fftDataIntegrated, 0, sizeof(float) * FFT_SIZE);
 
   // if we want to do some sort of frame capturing code
-
-  // if we want to do some sort of frame capturing code
   // (for e.g. sending frames through the network)
   // we'd do it here, and then below.
 
+#ifdef BONZOMATIC_ENABLE_NDI
   NDIlib_video_frame_t pNDIFrame;
   NDIlib_send_instance_t pNDI_send;
   unsigned int * pBuffer[2] = { NULL, NULL };
@@ -348,7 +353,8 @@ int main()
     pNDIFrame.p_data = NULL;
     pNDIFrame.line_stride_in_bytes = settings.nWidth * 4;
   }
-  
+#endif // BONZOMATIC_ENABLE_NDI
+
   bool bShowGui = true;
   Timer::Start();
   float fNextTick = 0.1;
@@ -528,6 +534,7 @@ int main()
 
     Renderer::EndFrame();
 
+#ifdef BONZOMATIC_ENABLE_NDI
     if (pBuffer[0] && pBuffer[1])
     {
       pNDIFrame.p_data = (BYTE*)pBuffer[ nBufferIndex ];
@@ -540,8 +547,10 @@ int main()
         NDIlib_send_send_video_async(pNDI_send, &pNDIFrame);
       }
     }
+#endif // BONZOMATIC_ENABLE_NDI
   }
 
+#ifdef BONZOMATIC_ENABLE_NDI
   if (pBuffer[0] && pBuffer[1])
   {
     NDIlib_send_send_video_async(pNDI_send, NULL); // stop async thread
@@ -551,6 +560,7 @@ int main()
     NDIlib_send_destroy(pNDI_send);
     NDIlib_destroy();
   }
+#endif // BONZOMATIC_ENABLE_NDI
 
   delete surface;
 

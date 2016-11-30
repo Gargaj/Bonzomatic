@@ -65,7 +65,8 @@ As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
- 
+- NDI(tm) SDK by NewTek(tm) (http://www.newtek.com/ndi.html)
+
 These software are available under their respective licenses.
 
 The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
