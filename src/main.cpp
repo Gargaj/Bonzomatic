@@ -10,12 +10,10 @@
 #include "Misc.h"
 #include "UniConversion.h"
 #include "jsonxx.h"
+#include "Capture.h"
 
 #ifdef WIN32
 #include <windows.h>
-#ifdef BONZOMATIC_ENABLE_NDI
-#include <Processing.NDI.Lib.h>
-#endif
 #endif
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
@@ -131,14 +129,6 @@ int main()
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
-#ifdef BONZOMATIC_ENABLE_NDI
-  std::string sNDIConnectionString;
-  float fNDIFrameRate = 60.0;
-  std::string sNDIIdentifier;
-  bool bNDIProgressive = true;
-  bool bNDIEnabled = true;
-#endif // BONZOMATIC_ENABLE_NDI
-  
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
   if (fConf)
@@ -205,21 +195,12 @@ int main()
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
     }
-#ifdef BONZOMATIC_ENABLE_NDI
-    if (o.has<jsonxx::Object>("ndi"))
-    {
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
-        bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
-        sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
-        sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
-        fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
-        bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
-    }
-#endif // BONZOMATIC_ENABLE_NDI
+    Capture::LoadSettings( o );
+  }
+  if ( !Capture::Open( settings ) )
+  {
+    printf("Initializing capture system failed!\n");
+    return 0;
   }
 
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -301,59 +282,6 @@ int main()
   memset(fftDataSlightlySmoothed, 0, sizeof(float) * FFT_SIZE);
   static float fftDataIntegrated[FFT_SIZE];
   memset(fftDataIntegrated, 0, sizeof(float) * FFT_SIZE);
-
-  // if we want to do some sort of frame capturing code
-  // (for e.g. sending frames through the network)
-  // we'd do it here, and then below.
-
-#ifdef BONZOMATIC_ENABLE_NDI
-  NDIlib_video_frame_t pNDIFrame;
-  NDIlib_send_instance_t pNDI_send;
-  unsigned int * pBuffer[2] = { NULL, NULL };
-  unsigned int nBufferIndex = 0;
-  if (bNDIEnabled)
-  {
-    if (!NDIlib_initialize())
-    {
-      printf("Cannot run NDI.");
-      return 0;
-    }
-
-    NDIlib_send_create_t pNDICreateDesc;
-    sNDIIdentifier = "BONZOMATIC" + (sNDIIdentifier.length() ? (" - " + sNDIIdentifier) : "");
-    pNDICreateDesc.p_ndi_name = sNDIIdentifier.c_str();
-    pNDICreateDesc.p_groups = NULL;
-    pNDICreateDesc.clock_video = TRUE;
-    pNDICreateDesc.clock_audio = FALSE;
-
-    pNDI_send = NDIlib_send_create(&pNDICreateDesc);
-    if (!pNDI_send)
-    {
-      printf("Cannot create NDI source");
-      return 0;
-    }
-
-    NDIlib_metadata_frame_t pNDIConnType;
-    pNDIConnType.length = sNDIConnectionString.length();
-    pNDIConnType.timecode = NDIlib_send_timecode_synthesize;
-    pNDIConnType.p_data = (CHAR*)sNDIConnectionString.c_str();
-
-    NDIlib_send_add_connection_metadata(pNDI_send, &pNDIConnType);
-
-    pNDIFrame.xres = settings.nWidth;
-    pNDIFrame.yres = settings.nHeight;
-    pNDIFrame.FourCC = NDIlib_FourCC_type_BGRA;
-    pNDIFrame.frame_rate_N = fNDIFrameRate * 100;
-    pNDIFrame.frame_rate_D = 100;
-    pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
-    pNDIFrame.frame_format_type = bNDIProgressive ? NDIlib_frame_format_type_progressive : NDIlib_frame_format_type_interleaved;
-    pNDIFrame.timecode = NDIlib_send_timecode_synthesize;
-    pBuffer[0] = new unsigned int[settings.nWidth * settings.nHeight * 4];
-    pBuffer[1] = new unsigned int[settings.nWidth * settings.nHeight * 4];
-    pNDIFrame.p_data = NULL;
-    pNDIFrame.line_stride_in_bytes = settings.nWidth * 4;
-  }
-#endif // BONZOMATIC_ENABLE_NDI
 
   bool bShowGui = true;
   Timer::Start();
@@ -534,33 +462,9 @@ int main()
 
     Renderer::EndFrame();
 
-#ifdef BONZOMATIC_ENABLE_NDI
-    if (pBuffer[0] && pBuffer[1])
-    {
-      pNDIFrame.p_data = (BYTE*)pBuffer[ nBufferIndex ];
-      nBufferIndex = (nBufferIndex + 1) & 1;
-      if (Renderer::GrabFrame( pNDIFrame.p_data ))
-      {
-        unsigned int * p = (unsigned int *)pNDIFrame.p_data;
-        for(int i=0; i < settings.nWidth * settings.nHeight; i++)
-          p[i] = (p[i] & 0x00FF00) | ((p[i] >> 16) & 0xFF) | ((p[i] & 0xFF) << 16) | 0xFF000000;
-        NDIlib_send_send_video_async(pNDI_send, &pNDIFrame);
-      }
-    }
-#endif // BONZOMATIC_ENABLE_NDI
+    Capture::CaptureFrame();
   }
 
-#ifdef BONZOMATIC_ENABLE_NDI
-  if (pBuffer[0] && pBuffer[1])
-  {
-    NDIlib_send_send_video_async(pNDI_send, NULL); // stop async thread
-
-    delete[] pBuffer[0];
-    delete[] pBuffer[1];
-    NDIlib_send_destroy(pNDI_send);
-    NDIlib_destroy();
-  }
-#endif // BONZOMATIC_ENABLE_NDI
 
   delete surface;
 
