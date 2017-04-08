@@ -43,6 +43,14 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
   },
   "midi":{ /* the keys below will become the shader variable names, the values are the CC numbers */
     "fMidiKnob": 16, /* e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2 */
+  },
+  /* this section is if you want to enable NDI streaming; otherwise just ignore it */
+  "ndi":{
+    "enabled": true,
+    "connectionString": "<ndi_product something=\"123\"/>", /* metadata sent to the receiver; completely optional */
+    "identifier": "hello!", /* additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network */
+    "frameRate": 60.0, /* frames per second */
+    "progressive": true, /* progressive or interleaved? */
   }
 }
 ```
