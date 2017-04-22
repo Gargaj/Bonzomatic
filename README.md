@@ -60,6 +60,10 @@ As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't
 * On Linux, you'll need ```xorg-dev```; after that ```cmake``` should take care of the rest.
 * On OSX, ```cmake``` should take care of everything.
 
+## Organizing a competition
+If you want to organize a competition using Bonzomatic at your party, here's a handy-dandy guide on how to get started:
+https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
+
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
