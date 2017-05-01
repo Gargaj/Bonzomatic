@@ -135,7 +135,7 @@ int main()
   int step = 0;
   while(step <2 && options.sFontPath.size() ==0) {
     const std::string & current = fontPaths[step++];
-    if (std::ifstream(current).good()) {
+    if (std::ifstream(current.c_str()).good()) {
       options.sFontPath = current;
     }
   }
