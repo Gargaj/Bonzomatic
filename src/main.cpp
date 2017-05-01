@@ -5,8 +5,10 @@
 // there must be a better way to detext Linux ...
 #ifndef __APPLE__
 #ifndef WIN32
+#ifndef BONZOMATIC_64BIT
 #include <array>
 #include <fstream>
+#endif
 #endif
 #endif
 
