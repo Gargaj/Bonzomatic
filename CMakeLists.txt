@@ -12,19 +12,6 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 
 
-
-if (UNIX)
-  set(LINUX_FONT_FILE "/usr/share/fonts/corefonts/cour.ttf")
-  file(GLOB linux_has_font ${LINUX_FONT_FILE})
-  if(linux_has_font MATCHES "^$")
-    set(LINUX_FONT_FILE "/usr/share/fonts/truetype/msttcorefonts/cour.ttf")
-  endif()
-  message("\tUse ${LINUX_FONT_FILE}")
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX_FONT_FILE='\"${LINUX_FONT_FILE}\"'")
-endif(UNIX)
-
-
 option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
 if (MSVC)
   if (CMAKE_GENERATOR MATCHES "64")

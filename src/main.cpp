@@ -2,6 +2,14 @@
 #include <string.h>
 #include <assert.h>
 
+// there must be a better way to detext Linux ...
+#ifndef __APPLE__
+#ifndef WIN32
+#include <array>
+#include <fstream>
+#endif
+#endif
+
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
@@ -117,7 +125,20 @@ int main()
 #elif __APPLE__
   options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
-  options.sFontPath = LINUX_FONT_FILE;
+  // Linux case
+  const std::array<std::string, 2> fontPaths = {
+    "/usr/share/fonts/corefonts/cour.ttf",
+    "/usr/share/fonts/truetype/msttcorefonts/cour.ttf"
+  };
+  options.sFontPath = "";
+  for(const std::string & current: fontPaths) {
+    if (std::ifstream(current).good()) {
+      options.sFontPath = current;
+      break;
+    }
+  }
+  assert(options.sFontPath.size()>0 );
+
 #endif
   options.nOpacity = 0xC0;
   options.bUseSpacesForTabs = true;
