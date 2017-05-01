@@ -117,7 +117,7 @@ int main()
 #elif __APPLE__
   options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
-  options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
+  options.sFontPath = LINUX_FONT_FILE;
 #endif
   options.nOpacity = 0xC0;
   options.bUseSpacesForTabs = true;
