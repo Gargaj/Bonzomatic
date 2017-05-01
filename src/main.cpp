@@ -6,7 +6,6 @@
 #ifndef __APPLE__
 #ifndef WIN32
 #ifndef BONZOMATIC_64BIT
-#include <array>
 #include <fstream>
 #endif
 #endif
@@ -128,15 +127,16 @@ int main()
   options.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   // Linux case
-  const std::array<std::string, 2> fontPaths = {
+  const std::string fontPaths[2] = {
     "/usr/share/fonts/corefonts/cour.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/cour.ttf"
   };
   options.sFontPath = "";
-  for(const std::string & current: fontPaths) {
+  int step = 0;
+  while(step <2 && options.sFontPath.size() ==0) {
+    const std::string & current = fontPaths[step++];
     if (std::ifstream(current).good()) {
       options.sFontPath = current;
-      break;
     }
   }
   assert(options.sFontPath.size()>0 );
