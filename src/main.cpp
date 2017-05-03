@@ -231,6 +231,8 @@ int main()
 #endif
 
   SETTINGS settings;
+  LoadSettings( &settings );
+
   RENDERER_SETTINGS& rendererSettings = settings.rendererSettings;
 
 #ifndef _DEBUG
@@ -255,8 +257,6 @@ int main()
     printf("MIDI::Open() failed, continuing anyway...\n");
     //return -1;
   }
-
-  LoadSettings( &settings );
 
   const CAPTURE_SETTINGS& captureSettings = settings.captureSettings;
   Capture::ApplySettings( captureSettings );
