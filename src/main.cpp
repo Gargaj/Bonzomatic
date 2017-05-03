@@ -133,7 +133,7 @@ void SETTINGS::ApplyDefaults()
   fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 }
 
-void LoadConfiguration(SETTINGS * settings)
+void LoadSettings(SETTINGS * settings)
 {
   char szConfig[65535];
   FILE * fConf = fopen("config.json","rb");
@@ -152,6 +152,14 @@ void LoadConfiguration(SETTINGS * settings)
 
   if (o.has<jsonxx::Object>("rendering"))
   {
+    RENDERER_SETTINGS& rendererSettings = settings->rendererSettings;
+
+    if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("width"))
+      rendererSettings.nWidth = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("width");
+    if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("height"))
+      rendererSettings.nHeight = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("height");
+    if (o.get<jsonxx::Object>("rendering").has<jsonxx::Boolean>("fullscreen"))
+      rendererSettings.windowMode = o.get<jsonxx::Object>("rendering").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
     if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
       settings->fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
   }
@@ -248,7 +256,7 @@ int main()
     //return -1;
   }
 
-  LoadConfiguration( &settings );
+  LoadSettings( &settings );
 
   const CAPTURE_SETTINGS& captureSettings = settings.captureSettings;
   Capture::ApplySettings( captureSettings );
