@@ -14,8 +14,8 @@ typedef struct
 
 namespace Capture
 {
-  void LoadSettings(jsonxx::Object & o);
-  bool Open(RENDERER_SETTINGS & settings);
+  void ApplySettings(const CAPTURE_SETTINGS & settings);
+  bool Open(const RENDERER_SETTINGS & rendererSettings);
   void CaptureFrame();
   void Close();
 }
