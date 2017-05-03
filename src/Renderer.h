@@ -1,3 +1,6 @@
+#ifndef RENDERER_H
+#define RENDERER_H
+
 #include <Platform.h>
 
 typedef enum {
@@ -108,3 +111,5 @@ namespace Renderer
   extern MouseEvent mouseEventBuffer[512];
   extern int mouseEventBufferCount;
 }
+
+#endif // RENDERER_H
