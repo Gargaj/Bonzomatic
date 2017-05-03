@@ -99,7 +99,7 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.dx9.hlsl";
+  const char * defaultShaderFilename = "shader.dx9.hlsl";
   char defaultShader[65536] = 
     "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
     "// towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
@@ -566,7 +566,7 @@ namespace Renderer
     pDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     LPD3DXBUFFER pShader = NULL;
     LPD3DXBUFFER pErrors = NULL;
@@ -592,12 +592,12 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     pConstantTable->SetFloat( pDevice, szConstName, x );
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     pConstantTable->SetVector( pDevice, szConstName, &D3DXVECTOR4(x, y, 0, 0) );
   }
@@ -608,7 +608,7 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
     D3DXIMAGE_INFO info;
@@ -660,7 +660,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     int idx = pConstantTable->GetSamplerIndex( szTextureName );
     if (idx >= 0)
