@@ -195,7 +195,29 @@ int main()
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
     }
-    Capture::LoadSettings( o );
+
+    CAPTURE_SETTINGS captureSettings;
+    captureSettings.bNDIEnabled = true;
+    captureSettings.sNDIConnectionString = "";
+    captureSettings.sNDIIdentifier = "";
+    captureSettings.fNDIFrameRate = 60.0;
+    captureSettings.bNDIProgressive = true;
+
+    if (o.has<jsonxx::Object>("ndi"))
+    {
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
+        captureSettings.bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
+        captureSettings.sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
+        captureSettings.sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
+        captureSettings.fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
+      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
+        captureSettings.bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
+    }
+
+    Capture::ApplySettings( captureSettings );
   }
   if ( !Capture::Open( settings ) )
   {
