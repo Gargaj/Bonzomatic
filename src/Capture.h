@@ -3,14 +3,15 @@
 
 #include <string>
 
-typedef struct
-{
+struct CAPTURE_SETTINGS {
   bool bNDIEnabled;
   std::string sNDIConnectionString;
   std::string sNDIIdentifier;
   float fNDIFrameRate;
   bool bNDIProgressive;
-} CAPTURE_SETTINGS;
+};
+
+struct RENDERER_SETTINGS;
 
 namespace Capture
 {

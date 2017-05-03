@@ -9,13 +9,12 @@ typedef enum {
   RENDERER_WINDOWMODE_BORDERLESS
 } RENDERER_WINDOWMODE;
 
-typedef struct 
-{
+struct RENDERER_SETTINGS {
   int nWidth;
   int nHeight;
   RENDERER_WINDOWMODE windowMode;
   bool bVsync;
-} RENDERER_SETTINGS;
+};
 
 namespace Renderer
 {
