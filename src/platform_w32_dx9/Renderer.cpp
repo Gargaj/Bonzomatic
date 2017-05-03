@@ -316,7 +316,7 @@ namespace Renderer
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
   }
 
-  bool InitWindow(RENDERER_SETTINGS * pSetup) 
+  bool InitWindow(const RENDERER_SETTINGS & pSetup)
   {
     WNDCLASS WC;
 
@@ -335,14 +335,14 @@ namespace Renderer
 
     DWORD wExStyle = WS_EX_APPWINDOW;
     DWORD wStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-    if (pSetup->windowMode == RENDERER_WINDOWMODE_WINDOWED) wStyle |= WS_OVERLAPPED | WS_CAPTION;
+    if (pSetup.windowMode == RENDERER_WINDOWMODE_WINDOWED) wStyle |= WS_OVERLAPPED | WS_CAPTION;
 
-    RECT wr={0,0,pSetup->nWidth,pSetup->nHeight};
+    RECT wr={0,0,pSetup.nWidth,pSetup.nHeight};
     AdjustWindowRectEx(&wr, wStyle, FALSE, wExStyle);
 
     hWnd = CreateWindowEx(wExStyle,_T("fwzwnd"),_T("BONZOMATIC - Direct3D 9.0c edition"),wStyle,
-      (GetSystemMetrics(SM_CXSCREEN) - pSetup->nWidth )/2,
-      (GetSystemMetrics(SM_CYSCREEN) - pSetup->nHeight)/2,
+      (GetSystemMetrics(SM_CXSCREEN) - pSetup.nWidth )/2,
+      (GetSystemMetrics(SM_CYSCREEN) - pSetup.nHeight)/2,
       wr.right-wr.left, wr.bottom-wr.top,
       NULL, NULL, WC.hInstance, NULL);
 
@@ -357,7 +357,7 @@ namespace Renderer
   }
 
   D3DPRESENT_PARAMETERS d3dpp;
-  bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
+  bool InitDirect3D(const RENDERER_SETTINGS & pSetup)
   {
     pD3D = Direct3DCreate9(D3D9b_SDK_VERSION);
     if (!pD3D) 
@@ -366,20 +366,20 @@ namespace Renderer
       return false;
     }
 
-    nWidth  = pSetup->nWidth;
-    nHeight = pSetup->nHeight;
+    nWidth  = pSetup.nWidth;
+    nHeight = pSetup.nHeight;
 
     ZeroMemory(&d3dpp,sizeof(d3dpp));
 
     d3dpp.SwapEffect     = D3DSWAPEFFECT_DISCARD;
     d3dpp.hDeviceWindow  = hWnd;
-    d3dpp.Windowed       = pSetup->windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
-    d3dpp.PresentationInterval = pSetup->bVsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+    d3dpp.Windowed       = pSetup.windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
+    d3dpp.PresentationInterval = pSetup.bVsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
 
     d3dpp.BackBufferCount  = 1;
 
-    d3dpp.BackBufferWidth  = pSetup->nWidth;
-    d3dpp.BackBufferHeight = pSetup->nHeight;
+    d3dpp.BackBufferWidth  = pSetup.nWidth;
+    d3dpp.BackBufferHeight = pSetup.nHeight;
 
     D3DDISPLAYMODE d3ddm;
     if( FAILED( pD3D->GetAdapterDisplayMode( D3DADAPTER_DEFAULT, &d3ddm ) ) )
@@ -449,7 +449,7 @@ namespace Renderer
 
 #define GUIQUADVB_SIZE (128*6)
 
-  bool Open( RENDERER_SETTINGS * settings )
+  bool Open( const RENDERER_SETTINGS & settings )
   {
     if (!InitWindow(settings))
     {
@@ -506,7 +506,7 @@ namespace Renderer
       return false;
     }
 
-    if (pDevice->CreateOffscreenPlainSurface( settings->nWidth, settings->nHeight, d3dpp.BackBufferFormat, D3DPOOL_SYSTEMMEM, &pFrameGrabTexture, NULL) != D3D_OK)
+    if (pDevice->CreateOffscreenPlainSurface( settings.nWidth, settings.nHeight, d3dpp.BackBufferFormat, D3DPOOL_SYSTEMMEM, &pFrameGrabTexture, NULL) != D3D_OK)
     {
       printf("[Renderer] CreateOffscreenPlainSurface failed\n");
       return false;

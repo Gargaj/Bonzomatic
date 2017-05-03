@@ -23,7 +23,7 @@ namespace Renderer
   extern int nHeight;
 
   bool OpenSetupDialog( RENDERER_SETTINGS * settings );
-  bool Open( RENDERER_SETTINGS * settings );
+  bool Open( const RENDERER_SETTINGS & settings );
   
   void StartFrame();
   void EndFrame();

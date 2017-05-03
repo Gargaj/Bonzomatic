@@ -89,7 +89,7 @@ int main()
     return -1;
 #endif
 
-  if (!Renderer::Open( &settings ))
+  if (!Renderer::Open( settings ))
   {
     printf("Renderer::Open failed\n");
     return -1;

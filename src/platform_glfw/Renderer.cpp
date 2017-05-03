@@ -192,7 +192,7 @@ namespace Renderer
   void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
   void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-  bool Open( RENDERER_SETTINGS * settings )
+  bool Open( const RENDERER_SETTINGS & settings )
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
@@ -202,8 +202,8 @@ namespace Renderer
       return false;
     }
 
-    nWidth = settings->nWidth;
-    nHeight = settings->nHeight;
+    nWidth = settings.nWidth;
+    nHeight = settings.nHeight;
 
     glfwWindowHint(GLFW_RED_BITS, 8);
     glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -222,7 +222,7 @@ namespace Renderer
     // TODO: change in case of resize support
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
+    GLFWmonitor *monitor = settings.windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
     mWindow = glfwCreateWindow(nWidth, nHeight, "BONZOMATIC - GLFW edition", monitor, NULL);
     if (!mWindow)
@@ -255,7 +255,7 @@ namespace Renderer
     glfwSwapInterval(1);
 
 #ifdef _WIN32
-    if (settings->bVsync)
+    if (settings.bVsync)
       wglSwapIntervalEXT(1);
 #endif
 
@@ -382,9 +382,9 @@ namespace Renderer
     //create PBOs to hold the data. this allocates memory for them too
     glGenBuffers(2, pbo);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings.nWidth * settings.nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings.nWidth * settings.nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 

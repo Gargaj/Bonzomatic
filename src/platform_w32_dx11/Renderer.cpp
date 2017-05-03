@@ -320,7 +320,7 @@ namespace Renderer
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
   }
 
-  bool InitWindow(RENDERER_SETTINGS * pSetup) 
+  bool InitWindow(const RENDERER_SETTINGS & pSetup)
   {
     WNDCLASS WC;
 
@@ -339,14 +339,14 @@ namespace Renderer
 
     DWORD wExStyle = WS_EX_APPWINDOW;
     DWORD wStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-    if (pSetup->windowMode == RENDERER_WINDOWMODE_WINDOWED) wStyle |= WS_OVERLAPPED | WS_CAPTION;
+    if (pSetup.windowMode == RENDERER_WINDOWMODE_WINDOWED) wStyle |= WS_OVERLAPPED | WS_CAPTION;
 
-    RECT wr={0,0,pSetup->nWidth,pSetup->nHeight};
+    RECT wr={0,0,pSetup.nWidth,pSetup.nHeight};
     AdjustWindowRectEx(&wr, wStyle, FALSE, wExStyle);
 
     hWnd = CreateWindowEx(wExStyle,_T("fwzwnd"),_T("BONZOMATIC - Direct3D 11.0 edition"),wStyle,
-      (GetSystemMetrics(SM_CXSCREEN) - pSetup->nWidth )/2,
-      (GetSystemMetrics(SM_CYSCREEN) - pSetup->nHeight)/2,
+      (GetSystemMetrics(SM_CXSCREEN) - pSetup.nWidth )/2,
+      (GetSystemMetrics(SM_CYSCREEN) - pSetup.nHeight)/2,
       wr.right-wr.left, wr.bottom-wr.top,
       NULL, NULL, WC.hInstance, NULL);
 
@@ -361,17 +361,17 @@ namespace Renderer
   }
 
   bool bVsync = false;
-  bool InitDirect3D(RENDERER_SETTINGS * pSetup) 
+  bool InitDirect3D(const RENDERER_SETTINGS & pSetup)
   {
     DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     DXGI_SWAP_CHAIN_DESC desc;
     ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
     desc.BufferCount = 1;
-    desc.BufferDesc.Width = pSetup->nWidth;
-    desc.BufferDesc.Height = pSetup->nHeight;
+    desc.BufferDesc.Width = pSetup.nWidth;
+    desc.BufferDesc.Height = pSetup.nHeight;
     desc.BufferDesc.Format = format;
-    if (pSetup->bVsync)
+    if (pSetup.bVsync)
     {
       bVsync = true;
       IDXGIFactory1 * pFactory = NULL;
@@ -394,7 +394,7 @@ namespace Renderer
 
             for (int i=0; i<nModeCount; i++)
             {
-              if (pModes[i].Width == pSetup->nWidth && pModes[i].Height == pSetup->nHeight)
+              if (pModes[i].Width == pSetup.nWidth && pModes[i].Height == pSetup.nHeight)
               {
                 desc.BufferDesc = pModes[i];
                 break;
@@ -414,7 +414,7 @@ namespace Renderer
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     desc.OutputWindow = hWnd;
     desc.SampleDesc.Count = 1;
-    desc.Windowed = pSetup->windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
+    desc.Windowed = pSetup.windowMode != RENDERER_WINDOWMODE_FULLSCREEN;
 
     DWORD deviceCreationFlags = 0;
 #ifdef _DEBUG
@@ -468,7 +468,7 @@ namespace Renderer
   ID3D11BlendState* pFullscreenQuadBlendState = NULL;
   ID3D11RasterizerState * pFullscreenQuadRasterizerState = NULL;
 
-  bool InitD3D11QuadRendering( RENDERER_SETTINGS * settings )
+  bool InitD3D11QuadRendering( const RENDERER_SETTINGS & settings )
   {
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
@@ -529,8 +529,8 @@ namespace Renderer
 
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width  = settings->nWidth;
-    viewport.Height = settings->nHeight;
+    viewport.Width  = settings.nWidth;
+    viewport.Height = settings.nHeight;
 
     pContext->RSSetViewports(1, &viewport);
 
@@ -621,7 +621,7 @@ namespace Renderer
     pout[3 + 3 * 4] = 1.0;
   }
 
-  bool InitD3D11GUIRendering( RENDERER_SETTINGS * settings )
+  bool InitD3D11GUIRendering( const RENDERER_SETTINGS & settings )
   {
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
@@ -711,10 +711,10 @@ namespace Renderer
     return true;
   }
 
-  bool Open( RENDERER_SETTINGS * settings )
+  bool Open( const RENDERER_SETTINGS & settings )
   {
-    nWidth  = settings->nWidth;
-    nHeight = settings->nHeight;
+    nWidth  = settings.nWidth;
+    nHeight = settings.nHeight;
 
     if (!InitWindow(settings))
     {
