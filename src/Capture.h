@@ -1,3 +1,6 @@
+#ifndef CAPTURE_H
+#define CAPTURE_H
+
 #include <string>
 
 typedef struct
@@ -16,3 +19,5 @@ namespace Capture
   void CaptureFrame();
   void Close();
 }
+
+#endif // CAPTURE_H
