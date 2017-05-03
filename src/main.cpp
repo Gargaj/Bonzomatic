@@ -69,27 +69,168 @@ static void changeToAppsCurrentDirectory()
 }
 #endif
 
+struct SETTINGS {
+  SETTINGS();
+  void ApplyDefaults();
+
+  SHADEREDITOR_OPTIONS shaderEditorOptions;
+  RENDERER_SETTINGS rendererSettings;
+  CAPTURE_SETTINGS captureSettings;
+
+  std::map<int,std::string> midiRoutes;
+  std::vector<std::pair<std::string,std::string> > texturePaths;
+
+  int nDebugOutputHeight;
+  int nTexPreviewWidth;
+  float fFFTSmoothingFactor;
+  float fFFTSlightSmoothingFactor;
+};
+
+SETTINGS::SETTINGS()
+{
+  ApplyDefaults();
+}
+
+void SETTINGS::ApplyDefaults()
+{
+  // Renderer settings
+  rendererSettings.bVsync = false;
+#ifdef _DEBUG
+  rendererSettings.nWidth = 1280;
+  rendererSettings.nHeight = 720;
+  rendererSettings.windowMode = RENDERER_WINDOWMODE_WINDOWED;
+#else
+  rendererSettings.nWidth = 1920;
+  rendererSettings.nHeight = 1080;
+  rendererSettings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+#endif
+
+  // Shader editor options
+  shaderEditorOptions.nFontSize = 16;
+#ifdef _WIN32
+  shaderEditorOptions.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+#elif __APPLE__
+  shaderEditorOptions.sFontPath = "/Library/Fonts/Courier New.ttf";
+#else
+  shaderEditorOptions.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
+#endif
+  shaderEditorOptions.nOpacity = 0xC0;
+  shaderEditorOptions.bUseSpacesForTabs = true;
+  shaderEditorOptions.nTabSize = 2;
+  shaderEditorOptions.bVisibleWhitespace = false;
+
+  // Capture settings
+  captureSettings.bNDIEnabled = true;
+  captureSettings.sNDIConnectionString = "";
+  captureSettings.sNDIIdentifier = "";
+  captureSettings.fNDIFrameRate = 60.0;
+  captureSettings.bNDIProgressive = true;
+
+  // Other settings
+  nDebugOutputHeight = 200;
+  nTexPreviewWidth = 64;
+  fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
+  fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
+}
+
+void LoadConfiguration(SETTINGS * settings)
+{
+  char szConfig[65535];
+  FILE * fConf = fopen("config.json","rb");
+
+  if (!fConf)
+    return;
+
+  printf("Config file found, parsing...\n");
+
+  memset( szConfig, 0, 65535 );
+  int n = fread( szConfig, 1, 65535, fConf );
+  fclose(fConf);
+
+  jsonxx::Object o;
+  o.parse( szConfig );
+
+  if (o.has<jsonxx::Object>("rendering"))
+  {
+    if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
+      settings->fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
+  }
+  if (o.has<jsonxx::Object>("textures"))
+  {
+    std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
+    for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+    {
+      const std::string& name = it->first;
+      const std::string path = it->second->string_value_->c_str();
+      settings->texturePaths.push_back( std::make_pair( name, path ) );
+    }
+  }
+  if (o.has<jsonxx::Object>("font"))
+  {
+    SHADEREDITOR_OPTIONS& options = settings->shaderEditorOptions;
+
+    if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
+      options.nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
+    if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
+      options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+  }
+  if (o.has<jsonxx::Object>("gui"))
+  {
+    SHADEREDITOR_OPTIONS& options = settings->shaderEditorOptions;
+
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
+      settings->nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
+      settings->nTexPreviewWidth = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
+      options.nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
+      options.bUseSpacesForTabs = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
+      options.nTabSize = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
+    if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
+      options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
+  }
+  if (o.has<jsonxx::Object>("midi"))
+  {
+    std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
+    for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
+    {
+      settings->midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
+    }
+  }
+  if (o.has<jsonxx::Object>("ndi"))
+  {
+    CAPTURE_SETTINGS& captureSettings = settings->captureSettings;
+
+    if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
+      captureSettings.bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
+    if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
+      captureSettings.sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
+    if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
+      captureSettings.sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
+    if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
+      captureSettings.fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
+    if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
+      captureSettings.bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
+  }
+}
+
 int main()
 {
 #ifdef __APPLE__
   changeToAppsCurrentDirectory();
 #endif
 
-  RENDERER_SETTINGS settings;
-  settings.bVsync = false;
-#ifdef _DEBUG
-  settings.nWidth = 1280;
-  settings.nHeight = 720;
-  settings.windowMode = RENDERER_WINDOWMODE_WINDOWED;
-#else
-  settings.nWidth = 1920;
-  settings.nHeight = 1080;
-  settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
-  if (!Renderer::OpenSetupDialog( &settings ))
+  SETTINGS settings;
+  RENDERER_SETTINGS& rendererSettings = settings.rendererSettings;
+
+#ifndef _DEBUG
+  if (!Renderer::OpenSetupDialog( &rendererSettings ))
     return -1;
 #endif
 
-  if (!Renderer::Open( settings ))
+  if (!Renderer::Open( rendererSettings ))
   {
     printf("Renderer::Open failed\n");
     return -1;
@@ -107,119 +248,12 @@ int main()
     //return -1;
   }
 
-  std::map<std::string,Renderer::Texture*> textures;
-  std::map<int,std::string> midiRoutes;
+  LoadConfiguration( &settings );
 
-  SHADEREDITOR_OPTIONS options;
-  options.nFontSize = 16;
-#ifdef _WIN32
-  options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
-#elif __APPLE__
-  options.sFontPath = "/Library/Fonts/Courier New.ttf";
-#else
-  options.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
-#endif
-  options.nOpacity = 0xC0;
-  options.bUseSpacesForTabs = true;
-  options.nTabSize = 2;
-  options.bVisibleWhitespace = false;
+  const CAPTURE_SETTINGS& captureSettings = settings.captureSettings;
+  Capture::ApplySettings( captureSettings );
 
-  int nDebugOutputHeight = 200;
-  int nTexPreviewWidth = 64;
-  float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
-  float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
-
-  char szConfig[65535];
-  FILE * fConf = fopen("config.json","rb");
-  if (fConf)
-  {
-    printf("Config file found, parsing...\n");
-
-    memset( szConfig, 0, 65535 );
-    int n = fread( szConfig, 1, 65535, fConf );
-    fclose(fConf);
-
-    jsonxx::Object o;
-    o.parse( szConfig );
-
-    if (o.has<jsonxx::Object>("rendering"))
-    {
-      if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
-        fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
-    }
-
-    if (o.has<jsonxx::Object>("textures"))
-    {
-      printf("Loading textures...\n");
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
-      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
-      {
-        char * fn = (char*)it->second->string_value_->c_str();
-        printf("* %s...\n",fn);
-        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
-        if (!tex)
-        {
-          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
-          return -1;
-        }
-        textures.insert( std::make_pair( it->first, tex ) );
-      }
-    }
-    if (o.has<jsonxx::Object>("font"))
-    {
-      if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
-        options.nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
-      if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
-        options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
-    }
-    if (o.has<jsonxx::Object>("gui"))
-    {
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
-        nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
-        nTexPreviewWidth = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
-        options.nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
-        options.bUseSpacesForTabs = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
-        options.nTabSize = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
-        options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
-    }
-    if (o.has<jsonxx::Object>("midi"))
-    {
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
-      for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
-      {
-        midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
-      }
-    }
-
-    CAPTURE_SETTINGS captureSettings;
-    captureSettings.bNDIEnabled = true;
-    captureSettings.sNDIConnectionString = "";
-    captureSettings.sNDIIdentifier = "";
-    captureSettings.fNDIFrameRate = 60.0;
-    captureSettings.bNDIProgressive = true;
-
-    if (o.has<jsonxx::Object>("ndi"))
-    {
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
-        captureSettings.bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
-        captureSettings.sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
-        captureSettings.sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
-        captureSettings.fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
-        captureSettings.bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
-    }
-
-    Capture::ApplySettings( captureSettings );
-  }
-  if ( !Capture::Open( settings ) )
+  if ( !Capture::Open( rendererSettings ) )
   {
     printf("Initializing capture system failed!\n");
     return 0;
@@ -228,6 +262,26 @@ int main()
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
+
+  printf("Loading textures...\n");
+
+  std::map<std::string,Renderer::Texture*> textures;
+  std::vector<std::pair<std::string,std::string> >::const_iterator it;
+  for (it = settings.texturePaths.begin(); it != settings.texturePaths.end(); ++it)
+  {
+      const std::string& name = it->first;
+      const std::string& path = it->second;
+
+      const char * fn = path.c_str();
+      printf("* %s...\n",fn);
+      Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+      if (!tex)
+      {
+        printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
+        return -1;
+      }
+      textures.insert( std::make_pair( it->first, tex ) );
+  }
 
   bool shaderInitSuccessful = false;
   char szShader[65535];
@@ -246,6 +300,9 @@ int main()
       shaderInitSuccessful = true;
     }
   }
+
+  const std::map<int,std::string>& midiRoutes = settings.midiRoutes;
+
   if (!shaderInitSuccessful)
   {
     printf("No valid last shader found, falling back to default...\n");
@@ -258,7 +315,7 @@ int main()
     ReplaceTokens(sDefShader, "{%textures:begin%}", "{%textures:name%}", "{%textures:end%}", tokens);
 
     tokens.clear();
-    for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
+    for (std::map<int,std::string>::const_iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
       tokens.push_back(it->second);
     ReplaceTokens(sDefShader, "{%midi:begin%}", "{%midi:name%}", "{%midi:end%}", tokens);
 
@@ -282,13 +339,16 @@ int main()
   int nMargin = 20;
 
   bool bTexPreviewVisible = true;
+  const int nDebugOutputHeight = settings.nDebugOutputHeight;
+  const int nTexPreviewWidth = settings.nTexPreviewWidth;
 
-  options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
+  SHADEREDITOR_OPTIONS& options = settings.shaderEditorOptions;
+  options.rect = Scintilla::PRectangle( nMargin, nMargin, rendererSettings.nWidth - nMargin - nTexPreviewWidth - nMargin, rendererSettings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise( options );
   mShaderEditor.SetText( szShader );
 
-  options.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin );
+  options.rect = Scintilla::PRectangle( nMargin, rendererSettings.nHeight - nMargin - nDebugOutputHeight, rendererSettings.nWidth - nMargin - nTexPreviewWidth - nMargin, rendererSettings.nHeight - nMargin );
   ShaderEditor mDebugOutput( surface );
   mDebugOutput.Initialise( options );
   mDebugOutput.SetText( "" );
@@ -342,14 +402,14 @@ int main()
       {
         if (bTexPreviewVisible)
         {
-          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
-          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin, settings.nHeight - nMargin ) );
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, rendererSettings.nWidth - nMargin, rendererSettings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, rendererSettings.nHeight - nMargin - nDebugOutputHeight, rendererSettings.nWidth - nMargin, rendererSettings.nHeight - nMargin ) );
           bTexPreviewVisible = false;
         }
         else
         {
-          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
-          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin ) );
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, rendererSettings.nWidth - nMargin - nTexPreviewWidth - nMargin, rendererSettings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, rendererSettings.nHeight - nMargin - nDebugOutputHeight, rendererSettings.nWidth - nMargin - nTexPreviewWidth - nMargin, rendererSettings.nHeight - nMargin ) );
           bTexPreviewVisible = true;
         }
       }
@@ -397,11 +457,11 @@ int main()
     Renderer::keyEventBufferCount = 0;
 
     Renderer::SetShaderConstant( "fGlobalTime", time );
-    Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
+    Renderer::SetShaderConstant( "v2Resolution", rendererSettings.nWidth, rendererSettings.nHeight );
 
-    for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
+    for (std::map<int,std::string>::const_iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
-      Renderer::SetShaderConstant( (char*)it->second.c_str(), MIDI::GetCCValue( it->first ) );
+      Renderer::SetShaderConstant( it->second.c_str(), MIDI::GetCCValue( it->first ) );
     }
 
 
@@ -410,6 +470,8 @@ int main()
       Renderer::UpdateR32Texture( texFFT, fftData );
 
       const static float maxIntegralValue = 1024.0f;
+      const float fFFTSmoothingFactor = settings.fFFTSmoothingFactor;
+      const float fFFTSlightSmoothingFactor = settings.fFFTSlightSmoothingFactor;
       for ( int i = 0; i < FFT_SIZE; i++ )
       {
         fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
@@ -455,8 +517,8 @@ int main()
       if (bTexPreviewVisible)
       {
         int y1 = nMargin;
-        int x1 = settings.nWidth - nMargin - nTexPreviewWidth;
-        int x2 = settings.nWidth - nMargin;
+        int x1 = rendererSettings.nWidth - nMargin - nTexPreviewWidth;
+        int x2 = rendererSettings.nWidth - nMargin;
         for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
         {
           int y2 = y1 + nTexPreviewWidth * (it->second->height / (float)it->second->width);
