@@ -2,8 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-// Needed to test file existence
-#include <unistd.h>
+
 
 #include "ShaderEditor.h"
 #include "Renderer.h"
@@ -17,6 +16,8 @@
 
 #ifdef WIN32
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
