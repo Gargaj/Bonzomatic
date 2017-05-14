@@ -2,14 +2,8 @@
 #include <string.h>
 #include <assert.h>
 
-// there must be a better way to detext Linux ...
-#ifndef __APPLE__
-#ifndef WIN32
-#ifndef BONZOMATIC_64BIT
-#include <fstream>
-#endif
-#endif
-#endif
+// Needed to test file existence
+#include <unistd.h>
 
 #include "ShaderEditor.h"
 #include "Renderer.h"
@@ -135,7 +129,8 @@ int main()
   int step = 0;
   while(step <2 && options.sFontPath.size() ==0) {
     const std::string & current = fontPaths[step++];
-    if (std::ifstream(current.c_str()).good()) {
+
+    if (access(current.c_str(), R_OK) != -1) {
       options.sFontPath = current;
     }
   }
