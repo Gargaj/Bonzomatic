@@ -109,7 +109,7 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.glsl";
+  const char * defaultShaderFilename = "shader.glsl";
   char defaultShader[65536] =
     "#version 410 core\n"
     "\n"
@@ -192,7 +192,7 @@ namespace Renderer
   void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
   void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-  bool Open( RENDERER_SETTINGS * settings )
+  bool Open( const RENDERER_SETTINGS & settings )
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
@@ -202,8 +202,8 @@ namespace Renderer
       return false;
     }
 
-    nWidth = settings->nWidth;
-    nHeight = settings->nHeight;
+    nWidth = settings.nWidth;
+    nHeight = settings.nHeight;
 
     glfwWindowHint(GLFW_RED_BITS, 8);
     glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -222,7 +222,7 @@ namespace Renderer
     // TODO: change in case of resize support
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
+    GLFWmonitor *monitor = settings.windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
     mWindow = glfwCreateWindow(nWidth, nHeight, "BONZOMATIC - GLFW edition", monitor, NULL);
     if (!mWindow)
@@ -255,7 +255,7 @@ namespace Renderer
     glfwSwapInterval(1);
 
 #ifdef _WIN32
-    if (settings->bVsync)
+    if (settings.bVsync)
       wglSwapIntervalEXT(1);
 #endif
 
@@ -270,13 +270,13 @@ namespace Renderer
     glGenBuffers( 1, &glhFullscreenQuadVB );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     glGenVertexArrays(1, &glhFullscreenQuadVA);
 
     glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
 
-    char * szVertexShader =
+    const char * szVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec2 in_texcoord;\n"
@@ -304,7 +304,7 @@ namespace Renderer
 
 #define GUIQUADVB_SIZE (1024 * 6)
 
-    char * defaultGUIVertexShader =
+    const char * defaultGUIVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec4 in_color;\n"
@@ -323,7 +323,7 @@ namespace Renderer
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
       "}\n";
-    char * defaultGUIPixelShader =
+    const char * defaultGUIPixelShader =
       "#version 410 core\n"
       "uniform sampler2D tex;\n"
       "in vec4 out_color;\n"
@@ -382,11 +382,11 @@ namespace Renderer
     //create PBOs to hold the data. this allocates memory for them too
     glGenBuffers(2, pbo);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings.nWidth * settings.nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, settings.nWidth * settings.nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     run = true;
 
@@ -564,10 +564,10 @@ namespace Renderer
     glDisableVertexAttribArray( texcoord );
     glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     GLuint prg = glCreateProgram();
     GLuint shd = glCreateShader(GL_FRAGMENT_SHADER);
@@ -605,7 +605,7 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -614,7 +614,7 @@ namespace Renderer
     }
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -630,7 +630,7 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
     int width = 0;
@@ -692,7 +692,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     if (!tex)
       return;
@@ -903,7 +903,7 @@ namespace Renderer
     glDisableVertexAttribArray( color );
     glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
 
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
@@ -932,7 +932,7 @@ namespace Renderer
       }
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     return true;
   }

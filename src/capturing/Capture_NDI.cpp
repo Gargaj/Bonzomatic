@@ -1,39 +1,24 @@
 #include <Processing.NDI.Lib.h>
 #include <string>
-#include "jsonxx.h"
+#include "Capture.h"
 #include "Renderer.h"
 
 namespace Capture
 {
-  std::string sNDIConnectionString;
-  float fNDIFrameRate = 60.0;
-  std::string sNDIIdentifier;
-  bool bNDIProgressive = true;
-  bool bNDIEnabled = true;
+  CAPTURE_SETTINGS settings;
+
   unsigned int * pBuffer[2] = { NULL, NULL };
   unsigned int nBufferIndex = 0;
   NDIlib_video_frame_t pNDIFrame;
   NDIlib_send_instance_t pNDI_send;
 
-  void LoadSettings(jsonxx::Object & o)
+  void ApplySettings(const CAPTURE_SETTINGS & settings)
   {
-    if (o.has<jsonxx::Object>("ndi"))
-    {
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("enabled"))
-        bNDIEnabled = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("enabled");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("connectionString"))
-        sNDIConnectionString = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("connectionString");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
-        sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
-        fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
-      if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
-        bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
-    }
+    Capture::settings = settings;
   }
-  bool Open(RENDERER_SETTINGS & settings)
+  bool Open(const RENDERER_SETTINGS & rendererSettings)
   {
-    if (bNDIEnabled)
+    if (settings.bNDIEnabled)
     {
       if (!NDIlib_initialize())
       {
@@ -42,7 +27,7 @@ namespace Capture
       }
 
       NDIlib_send_create_t pNDICreateDesc;
-      sNDIIdentifier = "BONZOMATIC" + (sNDIIdentifier.length() ? (" - " + sNDIIdentifier) : "");
+      const std::string sNDIIdentifier = "BONZOMATIC" + (settings.sNDIIdentifier.length() ? (" - " + settings.sNDIIdentifier) : "");
       pNDICreateDesc.p_ndi_name = sNDIIdentifier.c_str();
       pNDICreateDesc.p_groups = NULL;
       pNDICreateDesc.clock_video = true;
@@ -56,24 +41,24 @@ namespace Capture
       }
 
       NDIlib_metadata_frame_t pNDIConnType;
-      pNDIConnType.length = sNDIConnectionString.length();
+      pNDIConnType.length = settings.sNDIConnectionString.length();
       pNDIConnType.timecode = NDIlib_send_timecode_synthesize;
-      pNDIConnType.p_data = (char*)sNDIConnectionString.c_str();
+      pNDIConnType.p_data = (char*)settings.sNDIConnectionString.c_str();
 
       NDIlib_send_add_connection_metadata(pNDI_send, &pNDIConnType);
 
-      pNDIFrame.xres = settings.nWidth;
-      pNDIFrame.yres = settings.nHeight;
+      pNDIFrame.xres = rendererSettings.nWidth;
+      pNDIFrame.yres = rendererSettings.nHeight;
       pNDIFrame.FourCC = NDIlib_FourCC_type_BGRA;
-      pNDIFrame.frame_rate_N = fNDIFrameRate * 100;
+      pNDIFrame.frame_rate_N = settings.fNDIFrameRate * 100;
       pNDIFrame.frame_rate_D = 100;
-      pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
-      pNDIFrame.frame_format_type = bNDIProgressive ? NDIlib_frame_format_type_progressive : NDIlib_frame_format_type_interleaved;
+      pNDIFrame.picture_aspect_ratio = rendererSettings.nWidth / (float)rendererSettings.nHeight;
+      pNDIFrame.frame_format_type = settings.bNDIProgressive ? NDIlib_frame_format_type_progressive : NDIlib_frame_format_type_interleaved;
       pNDIFrame.timecode = NDIlib_send_timecode_synthesize;
-      pBuffer[0] = new unsigned int[settings.nWidth * settings.nHeight * 4];
-      pBuffer[1] = new unsigned int[settings.nWidth * settings.nHeight * 4];
+      pBuffer[0] = new unsigned int[rendererSettings.nWidth * rendererSettings.nHeight * 4];
+      pBuffer[1] = new unsigned int[rendererSettings.nWidth * rendererSettings.nHeight * 4];
       pNDIFrame.p_data = NULL;
-      pNDIFrame.line_stride_in_bytes = settings.nWidth * 4;
+      pNDIFrame.line_stride_in_bytes = rendererSettings.nWidth * 4;
     }
     return true;
   }

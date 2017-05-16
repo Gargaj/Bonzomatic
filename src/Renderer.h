@@ -1,3 +1,6 @@
+#ifndef RENDERER_H
+#define RENDERER_H
+
 #include <Platform.h>
 
 typedef enum {
@@ -6,24 +9,23 @@ typedef enum {
   RENDERER_WINDOWMODE_BORDERLESS
 } RENDERER_WINDOWMODE;
 
-typedef struct 
-{
+struct RENDERER_SETTINGS {
   int nWidth;
   int nHeight;
   RENDERER_WINDOWMODE windowMode;
   bool bVsync;
-} RENDERER_SETTINGS;
+};
 
 namespace Renderer
 {
-  extern char * defaultShaderFilename;
+  extern const char * defaultShaderFilename;
   extern char defaultShader[65536];
 
   extern int nWidth;
   extern int nHeight;
 
   bool OpenSetupDialog( RENDERER_SETTINGS * settings );
-  bool Open( RENDERER_SETTINGS * settings );
+  bool Open( const RENDERER_SETTINGS & settings );
   
   void StartFrame();
   void EndFrame();
@@ -31,9 +33,9 @@ namespace Renderer
 
   void RenderFullscreenQuad();
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
-  void SetShaderConstant( char * szConstName, float x );
-  void SetShaderConstant( char * szConstName, float x, float y );
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
+  void SetShaderConstant( const char * szConstName, float x );
+  void SetShaderConstant( const char * szConstName, float x, float y );
 
   void StartTextRendering();
   void SetTextRenderingViewport( Scintilla::PRectangle rect );
@@ -56,11 +58,11 @@ namespace Renderer
     TEXTURETYPE type;
   };
 
-  Texture * CreateRGBA8TextureFromFile( char * szFilename );
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename );
   Texture * CreateA8TextureFromData( int w, int h, unsigned char * data );
   Texture * Create1DR32Texture( int w );
   bool UpdateR32Texture( Texture * tex, float * data );
-  void SetShaderTexture( char * szTextureName, Texture * tex );
+  void SetShaderTexture( const char * szTextureName, Texture * tex );
   void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
   void ReleaseTexture( Texture * tex );
   struct Vertex
@@ -108,3 +110,5 @@ namespace Renderer
   extern MouseEvent mouseEventBuffer[512];
   extern int mouseEventBufferCount;
 }
+
+#endif // RENDERER_H
