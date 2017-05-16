@@ -11,6 +11,7 @@ set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 
+
 option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
 if (MSVC)
   if (CMAKE_GENERATOR MATCHES "64")
