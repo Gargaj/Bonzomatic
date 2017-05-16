@@ -2,6 +2,8 @@
 #include <string.h>
 #include <assert.h>
 
+
+
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
@@ -14,6 +16,8 @@
 
 #ifdef WIN32
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
@@ -112,7 +116,23 @@ void SETTINGS::ApplyDefaults()
 #elif __APPLE__
   shaderEditorOptions.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
-  shaderEditorOptions.sFontPath = "/usr/share/fonts/corefonts/cour.ttf";
+  // Linux case
+  const std::string fontPaths[2] = {
+    "/usr/share/fonts/corefonts/cour.ttf",
+    "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
+  };
+  shaderEditorOptions.sFontPath = "";
+  int step = 0;
+  while( step < 2 && shaderEditorOptions.sFontPath.empty() )
+  {
+    const std::string & current = fontPaths[step++];
+
+    if (access(current.c_str(), R_OK) != -1)
+    {
+      shaderEditorOptions.sFontPath = current;
+    }
+  }
+  assert( !shaderEditorOptions.sFontPath.empty() );
 #endif
   shaderEditorOptions.nOpacity = 0xC0;
   shaderEditorOptions.bUseSpacesForTabs = true;
