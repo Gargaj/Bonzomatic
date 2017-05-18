@@ -79,6 +79,20 @@ int main()
   changeToAppsCurrentDirectory();
 #endif
 
+  jsonxx::Object options;
+  FILE * fConf = fopen("config.json","rb");
+  if (fConf)
+  {
+    printf("Config file found, parsing...\n");
+
+    char szConfig[65535];
+    memset( szConfig, 0, 65535 );
+    int n = fread( szConfig, 1, 65535, fConf );
+    fclose(fConf);
+
+    options.parse( szConfig );
+  }
+
   RENDERER_SETTINGS settings;
   settings.bVsync = false;
 #ifdef _DEBUG
@@ -89,6 +103,15 @@ int main()
   settings.nWidth = 1920;
   settings.nHeight = 1080;
   settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+  if (options.has<jsonxx::Object>("window"))
+  {
+    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))
+      settings.nWidth = options.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
+    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("height"))
+      settings.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
+    if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
+      settings.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+  }
   if (!Renderer::OpenSetupDialog( &settings ))
     return -1;
 #endif
@@ -114,63 +137,52 @@ int main()
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
 
-  SHADEREDITOR_OPTIONS options;
-  options.nFontSize = 16;
+  SHADEREDITOR_OPTIONS editorOptions;
+  editorOptions.nFontSize = 16;
 #ifdef _WIN32
-  options.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
+  editorOptions.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
 #elif __APPLE__
-  options.sFontPath = "/Library/Fonts/Courier New.ttf";
+  editorOptions.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   // Linux case
   const std::string fontPaths[2] = {
     "/usr/share/fonts/corefonts/cour.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/cour.ttf"
   };
-  options.sFontPath = "";
+  editorOptions.sFontPath = "";
   int step = 0;
-  while(step <2 && options.sFontPath.size() ==0) {
+  while(step <2 && editorOptions.sFontPath.size() ==0) {
     const std::string & current = fontPaths[step++];
 
     if (access(current.c_str(), R_OK) != -1) {
-      options.sFontPath = current;
+      editorOptions.sFontPath = current;
     }
   }
-  assert(options.sFontPath.size()>0 );
+  assert(editorOptions.sFontPath.size()>0 );
 
 #endif
-  options.nOpacity = 0xC0;
-  options.bUseSpacesForTabs = true;
-  options.nTabSize = 2;
-  options.bVisibleWhitespace = false;
+  editorOptions.nOpacity = 0xC0;
+  editorOptions.bUseSpacesForTabs = true;
+  editorOptions.nTabSize = 2;
+  editorOptions.bVisibleWhitespace = false;
 
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
-  char szConfig[65535];
-  FILE * fConf = fopen("config.json","rb");
-  if (fConf)
+  if (!options.empty())
   {
-    printf("Config file found, parsing...\n");
-
-    memset( szConfig, 0, 65535 );
-    int n = fread( szConfig, 1, 65535, fConf );
-    fclose(fConf);
-
-    jsonxx::Object o;
-    o.parse( szConfig );
-
-    if (o.has<jsonxx::Object>("rendering"))
+    if (options.has<jsonxx::Object>("rendering"))
     {
-      if (o.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
-        fFFTSmoothingFactor = o.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
+      if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
+        fFFTSmoothingFactor = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
     }
 
-    if (o.has<jsonxx::Object>("textures"))
+    if (options.has<jsonxx::Object>("textures"))
     {
       printf("Loading textures...\n");
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("textures").kv_map();
+      std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("textures").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         char * fn = (char*)it->second->string_value_->c_str();
@@ -184,37 +196,37 @@ int main()
         textures.insert( std::make_pair( it->first, tex ) );
       }
     }
-    if (o.has<jsonxx::Object>("font"))
+    if (options.has<jsonxx::Object>("font"))
     {
-      if (o.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
-        options.nFontSize = o.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
-      if (o.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
-        options.sFontPath = o.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+      if (options.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
+        editorOptions.nFontSize = options.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
+      if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
+        editorOptions.sFontPath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
     }
-    if (o.has<jsonxx::Object>("gui"))
+    if (options.has<jsonxx::Object>("gui"))
     {
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
-        nDebugOutputHeight = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
-        nTexPreviewWidth = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
-        options.nOpacity = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
-        options.bUseSpacesForTabs = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
-        options.nTabSize = o.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
-      if (o.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
-        options.bVisibleWhitespace = o.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
+        nDebugOutputHeight = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
+        nTexPreviewWidth = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
+        editorOptions.nOpacity = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
+        editorOptions.bUseSpacesForTabs = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
+        editorOptions.nTabSize = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
+        editorOptions.bVisibleWhitespace = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
     }
-    if (o.has<jsonxx::Object>("midi"))
+    if (options.has<jsonxx::Object>("midi"))
     {
-      std::map<std::string, jsonxx::Value*> tex = o.get<jsonxx::Object>("midi").kv_map();
+      std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
     }
-    Capture::LoadSettings( o );
+    Capture::LoadSettings( options );
   }
   if ( !Capture::Open( settings ) )
   {
@@ -280,14 +292,14 @@ int main()
 
   bool bTexPreviewVisible = true;
 
-  options.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
+  editorOptions.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
-  mShaderEditor.Initialise( options );
+  mShaderEditor.Initialise( editorOptions );
   mShaderEditor.SetText( szShader );
 
-  options.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin );
+  editorOptions.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin );
   ShaderEditor mDebugOutput( surface );
-  mDebugOutput.Initialise( options );
+  mDebugOutput.Initialise( editorOptions );
   mDebugOutput.SetText( "" );
   mDebugOutput.SetReadOnly(true);
 

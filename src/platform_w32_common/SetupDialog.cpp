@@ -79,7 +79,12 @@ public:
           _sntprintf(s,50,_T("%d * %d"),gaResolutions[i].nWidth,gaResolutions[i].nHeight);
           SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_ADDSTRING, 0, (LPARAM)s);
 
-          if (gaResolutions[i].nWidth == GetSystemMetrics(SM_CXSCREEN) && gaResolutions[i].nHeight == GetSystemMetrics(SM_CYSCREEN))
+          if (gaResolutions[i].nWidth == setup->nWidth && gaResolutions[i].nHeight == setup->nHeight)
+          {
+            SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0);
+            bFoundBest = true;
+          }
+          if (!bFoundBest && gaResolutions[i].nWidth == GetSystemMetrics(SM_CXSCREEN) && gaResolutions[i].nHeight == GetSystemMetrics(SM_CYSCREEN))
           {
             SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0);
           }

@@ -20,6 +20,11 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 Create a ```config.json``` with e.g. the following contents: (all fields are optional)
 ``` javascript
 {
+  "window":{ /* default window size / state, if there's a setup dialog, it will override it */
+    "width":1920,
+    "height":1080,
+    "fullscreen":true,
+  },
   "font":{
     "file":"Input-Regular_(InputMono-Medium).ttf",
     "size":16,
