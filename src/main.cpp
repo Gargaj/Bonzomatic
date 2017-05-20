@@ -2,8 +2,6 @@
 #include <string.h>
 #include <assert.h>
 
-
-
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
