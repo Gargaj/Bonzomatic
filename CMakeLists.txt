@@ -22,6 +22,8 @@ else ()
   set(BONZOMATIC_64BIT ON CACHE BOOL "Compile for 64 bit target?")
 endif ()
 
+option(BONZOMATIC_NDI "Enable NDI?" OFF)
+
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
@@ -40,9 +42,9 @@ if (MSVC)
   #set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /VERBOSE")
   #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /VERBOSE")
   if (BONZOMATIC_64BIT)
-    link_directories($ENV{DXSDK_DIR}/lib/x64)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x64)
   else ()
-    link_directories($ENV{DXSDK_DIR}/lib/x86)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} $ENV{DXSDK_DIR}/lib/x86)
   endif ()
 endif ()
 
@@ -124,6 +126,17 @@ if (MSVC)
 endif ()
 set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/jsonxx)
 set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
+
+##############################################################################
+# NDI
+if (MSVC AND BONZOMATIC_NDI)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} "c:/Program Files/NewTek/NewTek NDI SDK/Include/")
+  if (BONZOMATIC_64BIT)
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x64/")
+  else ()
+    set(BZC_LINK_DIRS ${BZC_LINK_DIRS} "c:/Program Files/NewTek/NewTek NDI SDK/Lib/x86/")
+  endif ()
+endif ()
 
 ##############################################################################
 # SCINTILLA
@@ -357,7 +370,18 @@ elseif (MSVC)
   set(BZC_PROJECT_INCLUDES ${CMAKE_SOURCE_DIR}/data/windows ${BZC_PROJECT_INCLUDES})
 endif ()
 
-set(BZC_PROJECT_SRCS ${BZC_PROJECT_SRCS} ${BZC_PLATFORM_SRCS} ${BZC_RESOURCES_DATA})
+if (MSVC AND BONZOMATIC_NDI)
+  set(BZC_CAPTURE_SRCS
+    ${CMAKE_SOURCE_DIR}/src/capturing/Capture_NDI.cpp
+  )
+else ()
+  set(BZC_CAPTURE_SRCS
+    ${CMAKE_SOURCE_DIR}/src/capturing/Capture_Dummy.cpp
+  )
+endif ()
+source_group("Bonzomatic\\Capture" FILES ${BZC_CAPTURE_SRCS})
+
+set(BZC_PROJECT_SRCS ${BZC_PROJECT_SRCS} ${BZC_PLATFORM_SRCS} ${BZC_RESOURCES_DATA} ${BZC_CAPTURE_SRCS})
 
 set(BZC_PROJECT_INCLUDES ${CMAKE_SOURCE_DIR}/src ${BZC_PROJECT_INCLUDES})
 
@@ -404,6 +428,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 ##############################################################################
 
 # create the executable
+link_directories(${BZC_LINK_DIRS})
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
@@ -417,6 +442,9 @@ elseif (UNIX)
   #  set_target_properties(${BZC_EXE_NAME} PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
   endif ()
 elseif (MSVC)
+  if (BONZOMATIC_NDI)
+    target_compile_definitions(${BZC_EXE_NAME} PUBLIC -DBONZOMATIC_ENABLE_NDI)
+  endif ()
   set_target_properties(${BZC_EXE_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
   target_compile_options(${BZC_EXE_NAME} PUBLIC "$<$<CONFIG:Release>:/MT>")
 endif ()
@@ -426,8 +454,15 @@ target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 if (MSVC)
   if (BONZOMATIC_64BIT)
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x64/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  elseif ()
+  else ()
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x86/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+  endif ()
+  if (BONZOMATIC_NDI)
+    if (BONZOMATIC_64BIT)
+      add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x64/Processing.NDI.Lib.x64.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+    else ()
+      add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "c:/Program Files/NewTek/NewTek NDI SDK/Bin/x86/Processing.NDI.Lib.x86.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+    endif ()
   endif ()
 endif ()
 

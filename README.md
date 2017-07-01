@@ -2,7 +2,6 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
 [![Build Status](https://travis-ci.org/Gargaj/Bonzomatic.svg)](https://travis-ci.org/Gargaj/Bonzomatic)
-[![Beerpay](https://beerpay.io/Gargaj/Bonzomatic/badge.svg)](https://beerpay.io/Gargaj/Bonzomatic)
 
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
@@ -21,6 +20,11 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 Create a ```config.json``` with e.g. the following contents: (all fields are optional)
 ``` javascript
 {
+  "window":{ /* default window size / state, if there's a setup dialog, it will override it */
+    "width":1920,
+    "height":1080,
+    "fullscreen":true,
+  },
   "font":{
     "file":"Input-Regular_(InputMono-Medium).ttf",
     "size":16,
@@ -43,6 +47,14 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
   },
   "midi":{ /* the keys below will become the shader variable names, the values are the CC numbers */
     "fMidiKnob": 16, /* e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2 */
+  },
+  /* this section is if you want to enable NDI streaming; otherwise just ignore it */
+  "ndi":{
+    "enabled": true,
+    "connectionString": "<ndi_product something=\"123\"/>", /* metadata sent to the receiver; completely optional */
+    "identifier": "hello!", /* additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network */
+    "frameRate": 60.0, /* frames per second */
+    "progressive": true, /* progressive or interleaved? */
   }
 }
 ```
@@ -52,6 +64,10 @@ As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't
 * On Windows, use at least Visual C++ 2010, or 2013 if your 2010 install doesn't have MFC. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
 * On Linux, you'll need ```xorg-dev```; after that ```cmake``` should take care of the rest.
 * On OSX, ```cmake``` should take care of everything.
+
+## Organizing a competition
+If you want to organize a competition using Bonzomatic at your party, here's a handy-dandy guide on how to get started:
+https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 
 ## Credits and acknowledgements
 ### Original / parent project authors
@@ -65,7 +81,8 @@ As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
- 
+- NDI(tm) SDK by NewTek(tm) (http://www.newtek.com/ndi.html)
+
 These software are available under their respective licenses.
 
 The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.

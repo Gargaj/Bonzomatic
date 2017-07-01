@@ -105,6 +105,8 @@ namespace Renderer
     "// towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "texture texFFTSmoothedT; sampler1D texFFTSmoothed = sampler_state { Texture = <texFFTSmoothedT>; }; \n"
     "// this one has longer falloff and less harsh transients\n"
+    "texture texFFTIntegratedT; sampler1D texFFTIntegrated = sampler_state { Texture = <texFFTIntegratedT>; }; \n"
+    "// this is continually increasing\n"
     "\n"
     "{%textures:begin%}" // leave off \n here
     "texture raw{%textures:name%}; sampler2D {%textures:name%} = sampler_state { Texture = <raw{%textures:name%}>; };\n"
