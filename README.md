@@ -13,7 +13,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 ## Keys
 - F2: toggle texture preview
 - F5 or Ctrl-R: recompile shader
-- F11: hide shader overlay
+- F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4: exbobolate your planet
 
 ## Configuration
