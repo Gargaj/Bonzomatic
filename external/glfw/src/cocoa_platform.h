@@ -82,7 +82,6 @@ typedef struct _GLFWwindowNS
 
 } _GLFWwindowNS;
 
-
 // Cocoa-specific global data
 //
 typedef struct _GLFWlibraryNS
@@ -92,6 +91,7 @@ typedef struct _GLFWlibraryNS
     id                  autoreleasePool;
     id                  cursor;
     TISInputSourceRef   inputSource;
+    IOHIDManagerRef     hidManager;
     id                  unicodeData;
     id                  listener;
 
@@ -115,7 +115,6 @@ typedef struct _GLFWlibraryNS
 
 } _GLFWlibraryNS;
 
-
 // Cocoa-specific per-monitor data
 //
 typedef struct _GLFWmonitorNS
@@ -126,7 +125,6 @@ typedef struct _GLFWmonitorNS
 
 } _GLFWmonitorNS;
 
-
 // Cocoa-specific per-cursor data
 //
 typedef struct _GLFWcursorNS
@@ -134,7 +132,6 @@ typedef struct _GLFWcursorNS
     id              object;
 
 } _GLFWcursorNS;
-
 
 // Cocoa-specific global timer data
 //

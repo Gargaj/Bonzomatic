@@ -101,7 +101,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </li>
 </ul>
 </div>
-<div class="textblock"><p>This guide introduces the basic concepts of GLFW and describes initialization reference error handling and API guarantees and limitations. For a broad but shallow tutorial, see <a class="el" href="quick_guide.html">Getting started</a> instead. For details on a specific function, see the <a class="el" href="group__init.html">reference documentation</a>.</p>
+<div class="textblock"><p>This guide introduces the basic concepts of GLFW and describes initialization, error handling and API guarantees and limitations. For a broad but shallow tutorial, see <a class="el" href="quick_guide.html">Getting started</a> instead. For details on a specific function in this category, see the <a class="el" href="group__init.html">Initialization, version and error reference</a>.</p>
 <p>There are also guides for the other areas of GLFW.</p>
 <ul>
 <li><a class="el" href="window_guide.html">Window guide</a></li>
@@ -121,16 +121,16 @@ Initialization and termination</h1>
 <li><a class="el" href="group__init.html#ga317aac130a235ab08c6db0834907d85e">glfwInit</a></li>
 <li><a class="el" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a></li>
 </ul>
-<p>Calling any other function before that time will cause a <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a> error.</p>
+<p>Calling any other function before successful initialization will cause a <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a> error.</p>
 <h2><a class="anchor" id="intro_init_init"></a>
 Initializing GLFW</h2>
 <p>The library is initialized with <a class="el" href="group__init.html#ga317aac130a235ab08c6db0834907d85e">glfwInit</a>, which returns <code>GLFW_FALSE</code> if an error occurred.</p>
-<div class="fragment"><div class="line"><span class="keywordflow">if</span> (!<a class="code" href="group__init.html#ga317aac130a235ab08c6db0834907d85e">glfwInit</a>())</div><div class="line">{</div><div class="line">    <span class="comment">// Handle initialization failure</span></div><div class="line">}</div></div><!-- fragment --><p>If any part of initialization fails, all remaining bits are terminated as if <a class="el" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a> was called. The library only needs to be initialized once and additional calls to an already initialized library will simply return <code>GLFW_TRUE</code> immediately.</p>
-<p>Once the library has been successfully initialized, it should be terminated before the application exits.</p>
+<div class="fragment"><div class="line"><span class="keywordflow">if</span> (!<a class="code" href="group__init.html#ga317aac130a235ab08c6db0834907d85e">glfwInit</a>())</div><div class="line">{</div><div class="line">    <span class="comment">// Handle initialization failure</span></div><div class="line">}</div></div><!-- fragment --><p>If any part of initialization fails, any parts that succeeded are terminated as if <a class="el" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a> had been called. The library only needs to be initialized once and additional calls to an already initialized library will simply return <code>GLFW_TRUE</code> immediately.</p>
+<p>Once the library has been successfully initialized, it should be terminated before the application exits. Modern systems are very good at freeing resources allocated by programs that simply exit, but GLFW sometimes has to change global system settings and these might not be restored without termination.</p>
 <h2><a class="anchor" id="intro_init_terminate"></a>
 Terminating GLFW</h2>
 <p>Before your application exits, you should terminate the GLFW library if it has been initialized. This is done with <a class="el" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a>.</p>
-<div class="fragment"><div class="line"><a class="code" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a>();</div></div><!-- fragment --><p>This will destroy any remaining window, monitor and cursor objects, restore any modified gamma ramps, re-enable the screensaver if it had been disabled and free any resources allocated by GLFW.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a>();</div></div><!-- fragment --><p>This will destroy any remaining window, monitor and cursor objects, restore any modified gamma ramps, re-enable the screensaver if it had been disabled and free any other resources allocated by GLFW.</p>
 <p>Once the library is terminated, it is as if it had never been initialized and you will need to initialize it again before being able to use GLFW. If the library was not initialized or had already been terminated, it return immediately.</p>
 <h1><a class="anchor" id="error_handling"></a>
 Error handling</h1>
@@ -226,7 +226,7 @@ Thread safety</h2>
 <p>Functions that may currently be called from any thread will always remain so, but functions that are currently limited to the main thread may be updated to allow calls from any thread in future releases.</p>
 <h2><a class="anchor" id="compatibility"></a>
 Version compatibility</h2>
-<p>GLFW guarantees binary backward compatibility with earlier minor versions of the API. This means that you can drop in a newer version of the GLFW DLL / shared library / dynamic library and existing applications will continue to run.</p>
+<p>GLFW guarantees source and binary backward compatibility with earlier minor versions of the API. This means that you can drop in a newer version of the library and existing programs will continue to compile and existing binaries will continue to run.</p>
 <p>Once a function or constant has been added, the signature of that function or value of that constant will remain unchanged until the next major version of GLFW. No compatibility of any kind is guaranteed between major versions.</p>
 <p>Undocumented behavior, i.e. behavior that is not described in the documentation, may change at any time until it is documented.</p>
 <p>If the reference documentation and the implementation differ, the reference documentation is correct and the implementation will be fixed in the next release.</p>
@@ -257,7 +257,7 @@ Version string</h2>
 <div class="fragment"><div class="line">3.0.0 Win32 WGL MinGW</div></div><!-- fragment --> </div></div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>

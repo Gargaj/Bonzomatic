@@ -99,7 +99,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </li>
 </ul>
 </div>
-<div class="textblock"><p>This guide introduces the OpenGL and OpenGL ES context related functions of GLFW. For details on a specific function, see the <a class="el" href="group__context.html">reference documentation</a>. There are also guides for the other areas of the GLFW API.</p>
+<div class="textblock"><p>This guide introduces the OpenGL and OpenGL ES context related functions of GLFW. For details on a specific function in this category, see the <a class="el" href="group__context.html">Context reference</a>. There are also guides for the other areas of the GLFW API.</p>
 <ul>
 <li><a class="el" href="intro_guide.html">Introduction to the API</a></li>
 <li><a class="el" href="window_guide.html">Window guide</a></li>
@@ -188,7 +188,7 @@ Fetching function pointers</h3>
 <div class="fragment"><div class="line"><span class="preprocessor">#define GLFW_INCLUDE_GLEXT</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="glfw3_8h.html">GLFW/glfw3.h</a>&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#define glGetDebugMessageLogARB pfnGetDebugMessageLog</span></div><div class="line">PFNGLGETDEBUGMESSAGELOGARBPROC pfnGetDebugMessageLog;</div><div class="line"></div><div class="line"><span class="comment">// Flag indicating whether the extension is supported</span></div><div class="line"><span class="keywordtype">int</span> has_ARB_debug_output = 0;</div><div class="line"></div><div class="line"><span class="keywordtype">void</span> load_extensions(<span class="keywordtype">void</span>)</div><div class="line">{</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group__context.html#ga87425065c011cef1ebd6aac75e059dfa">glfwExtensionSupported</a>(<span class="stringliteral">&quot;GL_ARB_debug_output&quot;</span>))</div><div class="line">    {</div><div class="line">        pfnGetDebugMessageLog = (PFNGLGETDEBUGMESSAGELOGARBPROC)</div><div class="line">            <a class="code" href="group__context.html#ga35f1837e6f666781842483937612f163">glfwGetProcAddress</a>(<span class="stringliteral">&quot;glGetDebugMessageLogARB&quot;</span>);</div><div class="line">        has_ARB_debug_output = 1;</div><div class="line">    }</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keywordtype">void</span> some_function(<span class="keywordtype">void</span>)</div><div class="line">{</div><div class="line">    <span class="keywordflow">if</span> (has_ARB_debug_output)</div><div class="line">    {</div><div class="line">        <span class="comment">// Now the extension function can be called as usual</span></div><div class="line">        glGetDebugMessageLogARB(...);</div><div class="line">    }</div><div class="line">}</div></div><!-- fragment --> </div></div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>
