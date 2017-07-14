@@ -767,11 +767,11 @@ Key and button actions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">joy</td><td>The <a class="el" href="group__joysticks.html">joystick</a> to query. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Where to store the number of axis values in the returned array. This is set to zero if an error occurred. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Where to store the number of axis values in the returned array. This is set to zero if the joystick is not present or an error occurred. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An array of axis values, or <code>NULL</code> if the joystick is not present.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An array of axis values, or <code>NULL</code> if the joystick is not present or an <a class="el" href="intro_guide.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a>, <a class="el" href="group__errors.html#ga76f6bb9c4eea73db675f096b404593ce">GLFW_INVALID_ENUM</a> and <a class="el" href="group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1">GLFW_PLATFORM_ERROR</a>.</dd></dl>
 <dl class="section user"><dt>Pointer lifetime</dt><dd>The returned array is allocated and freed by GLFW. You should not free it yourself. It is valid until the specified joystick is disconnected, this function is called again for that joystick or the library is terminated.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function must only be called from the main thread.</dd></dl>
@@ -808,11 +808,11 @@ Key and button actions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">joy</td><td>The <a class="el" href="group__joysticks.html">joystick</a> to query. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Where to store the number of button states in the returned array. This is set to zero if an error occurred. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Where to store the number of button states in the returned array. This is set to zero if the joystick is not present or an error occurred. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An array of button states, or <code>NULL</code> if the joystick is not present.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An array of button states, or <code>NULL</code> if the joystick is not present or an <a class="el" href="intro_guide.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a>, <a class="el" href="group__errors.html#ga76f6bb9c4eea73db675f096b404593ce">GLFW_INVALID_ENUM</a> and <a class="el" href="group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1">GLFW_PLATFORM_ERROR</a>.</dd></dl>
 <dl class="section user"><dt>Pointer lifetime</dt><dd>The returned array is allocated and freed by GLFW. You should not free it yourself. It is valid until the specified joystick is disconnected, this function is called again for that joystick or the library is terminated.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function must only be called from the main thread.</dd></dl>
@@ -843,7 +843,7 @@ Key and button actions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The UTF-8 encoded name of the joystick, or <code>NULL</code> if the joystick is not present.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The UTF-8 encoded name of the joystick, or <code>NULL</code> if the joystick is not present or an <a class="el" href="intro_guide.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a>, <a class="el" href="group__errors.html#ga76f6bb9c4eea73db675f096b404593ce">GLFW_INVALID_ENUM</a> and <a class="el" href="group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1">GLFW_PLATFORM_ERROR</a>.</dd></dl>
 <dl class="section user"><dt>Pointer lifetime</dt><dd>The returned string is allocated and freed by GLFW. You should not free it yourself. It is valid until the specified joystick is disconnected, this function is called again for that joystick or the library is terminated.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function must only be called from the main thread.</dd></dl>
@@ -1175,7 +1175,7 @@ Key and button actions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The previously set callback, or <code>NULL</code> if no callback was set or an error occurred.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The previously set callback, or <code>NULL</code> if no callback was set or an <a class="el" href="intro_guide.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a>.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function must only be called from the main thread.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="input_guide.html#input_char">Text input</a></dd></dl>
@@ -1666,7 +1666,7 @@ Key and button actions</h2></td></tr>
 </div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>

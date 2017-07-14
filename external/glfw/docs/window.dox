@@ -5,11 +5,12 @@
 @tableofcontents
 
 This guide introduces the window related functions of GLFW.  For details on
-a specific function, see the [reference documentation](@ref window).  There are
-also guides for the other areas of GLFW.
+a specific function in this category, see the @ref window.  There are also
+guides for the other areas of GLFW.
 
  - @ref intro_guide
  - @ref context_guide
+ - @ref vulkan_guide
  - @ref monitor_guide
  - @ref input_guide
 
@@ -79,7 +80,8 @@ Once you have a full screen window, you can change its resolution, refresh rate
 and monitor with @ref glfwSetWindowMonitor.  If you just need change its
 resolution you can also call @ref glfwSetWindowSize.  In all cases, the new
 video mode will be selected the same way as the video mode chosen by @ref
-glfwCreateWindow.
+glfwCreateWindow.  If the window has an OpenGL or OpenGL ES context, it will be
+unaffected.
 
 By default, the original video mode of the monitor will be restored and the
 window iconified if it loses input focus, to allow the user to switch back to
@@ -267,6 +269,10 @@ will have no effect.
 creation API is used on a given platform may fail if you change this hint.  This
 can be resolved by having it load via @ref glfwGetProcAddress, which always uses
 the selected API.
+
+@bug On some Linux systems, creating contexts via both the native and EGL APIs
+in a single process will cause the application to segfault.  Stick to one API or
+the other on Linux for now.
 
 `GLFW_CONTEXT_VERSION_MAJOR` and `GLFW_CONTEXT_VERSION_MINOR` specify the client
 API version that the created context must be compatible with.  The exact
@@ -645,7 +651,7 @@ As long as your source file is encoded as UTF-8, you can use any Unicode
 characters directly in the source.
 
 @code
-glfwSetWindowTitle(window, "星を追う子ども");
+glfwSetWindowTitle(window, "カウボーイビバップ");
 @endcode
 
 If you are using C++11 or C11, you can use a UTF-8 string literal.

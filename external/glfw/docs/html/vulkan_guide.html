@@ -94,7 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="textblock"><p>This guide is intended to fill the gaps between the <a href="https://www.khronos.org/vulkan/">Vulkan documentation</a> and the rest of the GLFW documentation and is not a replacement for either. It assumes some familiarity with Vulkan concepts like loaders, devices, queues and surfaces and leaves it to the Vulkan documentation to explain the details of Vulkan functions.</p>
 <p>To develop for Vulkan you should install an SDK for your platform, for example the <a href="https://vulkan.lunarg.com/">LunarG Vulkan SDK</a>. Apart from the headers and libraries, it also provides the validation layers necessary for development.</p>
 <p>The GLFW library does not need the Vulkan SDK to enable support for Vulkan. However, any Vulkan-specific test and example programs are built only if the CMake files find a Vulkan SDK.</p>
-<p>For details on a specific function, see the <a class="el" href="group__vulkan.html">reference documentation</a>. There are also guides for the other areas of the GLFW API.</p>
+<p>For details on a specific function in this category, see the <a class="el" href="group__vulkan.html">Vulkan reference</a>. There are also guides for the other areas of the GLFW API.</p>
 <ul>
 <li><a class="el" href="intro_guide.html">Introduction to the API</a></li>
 <li><a class="el" href="window_guide.html">Window guide</a></li>
@@ -105,7 +105,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <h1><a class="anchor" id="vulkan_include"></a>
 Including the Vulkan and GLFW header files</h1>
 <p>To include the Vulkan header, define <a class="el" href="build_guide.html#build_macros">GLFW_INCLUDE_VULKAN</a> before including the GLFW header.</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define GLFW_INCLUDE_VULKAN</span></div><div class="line"><span class="preprocessor">#include &lt;GLFW/glfw3.h&gt;</span></div></div><!-- fragment --><p>If you want to include the Vulkan header from a custom location or use your own custom Vulkan header then you need to include them before the GLFW header.</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define GLFW_INCLUDE_VULKAN</span></div><div class="line"><span class="preprocessor">#include &lt;GLFW/glfw3.h&gt;</span></div></div><!-- fragment --><p>If you instead want to include the Vulkan header from a custom location or use your own custom Vulkan header then do this before the GLFW header.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;path/to/vulkan.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="glfw3_8h.html">GLFW/glfw3.h</a>&gt;</span></div></div><!-- fragment --><p>Unless a Vulkan header is included, either by the GLFW header or above it, any GLFW functions that take or return Vulkan types will not be declared.</p>
 <p>The <code>VK_USE_PLATFORM_*_KHR</code> macros do not need to be defined for the Vulkan part of GLFW to work. Define them only if you are using these extensions directly.</p>
 <h1><a class="anchor" id="vulkan_support"></a>
@@ -144,7 +144,7 @@ Creating a Vulkan window surface</h1>
 </div></div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>
