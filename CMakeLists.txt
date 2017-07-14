@@ -48,6 +48,13 @@ if (MSVC)
   endif ()
 endif ()
 
+if (APPLE)
+  set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
+  set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS "No")
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI "No")
+endif ()
+
 # Dont compile glfw and glew for windows dx targets
 if (APPLE OR UNIX OR (MSVC AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
   ##############################################################################
