@@ -93,14 +93,17 @@ int main()
 
   RENDERER_SETTINGS settings;
   settings.bVsync = false;
-#ifdef _DEBUG
   settings.nWidth = 1280;
   settings.nHeight = 720;
   settings.windowMode = RENDERER_WINDOWMODE_WINDOWED;
-#else
-  settings.nWidth = 1920;
-  settings.nHeight = 1080;
-  settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+
+#ifndef _DEBUG
+  #ifndef __APPLE__
+    settings.nWidth = 1920;
+    settings.nHeight = 1080;
+    settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+  #endif
+
   if (options.has<jsonxx::Object>("window"))
   {
     if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))

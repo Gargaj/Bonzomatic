@@ -196,14 +196,11 @@ namespace Renderer
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
-    if(!glfwInit())
+    if (!glfwInit())
     {
       printf("[Renderer] GLFW init failed\n");
       return false;
     }
-
-    nWidth = settings->nWidth;
-    nHeight = settings->nHeight;
 
     glfwWindowHint(GLFW_RED_BITS, 8);
     glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -221,6 +218,9 @@ namespace Renderer
 
     // TODO: change in case of resize support
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+    nWidth = settings->nWidth;
+    nHeight = settings->nHeight;
 
     GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
