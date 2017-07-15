@@ -21,7 +21,7 @@ void BuildListOfMainDisplayResolutions(std::set<Resolution> &resolutions)
   for (CFIndex i = 0;  i < found;  i++)
   {
     CGDisplayModeRef dm = (CGDisplayModeRef) CFArrayGetValueAtIndex(modes, i);
-    resolutions.insert({(int)CGDisplayModeGetWidth(dm), (int)CGDisplayModeGetHeight(dm)});
+    resolutions.insert(Resolution((int)CGDisplayModeGetWidth(dm), (int)CGDisplayModeGetHeight(dm)));
   }
   CFRelease(modes);
 }
@@ -31,10 +31,10 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   std::set<Resolution> resolutions;
   
   // Force some default resolutions
-  resolutions.insert({1280, 720});
-  resolutions.insert({1920, 1080});
+  resolutions.insert(Resolution(1280, 720));
+  resolutions.insert(Resolution(1920, 1080));
   // Also add the resolution found in the settings
-  resolutions.insert({settings->nWidth, settings->nHeight});
+  resolutions.insert(Resolution(settings->nWidth, settings->nHeight));
   
   BuildListOfMainDisplayResolutions(resolutions);
   
