@@ -11,3 +11,8 @@ void Misc::InitKeymaps() {
 void Misc::GetKeymapName(char* sz) {
 	strncpy(sz,"<native>",7);
 }
+
+bool Misc::ExecuteCommand( char * cmd, char * param )
+{
+  return false;
+}

@@ -55,7 +55,8 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
     "identifier": "hello!", /* additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network */
     "frameRate": 60.0, /* frames per second */
     "progressive": true, /* progressive or interleaved? */
-  }
+  },
+  "postExitCmd":"copy_to_dropbox.bat" /* this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups. */
 }
 ```
 

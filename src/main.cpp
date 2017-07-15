@@ -167,6 +167,8 @@ int main()
   float fFFTSmoothingFactor = 0.9f; // higher value, smoother FFT
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
+  std::string sPostExitCmd;
+
   if (!options.empty())
   {
     if (options.has<jsonxx::Object>("rendering"))
@@ -221,6 +223,10 @@ int main()
       {
         midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
       }
+    }
+    if (options.has<jsonxx::String>("postExitCmd"))
+    {
+      sPostExitCmd = options.get<jsonxx::String>("postExitCmd");
     }
     Capture::LoadSettings( options );
   }
@@ -508,5 +514,11 @@ int main()
   }
 
   Renderer::Close();
+
+  if ( !sPostExitCmd.empty() )
+  {
+    Misc::ExecuteCommand( (char*)sPostExitCmd.c_str(), Renderer::defaultShaderFilename );
+  }
+
   return 0;
 }
