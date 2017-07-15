@@ -305,8 +305,8 @@ if (APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_x11/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_osx/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Clipboard.cpp
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
