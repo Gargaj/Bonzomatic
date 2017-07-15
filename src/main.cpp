@@ -149,15 +149,13 @@ int main()
   };
   editorOptions.sFontPath = "";
   int step = 0;
-  while(step <2 && editorOptions.sFontPath.size() ==0) {
+  while( step < 2 && editorOptions.sFontPath.size() == 0 ) {
     const std::string & current = fontPaths[step++];
 
     if (access(current.c_str(), R_OK) != -1) {
       editorOptions.sFontPath = current;
     }
   }
-  assert(editorOptions.sFontPath.size()>0 );
-
 #endif
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
@@ -289,6 +287,8 @@ int main()
   int nMargin = 20;
 
   bool bTexPreviewVisible = true;
+
+  assert( editorOptions.sFontPath.size() > 0 );
 
   editorOptions.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
