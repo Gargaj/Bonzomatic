@@ -259,6 +259,14 @@ namespace Renderer
       wglSwapIntervalEXT(1);
 #endif
 
+    // Now, since OpenGL is behaving a lot in fullscreen modes, lets collect the real obtained size!
+    int fbWidth = 1;
+    int fbHeight = 1;
+    glfwGetFramebufferSize(mWindow, &fbWidth, &fbHeight);
+    nWidth = settings->nWidth = fbWidth;
+    nHeight = settings->nHeight = fbHeight;
+    printf("[GLFW] Obtained framebuffer size: %d x %d\n", fbWidth, fbHeight);
+    
     static float pFullscreenQuadVertices[] =
     {
       -1.0, -1.0,  0.5, 0.0, 0.0,
@@ -382,12 +390,14 @@ namespace Renderer
     //create PBOs to hold the data. this allocates memory for them too
     glGenBuffers(2, pbo);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
     glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
 
+    glViewport(0, 0, nWidth, nHeight);
+    
     run = true;
 
     return true;
