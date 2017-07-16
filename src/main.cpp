@@ -372,9 +372,16 @@ int main()
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
           FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
-          fwrite( szShader, strlen(szShader), 1, f );
-          fclose(f);
-          mDebugOutput.SetText( "" );
+          if (f)
+          {
+            fwrite( szShader, strlen(szShader), 1, f );
+            fclose(f);
+            mDebugOutput.SetText( "" );
+          }
+          else
+          {
+            mDebugOutput.SetText( "Unable to save shader! Your work will be lost when you quit!" );
+          }
         }
         else
         {
