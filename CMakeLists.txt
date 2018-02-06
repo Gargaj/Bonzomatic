@@ -435,6 +435,9 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 
 # create the executable
 link_directories(${BZC_LINK_DIRS})
+if (UNIX)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
@@ -472,3 +475,12 @@ if (MSVC)
   endif ()
 endif ()
 
+## install
+if (UNIX)
+  if (BONZOMATIC_64BIT)
+    install(FILES "${CMAKE_SOURCE_DIR}/external/bass/x64/libbass.so" DESTINATION lib)
+  else ()
+    install(FILES "${CMAKE_SOURCE_DIR}/external/bass/x86/libbass.so" DESTINATION lib)
+  endif ()
+  install(TARGETS ${BZC_EXE_NAME} RUNTIME DESTINATION bin)
+endif ()
