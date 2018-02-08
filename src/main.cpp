@@ -209,6 +209,8 @@ int main(int argc, char *argv[])
       if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
       {
         std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+        // TODO: port this to other platforms
+#if !defined(_WNI32) && !defined(__APPLE__)
         if (access(fontpath.c_str(), R_OK) != -1)
           editorOptions.sFontPath = fontpath;
         else
@@ -216,6 +218,7 @@ int main(int argc, char *argv[])
           printf("Couldn't open the font file '%s'.\n", fontpath.c_str());
           return -1;
         }
+#endif
       }
       else if (!editorOptions.sFontPath.size()) // coudn't find a default font
       {
