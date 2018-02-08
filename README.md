@@ -14,7 +14,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 - F2: toggle texture preview
 - F5 or Ctrl-R: recompile shader
 - F11 or Ctrl/Cmd-f: hide shader overlay
-- Alt-F4: exbobolate your planet
+- Alt-F4 or Shift+Escape: exbobolate your planet
 
 ## Configuration
 Create a ```config.json``` with e.g. the following contents: (all fields are optional)
