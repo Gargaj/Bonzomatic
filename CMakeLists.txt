@@ -27,6 +27,10 @@ option(BONZOMATIC_NDI "Enable NDI?" OFF)
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
+if (NOT (UNIX OR (NOT APPLE))) #if not linux
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+endif ()
+
 if (APPLE)
   set(CMAKE_FIND_FRAMEWORK LAST)
 endif ()
