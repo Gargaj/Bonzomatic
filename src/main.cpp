@@ -143,19 +143,27 @@ int main(int argc, char *argv[])
   editorOptions.sFontPath = "/Library/Fonts/Courier New.ttf";
 #else
   // Linux case
-  const std::string fontPaths[2] = {
+  // TODO: use fonts.conf(5) or X resources or something like that
+  const char* fontPaths[] = {
+    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+    "/usr/share/fonts/TTF/FreeMono.ttf",
+    "/usr/share/fonts/TTF/LiberationMono-Regular.ttf",
+    "/usr/share/fonts/TTF/VeraMono.ttf",
     "/usr/share/fonts/corefonts/cour.ttf",
-    "/usr/share/fonts/truetype/msttcorefonts/cour.ttf"
+    "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
+    NULL
   };
   editorOptions.sFontPath = "";
-  int step = 0;
-  while( step < 2 && editorOptions.sFontPath.size() == 0 ) {
-    const std::string & current = fontPaths[step++];
-
-    if (access(current.c_str(), R_OK) != -1) {
-      editorOptions.sFontPath = current;
+  for (int i = 0; fontPaths[i]; ++i)
+  {
+    if (access(fontPaths[i], R_OK) != -1)
+    {
+      editorOptions.sFontPath = fontPaths[i];
+      break;
     }
   }
+  // aiee - no font found, but don't report yet, it might still get changed
+  // though config.json
 #endif
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
@@ -199,7 +207,24 @@ int main(int argc, char *argv[])
       if (options.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
         editorOptions.nFontSize = options.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
       if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
-        editorOptions.sFontPath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+      {
+        std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+        // TODO: port this to other platforms
+#if !defined(_WIN32) && !defined(__APPLE__)
+        if (access(fontpath.c_str(), R_OK) != -1)
+          editorOptions.sFontPath = fontpath;
+        else
+        {
+          printf("Couldn't open the font file '%s'.\n", fontpath.c_str());
+          return -1;
+        }
+#endif
+      }
+      else if (!editorOptions.sFontPath.size()) // coudn't find a default font
+      {
+        printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
+        return -1;
+      }
     }
     if (options.has<jsonxx::Object>("gui"))
     {
@@ -230,7 +255,7 @@ int main(int argc, char *argv[])
     }
     Capture::LoadSettings( options );
   }
-  if ( !Capture::Open( settings ) )
+  if (!Capture::Open(settings))
   {
     printf("Initializing capture system failed!\n");
     return 0;
@@ -255,6 +280,9 @@ int main(int argc, char *argv[])
     {
       printf("Last shader works fine.\n");
       shaderInitSuccessful = true;
+    }
+    else {
+      printf("Shader error:\n%s\n", szError);
     }
   }
   if (!shaderInitSuccessful)

@@ -1,3 +1,6 @@
+
+#include <cstdio>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -411,7 +414,7 @@ namespace Renderer
   void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-      if ((key==GLFW_KEY_F4) && (mods&GLFW_MOD_ALT)) {
+      if ((key==GLFW_KEY_F4 && (mods&GLFW_MOD_ALT)) || (key==GLFW_KEY_ESCAPE&&(mods&GLFW_MOD_SHIFT))) {
         run = false;
       }
       int sciKey = 0;
