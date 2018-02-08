@@ -435,7 +435,9 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 
 # create the executable
 link_directories(${BZC_LINK_DIRS})
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+if (UNIX AND (NOT APPLE))
+	set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
   # Add special plist to enable Retina display support
