@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
       {
         std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
         // TODO: port this to other platforms
-#if !defined(_WNI32) && !defined(__APPLE__)
+#if !defined(_WIN32) && !defined(__APPLE__)
         if (access(fontpath.c_str(), R_OK) != -1)
           editorOptions.sFontPath = fontpath;
         else
