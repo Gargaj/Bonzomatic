@@ -71,14 +71,14 @@ static void changeToAppsCurrentDirectory()
 }
 #endif
 
-int main()
+int main(int argc, char *argv[])
 {
 #ifdef __APPLE__
   changeToAppsCurrentDirectory();
 #endif
 
   jsonxx::Object options;
-  FILE * fConf = fopen("config.json","rb");
+  FILE * fConf = fopen( (argc > 1) ? argv[1] : "config.json","rb");
   if (fConf)
   {
     printf("Config file found, parsing...\n");
