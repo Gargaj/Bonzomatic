@@ -255,6 +255,11 @@ int main(int argc, char *argv[])
     }
     Capture::LoadSettings( options );
   }
+  else if (!editorOptions.sFontPath.size())
+  {
+    printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
+    return -1;
+  }
   if (!Capture::Open(settings))
   {
     printf("Initializing capture system failed!\n");
@@ -321,8 +326,6 @@ int main(int argc, char *argv[])
   int nMargin = 20;
 
   bool bTexPreviewVisible = true;
-
-  assert( editorOptions.sFontPath.size() > 0 );
 
   editorOptions.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
