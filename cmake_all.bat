@@ -11,6 +11,12 @@ call :build
 copy LICENSE _package.x64
 copy README.md _package.x64
 
+cd _package.x64
+set FN=Bonzomatic_W64_%date:~0,4%-%date:~5,2%-%date:~8,2%.zip
+zip -r -9 %FN% *
+move %FN% ..\
+cd ..
+
 set BNZ_X64=OFF
 set BNZ_FLAVOR=GLFW
 call :build
@@ -23,6 +29,12 @@ call :build
 
 copy LICENSE _package.x86
 copy README.md _package.x86
+
+cd _package.x86
+set FN=Bonzomatic_W32_%date:~0,4%-%date:~5,2%-%date:~8,2%.zip
+zip -r -9 %FN% *
+move %FN% ../
+cd ..
 
 goto :eof
 
