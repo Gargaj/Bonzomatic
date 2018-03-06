@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <Processing.NDI.Lib.h>
 #include <string>
 #include "jsonxx.h"
