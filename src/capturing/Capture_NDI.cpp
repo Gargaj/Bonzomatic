@@ -3,8 +3,6 @@
 #include "jsonxx.h"
 #include "Renderer.h"
 
-#pragma comment(lib, "Processing.NDI.Lib.x64.lib")
-
 namespace Capture
 {
   std::string sNDIConnectionString;
@@ -66,7 +64,7 @@ namespace Capture
 
       pNDIFrame.xres = settings.nWidth;
       pNDIFrame.yres = settings.nHeight;
-	  pNDIFrame.FourCC = NDIlib_FourCC_type_BGRX;
+      pNDIFrame.FourCC = NDIlib_FourCC_type_BGRX;
       pNDIFrame.frame_rate_N = (int)(fNDIFrameRate * 100);
       pNDIFrame.frame_rate_D = 100;
       pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
