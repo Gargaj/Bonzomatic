@@ -12,7 +12,7 @@ namespace Capture
   bool bNDIEnabled = true;
   unsigned int * pBuffer[2] = { NULL, NULL };
   unsigned int nBufferIndex = 0;
-  NDIlib_video_frame_t pNDIFrame;
+  NDIlib_video_frame_v2_t pNDIFrame;
   NDIlib_send_instance_t pNDI_send;
 
   void LoadSettings(jsonxx::Object & o)
@@ -26,7 +26,7 @@ namespace Capture
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::String>("identifier"))
         sNDIIdentifier = o.get<jsonxx::Object>("ndi").get<jsonxx::String>("identifier");
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::Number>("frameRate"))
-        fNDIFrameRate = o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
+        fNDIFrameRate = (float)o.get<jsonxx::Object>("ndi").get<jsonxx::Number>("frameRate");
       if (o.get<jsonxx::Object>("ndi").has<jsonxx::Boolean>("progressive"))
         bNDIProgressive = o.get<jsonxx::Object>("ndi").get<jsonxx::Boolean>("progressive");
     }
@@ -56,7 +56,7 @@ namespace Capture
       }
 
       NDIlib_metadata_frame_t pNDIConnType;
-      pNDIConnType.length = sNDIConnectionString.length();
+      pNDIConnType.length = (int)sNDIConnectionString.length();
       pNDIConnType.timecode = NDIlib_send_timecode_synthesize;
       pNDIConnType.p_data = (char*)sNDIConnectionString.c_str();
 
@@ -64,8 +64,8 @@ namespace Capture
 
       pNDIFrame.xres = settings.nWidth;
       pNDIFrame.yres = settings.nHeight;
-      pNDIFrame.FourCC = NDIlib_FourCC_type_BGRA;
-      pNDIFrame.frame_rate_N = fNDIFrameRate * 100;
+      pNDIFrame.FourCC = NDIlib_FourCC_type_BGRX;
+      pNDIFrame.frame_rate_N = (int)(fNDIFrameRate * 100);
       pNDIFrame.frame_rate_D = 100;
       pNDIFrame.picture_aspect_ratio = settings.nWidth / (float)settings.nHeight;
       pNDIFrame.frame_format_type = bNDIProgressive ? NDIlib_frame_format_type_progressive : NDIlib_frame_format_type_interleaved;
@@ -88,7 +88,7 @@ namespace Capture
         unsigned int * p = (unsigned int *)pNDIFrame.p_data;
         for(int i=0; i < pNDIFrame.xres * pNDIFrame.yres; i++)
           p[i] = (p[i] & 0x00FF00) | ((p[i] >> 16) & 0xFF) | ((p[i] & 0xFF) << 16) | 0xFF000000;
-        NDIlib_send_send_video_async(pNDI_send, &pNDIFrame);
+        NDIlib_send_send_video_async_v2(pNDI_send, &pNDIFrame);
       }
     }
   }
@@ -96,7 +96,7 @@ namespace Capture
   {
     if (pBuffer[0] && pBuffer[1])
     {
-      NDIlib_send_send_video_async(pNDI_send, NULL); // stop async thread
+      NDIlib_send_send_video_async_v2(pNDI_send, NULL); // stop async thread
 
       delete[] pBuffer[0];
       delete[] pBuffer[1];
