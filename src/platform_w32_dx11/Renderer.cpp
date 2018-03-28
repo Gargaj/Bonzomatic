@@ -418,7 +418,7 @@ namespace Renderer
 
     DWORD deviceCreationFlags = 0;
 #ifdef _DEBUG
-    //deviceCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+    deviceCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
     if (D3D11CreateDeviceAndSwapChain(
@@ -540,7 +540,7 @@ namespace Renderer
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
     if (pDevice->CreateSamplerState( &sampDesc, &pFullscreenQuadSamplerState ) != S_OK)
       return false;
 
@@ -1053,6 +1053,10 @@ namespace Renderer
     pContext->VSSetConstantBuffers( 0, 1, &pGUIConstantBuffer );
     pContext->OMSetBlendState( pGUIBlendState, factor, 0xFFFFFFFF );
     pContext->RSSetState( pGUIRasterizerState );
+
+    // Disable previous texture
+    ID3D11ShaderResourceView * dummy[1] = { NULL };
+    pContext->PSSetShaderResources( 0, 1, dummy );
 
     ID3D11Buffer * buffers[] = { pGUIQuadVB };
     UINT stride[] = { sizeof(float) * 7 };
