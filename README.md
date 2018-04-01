@@ -63,7 +63,7 @@ Create a ```config.json``` with e.g. the following contents: (all fields are opt
 ## Building
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
 * On Windows, use at least Visual C++ 2010, or 2013 if your 2010 install doesn't have MFC. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
-* On Linux, you'll need ```xorg-dev```; after that ```cmake``` should take care of the rest.
+* On Linux, you'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest.
 * On OSX, ```cmake``` should take care of everything.
 
 ## Organizing a competition
