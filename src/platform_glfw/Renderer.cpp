@@ -188,6 +188,14 @@ namespace Renderer
   GLuint pbo[2];
 
   static void error_callback(int error, const char *description) {
+    switch (error) {
+    case GLFW_API_UNAVAILABLE:
+      printf("OpenGL is unavailable: ");
+      break;
+    case GLFW_VERSION_UNAVAILABLE:
+      printf("OpenGL 4.1 (the minimum requirement) is not available: ");
+      break;
+    }
     printf("%s\n", description);
   }
   void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

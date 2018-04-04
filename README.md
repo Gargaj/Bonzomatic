@@ -16,8 +16,13 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 - F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4 or Shift+Escape: exbobolate your planet
 
+## Requirements
+On Windows, both DirectX 9 and 11 are supported.
+
+Fr the OpenGL version (for any platform), at least OpenGL 4.1 is required.
+
 ## Configuration
-Create a ```config.json``` with e.g. the following contents: (all fields are optional)
+Create a `config.json` with e.g. the following contents: (all fields are optional)
 ``` javascript
 {
   "window":{ /* default window size / state, if there's a setup dialog, it will override it */
