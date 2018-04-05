@@ -19,7 +19,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 ## Requirements
 On Windows, both DirectX 9 and 11 are supported.
 
-Fr the OpenGL version (for any platform), at least OpenGL 4.1 is required.
+For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 
 ## Configuration
 Create a `config.json` with e.g. the following contents: (all fields are optional)
