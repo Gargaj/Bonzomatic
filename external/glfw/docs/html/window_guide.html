@@ -120,10 +120,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li class="level1"><a href="#buffer_swap">Buffer swapping</a></li>
 </ul>
 </div>
-<div class="textblock"><p>This guide introduces the window related functions of GLFW. For details on a specific function, see the <a class="el" href="group__window.html">reference documentation</a>. There are also guides for the other areas of GLFW.</p>
+<div class="textblock"><p>This guide introduces the window related functions of GLFW. For details on a specific function in this category, see the <a class="el" href="group__window.html">Window reference</a>. There are also guides for the other areas of GLFW.</p>
 <ul>
 <li><a class="el" href="intro_guide.html">Introduction to the API</a></li>
 <li><a class="el" href="context_guide.html">Context guide</a></li>
+<li><a class="el" href="vulkan_guide.html">Vulkan guide</a></li>
 <li><a class="el" href="monitor_guide.html">Monitor guide</a></li>
 <li><a class="el" href="input_guide.html">Input guide</a></li>
 </ul>
@@ -158,7 +159,7 @@ Full screen windows</h3>
 <tr>
 <td><a class="el" href="structGLFWvidmode.html#a791bdd6c7697b09f7e9c97054bf05649">GLFWvidmode.refreshRate</a> </td><td><code>GLFW_REFRESH_RATE</code> hint </td></tr>
 </table>
-<p>Once you have a full screen window, you can change its resolution, refresh rate and monitor with <a class="el" href="group__window.html#ga81c76c418af80a1cce7055bccb0ae0a7">glfwSetWindowMonitor</a>. If you just need change its resolution you can also call <a class="el" href="group__window.html#ga371911f12c74c504dd8d47d832d095cb">glfwSetWindowSize</a>. In all cases, the new video mode will be selected the same way as the video mode chosen by <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a>.</p>
+<p>Once you have a full screen window, you can change its resolution, refresh rate and monitor with <a class="el" href="group__window.html#ga81c76c418af80a1cce7055bccb0ae0a7">glfwSetWindowMonitor</a>. If you just need change its resolution you can also call <a class="el" href="group__window.html#ga371911f12c74c504dd8d47d832d095cb">glfwSetWindowSize</a>. In all cases, the new video mode will be selected the same way as the video mode chosen by <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a>. If the window has an OpenGL or OpenGL ES context, it will be unaffected.</p>
 <p>By default, the original video mode of the monitor will be restored and the window iconified if it loses input focus, to allow the user to switch back to the desktop. This behavior can be disabled with the <code>GLFW_AUTO_ICONIFY</code> window hint, for example if you wish to simultaneously cover multiple windows with full screen windows.</p>
 <h3><a class="anchor" id="window_windowed_full_screen"></a>
 "Windowed full screen" windows</h3>
@@ -217,6 +218,7 @@ Context related hints</h3>
 <dl class="section user"><dt></dt><dd><b>OS X:</b> The EGL API is not available on this platform and requests to use it will fail.</dd></dl>
 <dl class="section user"><dt></dt><dd><b>Wayland, Mir:</b> The EGL API <em>is</em> the native context creation API, so this hint will have no effect.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>An OpenGL extension loader library that assumes it knows which context creation API is used on a given platform may fail if you change this hint. This can be resolved by having it load via <a class="el" href="group__context.html#ga35f1837e6f666781842483937612f163">glfwGetProcAddress</a>, which always uses the selected API.</dd></dl>
+<dl class="bug"><dt><b><a class="el" href="bug.html#_bug000001">Bug:</a></b></dt><dd>On some Linux systems, creating contexts via both the native and EGL APIs in a single process will cause the application to segfault. Stick to one API or the other on Linux for now.</dd></dl>
 <p><code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> specify the client API version that the created context must be compatible with. The exact behavior of these hints depend on the requested client API.</p>
 <dl class="section user"><dt></dt><dd><b>OpenGL:</b> <code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> are not hard constraints, but creation will fail if the OpenGL version of the created context is less than the one requested. It is therefore perfectly safe to use the default of version 1.0 for legacy code and you will still get backwards-compatible contexts of version 3.0 and above when available.</dd></dl>
 <dl class="section user"><dt></dt><dd>While there is no way to ask the driver for a context of the highest supported version, GLFW will attempt to provide this when you ask for a version 1.0 context, which is the default for these hints.</dd></dl>
@@ -354,7 +356,7 @@ Window title</h2>
 <p>All GLFW windows have a title, although undecorated or full screen windows may not display it or only display it in a task bar or similar interface. You can set a UTF-8 encoded window title with <a class="el" href="group__window.html#ga5d877f09e968cef7a360b513306f17ff">glfwSetWindowTitle</a>.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#ga5d877f09e968cef7a360b513306f17ff">glfwSetWindowTitle</a>(window, <span class="stringliteral">&quot;My Window&quot;</span>);</div></div><!-- fragment --><p>The specified string is copied before the function returns, so there is no need to keep it around.</p>
 <p>As long as your source file is encoded as UTF-8, you can use any Unicode characters directly in the source.</p>
-<div class="fragment"><div class="line"><a class="code" href="group__window.html#ga5d877f09e968cef7a360b513306f17ff">glfwSetWindowTitle</a>(window, <span class="stringliteral">&quot;星を追う子ども&quot;</span>);</div></div><!-- fragment --><p>If you are using C++11 or C11, you can use a UTF-8 string literal.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__window.html#ga5d877f09e968cef7a360b513306f17ff">glfwSetWindowTitle</a>(window, <span class="stringliteral">&quot;カウボーイビバップ&quot;</span>);</div></div><!-- fragment --><p>If you are using C++11 or C11, you can use a UTF-8 string literal.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#ga5d877f09e968cef7a360b513306f17ff">glfwSetWindowTitle</a>(window, u8<span class="stringliteral">&quot;This is always a UTF-8 string&quot;</span>);</div></div><!-- fragment --><h2><a class="anchor" id="window_icon"></a>
 Window icon</h2>
 <p>Decorated windows have icons on some platforms. You can set this icon by specifying a list of candidate images with <a class="el" href="group__window.html#gadd7ccd39fe7a7d1f0904666ae5932dc5">glfwSetWindowIcon</a>.</p>
@@ -449,7 +451,7 @@ Buffer swapping</h1>
 </div></div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>

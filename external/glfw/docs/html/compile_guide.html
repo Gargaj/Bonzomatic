@@ -162,6 +162,7 @@ Shared CMake options</h3>
 <p><code>GLFW_BUILD_EXAMPLES</code> determines whether the GLFW examples are built along with the library.</p>
 <p><code>GLFW_BUILD_TESTS</code> determines whether the GLFW test programs are built along with the library.</p>
 <p><code>GLFW_BUILD_DOCS</code> determines whether the GLFW documentation is built along with the library.</p>
+<p><code>GLFW_VULKAN_STATIC</code> determines whether to use the Vulkan loader linked statically into the application.</p>
 <h3><a class="anchor" id="compile_options_osx"></a>
 OS X specific CMake options</h3>
 <p><code>GLFW_USE_CHDIR</code> determines whether <code>glfwInit</code> changes the current directory of bundled applications to the <code>Contents/Resources</code> directory.</p>
@@ -169,7 +170,7 @@ OS X specific CMake options</h3>
 <p><code>GLFW_USE_RETINA</code> determines whether windows will use the full resolution of Retina displays.</p>
 <h3><a class="anchor" id="compile_options_win32"></a>
 Windows specific CMake options</h3>
-<p><code>USE_MSVC_RUNTIME_LIBRARY_DLL</code> determines whether to use the DLL version or the static library version of the Visual C++ runtime library. If set to <code>ON</code>, the DLL version of the Visual C++ library is used. It is recommended to set this to <code>ON</code>, as this keeps the executable smaller and benefits from security and bug fix updates of the Visual C++ runtime.</p>
+<p><code>USE_MSVC_RUNTIME_LIBRARY_DLL</code> determines whether to use the DLL version or the static library version of the Visual C++ runtime library. If set to <code>ON</code>, the DLL version of the Visual C++ library is used.</p>
 <p><code>GLFW_USE_HYBRID_HPG</code> determines whether to export the <code>NvOptimusEnablement</code> and <code>AmdPowerXpressRequestHighPerformance</code> symbols, which force the use of the high-performance GPU on Nvidia Optimus and AMD PowerXpress systems. These symbols need to be exported by the EXE to be detected by the driver, so the override will not work if GLFW is built as a DLL.</p>
 <h1><a class="anchor" id="compile_manual"></a>
 Compiling GLFW manually</h1>
@@ -184,6 +185,7 @@ Compiling GLFW manually</h1>
 <li><code>_GLFW_MIR</code> to use the Mir API (experimental and incomplete)</li>
 </ul>
 <p>If you are building GLFW as a shared library / dynamic library / DLL then you must also define <code>_GLFW_BUILD_DLL</code>. Otherwise, you must not define it.</p>
+<p>If you are linking the Vulkan loader statically into your application then you must also define <code>_GLFW_VULKAN_STATIC</code>. Otherwise, GLFW will attempt to use the external version.</p>
 <p>For the EGL context creation API, the following options are available:</p>
 <ul>
 <li><code>_GLFW_USE_EGLPLATFORM_H</code> to use <code>EGL/eglplatform.h</code> for native handle definitions (fallback)</li>
@@ -202,7 +204,7 @@ Compiling GLFW manually</h1>
 </div></div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>

@@ -468,6 +468,7 @@ Functions</h2></td></tr>
 <p>The created window, framebuffer and context may differ from what you requested, as not all parameters and hints are <a class="el" href="window_guide.html#window_hints_hard">hard constraints</a>. This includes the size of the window, especially for full screen windows. To query the actual attributes of the created window, framebuffer and context, see <a class="el" href="group__window.html#gacccb29947ea4b16860ebef42c2cb9337">glfwGetWindowAttrib</a>, <a class="el" href="group__window.html#gaeea7cbc03373a41fb51cfbf9f2a5d4c6">glfwGetWindowSize</a> and <a class="el" href="group__window.html#ga0e2637a4161afb283f5300c7f94785c9">glfwGetFramebufferSize</a>.</p>
 <p>To create a full screen window, you need to specify the monitor the window will cover. If no monitor is specified, the window will be windowed mode. Unless you have a way for the user to choose a specific monitor, it is recommended that you pick the primary monitor. For more information on how to query connected monitors, see <a class="el" href="monitor_guide.html#monitor_monitors">Retrieving monitors</a>.</p>
 <p>For full screen windows, the specified size becomes the resolution of the window's <em>desired video mode</em>. As long as a full screen window is not iconified, the supported video mode most closely matching the desired video mode is set for the specified monitor. For more information about full screen windows, including the creation of so called <em>windowed full screen</em> or <em>borderless full screen</em> windows, see <a class="el" href="window_guide.html#window_windowed_full_screen">"Windowed full screen" windows</a>.</p>
+<p>Once you have created the window, you can switch it between windowed and full screen mode with <a class="el" href="group__window.html#ga81c76c418af80a1cce7055bccb0ae0a7">glfwSetWindowMonitor</a>. If the window has an OpenGL or OpenGL ES context, it will be unaffected.</p>
 <p>By default, newly created windows use the placement recommended by the window system. To create the window at a specific position, make it initially invisible using the <a class="el" href="window_guide.html#window_hints_wnd">GLFW_VISIBLE</a> window hint, set its <a class="el" href="window_guide.html#window_pos">position</a> and then <a class="el" href="window_guide.html#window_hide">show</a> it.</p>
 <p>As long as at least one full screen window is not iconified, the screensaver is prohibited from starting.</p>
 <p>Window systems put limits on window sizes. Very large or very small window dimensions may be overridden by the window system on creation. Check the actual <a class="el" href="window_guide.html#window_size">size</a> after creation.</p>
@@ -763,7 +764,7 @@ Zero is a valid value for many window and context related attributes so you cann
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The monitor, or <code>NULL</code> if the window is in windowed mode or an error occurred.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The monitor, or <code>NULL</code> if the window is in windowed mode or an <a class="el" href="intro_guide.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a>.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function must only be called from the main thread.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="window_guide.html#window_monitor">Window monitor</a> </dd>
@@ -1035,13 +1036,15 @@ Zero is a valid value for many window and context related attributes so you cann
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This function posts an empty event from the current thread to the event queue, causing <a class="el" href="group__window.html#ga554e37d781f0a997656c26b2c56c835e">glfwWaitEvents</a> to return.</p>
+<p>This function posts an empty event from the current thread to the event queue, causing <a class="el" href="group__window.html#ga554e37d781f0a997656c26b2c56c835e">glfwWaitEvents</a> or <a class="el" href="group__window.html#ga605a178db92f1a7f1a925563ef3ea2cf">glfwWaitEventsTimeout</a> to return.</p>
 <p>If no windows exist, this function returns immediately. For synchronization of threads in applications that do not create windows, use your threading library of choice.</p>
 <dl class="section user"><dt>Errors</dt><dd>Possible errors include <a class="el" href="group__errors.html#ga2374ee02c177f12e1fa76ff3ed15e14a">GLFW_NOT_INITIALIZED</a> and <a class="el" href="group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1">GLFW_PLATFORM_ERROR</a>.</dd></dl>
 <dl class="section user"><dt>Thread safety</dt><dd>This function may be called from any thread.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="input_guide.html#events">Event processing</a> </dd>
 <dd>
-<a class="el" href="group__window.html#ga554e37d781f0a997656c26b2c56c835e" title="Waits until events are queued and processes them. ">glfwWaitEvents</a></dd></dl>
+<a class="el" href="group__window.html#ga554e37d781f0a997656c26b2c56c835e" title="Waits until events are queued and processes them. ">glfwWaitEvents</a> </dd>
+<dd>
+<a class="el" href="group__window.html#ga605a178db92f1a7f1a925563ef3ea2cf" title="Waits with timeout until events are queued and processes them. ">glfwWaitEventsTimeout</a></dd></dl>
 <dl class="section since"><dt>Since</dt><dd>Added in version 3.1. </dd></dl>
 
 </div>
@@ -2029,7 +2032,7 @@ Zero is a valid value for many window and context related attributes so you cann
 </div><!-- contents -->
 <address class="footer">
 <p>
-Last update on Thu Jun 2 2016 for GLFW 3.2.0
+Last update on Thu Aug 18 2016 for GLFW 3.2.1
 </p>
 </address>
 </body>
