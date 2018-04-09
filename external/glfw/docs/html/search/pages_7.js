@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vulkan_20guide',['Vulkan guide',['../vulkan_guide.html',1,'']]]
+  ['release_20notes',['Release notes',['../news.html',1,'']]]
 ];

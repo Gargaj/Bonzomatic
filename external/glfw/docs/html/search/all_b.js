@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['quick_2edox',['quick.dox',['../quick_8dox.html',1,'']]]
+  ['notitle',['notitle',['../index.html',1,'']]],
+  ['native_20access',['Native access',['../group__native.html',1,'']]],
+  ['news_2edox',['news.dox',['../news_8dox.html',1,'']]]
 ];
