@@ -1,23 +1,9 @@
 // Microsoft Visual C++ generated resource script.
 //
+#include <windows.h>
 #include "resource.h"
 
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-#include "afxres.h"
-
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
-
-/////////////////////////////////////////////////////////////////////////////
-// Hungarian (Hungary) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_HUN)
-LANGUAGE LANG_HUNGARIAN, SUBLANG_DEFAULT
-#pragma code_page(1250)
+#define IDC_STATIC                        -1
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -92,7 +78,6 @@ END
 // remains consistent on all systems.
 IDI_APPLICATION             ICON                    "icon.ico"
 
-#endif    // Hungarian (Hungary) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
