@@ -218,6 +218,8 @@ int main(int argc, char *argv[])
           printf("Couldn't open the font file '%s'.\n", fontpath.c_str());
           return -1;
         }
+#else
+        editorOptions.sFontPath = fontpath;
 #endif
       }
       else if (!editorOptions.sFontPath.size()) // coudn't find a default font
