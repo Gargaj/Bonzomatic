@@ -356,6 +356,7 @@ int main(int argc, char *argv[])
   float fNextTick = 0.1;
   while (!Renderer::WantsToQuit())
   {
+    bool newShader = false;
     float time = Timer::GetTime() / 1000.0; // seconds
     Renderer::StartFrame();
 
@@ -404,17 +405,9 @@ int main(int argc, char *argv[])
         mShaderEditor.GetText(szShader,65535);
         if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
         {
-          FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
-          if (f)
-          {
-            fwrite( szShader, strlen(szShader), 1, f );
-            fclose(f);
-            mDebugOutput.SetText( "" );
-          }
-          else
-          {
-            mDebugOutput.SetText( "Unable to save shader! Your work will be lost when you quit!" );
-          }
+          // Shader compilation successful; we set a flag to save if the frame render was successful
+          // (If there is a driver crash, don't save.)
+          newShader = true;
         }
         else
         {
@@ -430,12 +423,12 @@ int main(int argc, char *argv[])
         bool consumed = false;
         if (Renderer::keyEventBuffer[i].scanCode)
         {
-        mShaderEditor.KeyDown(
-          iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
-          Renderer::keyEventBuffer[i].shift,
-          Renderer::keyEventBuffer[i].ctrl,
-          Renderer::keyEventBuffer[i].alt,
-          &consumed);
+          mShaderEditor.KeyDown(
+            iswalpha(Renderer::keyEventBuffer[i].scanCode) ? towupper(Renderer::keyEventBuffer[i].scanCode) : Renderer::keyEventBuffer[i].scanCode,
+            Renderer::keyEventBuffer[i].shift,
+            Renderer::keyEventBuffer[i].ctrl,
+            Renderer::keyEventBuffer[i].alt,
+            &consumed);
         }
         if (!consumed && Renderer::keyEventBuffer[i].character)
         {
@@ -538,6 +531,22 @@ int main(int argc, char *argv[])
     Renderer::EndFrame();
 
     Capture::CaptureFrame();
+
+    if (newShader)
+    {
+      // Frame render successful, save shader
+      FILE * f = fopen(Renderer::defaultShaderFilename,"wb");
+      if (f)
+      {
+        fwrite( szShader, strlen(szShader), 1, f );
+        fclose(f);
+        mDebugOutput.SetText( "" );
+      }
+      else
+      {
+        mDebugOutput.SetText( "Unable to save shader! Your work will be lost when you quit!" );
+      }
+    }
   }
 
 
