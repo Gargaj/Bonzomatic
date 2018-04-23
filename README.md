@@ -25,7 +25,7 @@ For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 Create a `config.json` with e.g. the following contents: (all fields are optional)
 ``` javascript
 {
-  "window":{ /* default window size / state, if there's a setup dialog, it will override it */
+  "window":{ // default window size / state, if there's a setup dialog, it will override it
     "width":1920,
     "height":1080,
     "fullscreen":true,
@@ -37,7 +37,7 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
   "rendering":{
     "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
   },
-  "textures":{ /* the keys below will become the shader variable names */
+  "textures":{ // the keys below will become the shader variable names
     "texChecker":"textures/checker.png",
     "texNoise":"textures/noise.png",
     "texTex1":"textures/tex1.jpg",
@@ -50,18 +50,18 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
     "tabSize": 8,
     "visibleWhitespace": true,
   },
-  "midi":{ /* the keys below will become the shader variable names, the values are the CC numbers */
-    "fMidiKnob": 16, /* e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2 */
+  "midi":{ // the keys below will become the shader variable names, the values are the CC numbers
+    "fMidiKnob": 16, // e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2
   },
-  /* this section is if you want to enable NDI streaming; otherwise just ignore it */
+  // this section is if you want to enable NDI streaming; otherwise just ignore it
   "ndi":{
     "enabled": true,
-    "connectionString": "<ndi_product something=\"123\"/>", /* metadata sent to the receiver; completely optional */
-    "identifier": "hello!", /* additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network */
-    "frameRate": 60.0, /* frames per second */
-    "progressive": true, /* progressive or interleaved? */
+    "connectionString": "<ndi_product something=\"123\"/>", // metadata sent to the receiver; completely optional
+    "identifier": "hello!", // additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network
+    "frameRate": 60.0, // frames per second
+    "progressive": true, // progressive or interleaved?
   },
-  "postExitCmd":"copy_to_dropbox.bat" /* this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups. */
+  "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
 }
 ```
 
