@@ -325,6 +325,7 @@ if (APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Clipboard.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_osx/TouchBar.mm
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
   set(BZC_RESOURCES_DATA
@@ -447,7 +448,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 # create the executable
 link_directories(${BZC_LINK_DIRS})
 if (UNIX AND (NOT APPLE))
-	set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
