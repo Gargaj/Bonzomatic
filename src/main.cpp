@@ -414,6 +414,33 @@ int main(int argc, char *argv[])
           mDebugOutput.SetText( szError );
         }
       }
+      else if ((Renderer::keyEventBuffer[i].alt && Renderer::keyEventBuffer[i].scanCode == 'r')) // F5
+      {
+
+        FILE * f = fopen(Renderer::defaultShaderFilename, "rb");
+        if (f)
+        {
+          memset(szShader, 0, 65535);
+          int n = fread(szShader, 1, 65535, f);
+          fclose(f);
+          if (Renderer::ReloadShader(szShader, strlen(szShader), szError, 4096))
+          {
+            shaderInitSuccessful = true;
+            mShaderEditor.SetText(szShader);
+            // Shader compilation successful; we set a flag to save if the frame render was successful
+            // (If there is a driver crash, don't save.)
+            //newShader = true;
+          }
+          else {
+            printf("Shader error:\n%s\n", szError);
+            mDebugOutput.SetText(szError);
+          }
+        }
+        else
+        {
+          mDebugOutput.SetText(szError);
+        }
+      }
       else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f  
       {
         bShowGui = !bShowGui;
