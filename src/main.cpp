@@ -137,34 +137,7 @@ int main(int argc, char *argv[])
 
   SHADEREDITOR_OPTIONS editorOptions;
   editorOptions.nFontSize = 16;
-#ifdef _WIN32
-  editorOptions.sFontPath = "c:\\Windows\\Fonts\\cour.ttf";
-#elif __APPLE__
-  editorOptions.sFontPath = "/Library/Fonts/Courier New.ttf";
-#else
-  // Linux case
-  // TODO: use fonts.conf(5) or X resources or something like that
-  const char* fontPaths[] = {
-    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
-    "/usr/share/fonts/TTF/FreeMono.ttf",
-    "/usr/share/fonts/TTF/LiberationMono-Regular.ttf",
-    "/usr/share/fonts/TTF/VeraMono.ttf",
-    "/usr/share/fonts/corefonts/cour.ttf",
-    "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
-    NULL
-  };
-  editorOptions.sFontPath = "";
-  for (int i = 0; fontPaths[i]; ++i)
-  {
-    if (access(fontPaths[i], R_OK) != -1)
-    {
-      editorOptions.sFontPath = fontPaths[i];
-      break;
-    }
-  }
-  // aiee - no font found, but don't report yet, it might still get changed
-  // though config.json
-#endif
+  editorOptions.sFontPath = Misc::GetDefaultFontPath();
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
   editorOptions.nTabSize = 2;
@@ -209,18 +182,10 @@ int main(int argc, char *argv[])
       if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
       {
         std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
-        // TODO: port this to other platforms
-#if !defined(_WIN32) && !defined(__APPLE__)
-        if (access(fontpath.c_str(), R_OK) != -1)
-          editorOptions.sFontPath = fontpath;
-        else
+        if (Misc::FileExists(fontpath.c_str()))
         {
-          printf("Couldn't open the font file '%s'.\n", fontpath.c_str());
-          return -1;
+          editorOptions.sFontPath = fontpath;
         }
-#else
-        editorOptions.sFontPath = fontpath;
-#endif
       }
       else if (!editorOptions.sFontPath.size()) // coudn't find a default font
       {

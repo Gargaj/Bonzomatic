@@ -49,4 +49,24 @@ namespace Misc
     HINSTANCE hI = ShellExecute( NULL, NULL, cmd, param, NULL, SW_SHOW );
     return (int)hI >= 32;
   }
+  bool FileExists(const char * path)
+  {
+    return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
+  }
+  const char * GetDefaultFontPath()
+  {
+    const char* fontPaths[] = 
+    {
+      "c:\\Windows\\Fonts\\cour.ttf",
+      NULL
+    };
+    for (int i = 0; fontPaths[i]; ++i)
+    {
+      if (FileExists(fontPaths[i]))
+      {
+        return fontPaths[i];
+      }
+    }
+    return NULL;
+  }
 }
