@@ -12,12 +12,6 @@
 #include "jsonxx.h"
 #include "Capture.h"
 
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
-
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -47,35 +41,9 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
-#ifdef __APPLE__
-#include <sys/param.h> // For MAXPATHLEN
-#include "CoreFoundation/CoreFoundation.h"
-static void changeToAppsCurrentDirectory()
-{
-  char appPath[MAXPATHLEN];
-  CFBundleRef bundle = CFBundleGetMainBundle();
-  if (!bundle) return;
-
-  CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
-  CFURLRef pathURL = CFURLCreateCopyDeletingLastPathComponent(NULL, bundleURL);
-  if (!CFURLGetFileSystemRepresentation(pathURL, true, (UInt8*)appPath, MAXPATHLEN))
-  {
-    CFRelease(bundleURL);
-    CFRelease(pathURL);
-    return;
-  }
-  CFRelease(bundleURL);
-  CFRelease(pathURL);
-
-  chdir(appPath);
-}
-#endif
-
 int main(int argc, char *argv[])
 {
-#ifdef __APPLE__
-  changeToAppsCurrentDirectory();
-#endif
+  Misc::PlatformStartup();
 
   jsonxx::Object options;
   FILE * fConf = fopen( (argc > 1) ? argv[1] : "config.json","rb");
@@ -533,6 +501,8 @@ int main(int argc, char *argv[])
   {
     Misc::ExecuteCommand( (char*)sPostExitCmd.c_str(), Renderer::defaultShaderFilename );
   }
+
+  Misc::PlatformShutdown();
 
   return 0;
 }

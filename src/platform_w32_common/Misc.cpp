@@ -6,6 +6,14 @@
 
 namespace Misc
 {
+  void PlatformStartup()
+  {
+  }
+
+  void PlatformShutdown()
+  {
+  }
+
   std::map<std::string,std::string> keymaps;
   void InitKeymaps()
   {
@@ -37,6 +45,7 @@ namespace Misc
       idx++;
     }
   }
+
   void GetKeymapName( char * sz )
   {
     char szCode[KL_NAMELENGTH];
@@ -44,15 +53,18 @@ namespace Misc
     CharLowerA( szCode );
     strncpy( sz, keymaps.count(szCode) ? keymaps[szCode].c_str() : "<unknown>" ,255);
   }
+
   bool ExecuteCommand( char * cmd, char * param )
   {
     HINSTANCE hI = ShellExecute( NULL, NULL, cmd, param, NULL, SW_SHOW );
     return (int)hI >= 32;
   }
+
   bool FileExists(const char * path)
   {
     return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
   }
+
   const char * GetDefaultFontPath()
   {
     const char* fontPaths[] = 

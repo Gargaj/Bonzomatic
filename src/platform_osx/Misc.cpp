@@ -4,11 +4,41 @@
 #include <string.h>
 #include "../Misc.h"
 
-void Misc::InitKeymaps() {
-	return;
+#include <unistd.h>
+
+#include <sys/param.h> // For MAXPATHLEN
+#include "CoreFoundation/CoreFoundation.h"
+
+void Misc::PlatformStartup()
+{
+  char appPath[MAXPATHLEN];
+  CFBundleRef bundle = CFBundleGetMainBundle();
+  if (!bundle) return;
+
+  CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
+  CFURLRef pathURL = CFURLCreateCopyDeletingLastPathComponent(NULL, bundleURL);
+  if (!CFURLGetFileSystemRepresentation(pathURL, true, (UInt8*)appPath, MAXPATHLEN))
+  {
+    CFRelease(bundleURL);
+    CFRelease(pathURL);
+    return;
+  }
+  CFRelease(bundleURL);
+  CFRelease(pathURL);
+
+  chdir(appPath);
 }
 
-void Misc::GetKeymapName(char* sz) {
+void Misc::PlatformShutdown()
+{
+}
+
+void Misc::InitKeymaps()
+{
+}
+
+void Misc::GetKeymapName(char* sz)
+{
 	strncpy(sz,"<native>",7);
 }
 
@@ -26,7 +56,7 @@ const char * Misc::GetDefaultFontPath()
 {
   // Linux case
   // TODO: use fonts.conf(5) or X resources or something like that
-  const char* fontPaths[] = 
+  const char* fontPaths[] =
   {
     "/Library/Fonts/Courier New.ttf",
     NULL
