@@ -4,11 +4,23 @@
 #include <string.h>
 #include "../Misc.h"
 
-void Misc::InitKeymaps() {
+#include <unistd.h>
+
+void Misc::PlatformStartup()
+{
+}
+
+void Misc::PlatformShutdown()
+{
+}
+
+void Misc::InitKeymaps()
+{
 	return;
 }
 
-void Misc::GetKeymapName(char* sz) {
+void Misc::GetKeymapName(char* sz)
+{
 	strncpy(sz,"<native>",7);
 }
 
@@ -26,7 +38,7 @@ const char * Misc::GetDefaultFontPath()
 {
   // Linux case
   // TODO: use fonts.conf(5) or X resources or something like that
-  const char* fontPaths[] = 
+  const char* fontPaths[] =
   {
     "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
     "/usr/share/fonts/TTF/FreeMono.ttf",
