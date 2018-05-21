@@ -249,7 +249,9 @@ namespace Renderer
     }
 
 #ifdef __APPLE__
+#ifdef BONZOMATIC_ENABLE_TOUCHBAR
     ShowTouchBar(mWindow);
+#endif
 #endif
 	  
     glfwMakeContextCurrent(mWindow);

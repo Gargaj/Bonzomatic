@@ -4,6 +4,7 @@
 //
 //  Created by Nightfox on 13/5/18.
 //
+#ifdef BONZOMATIC_ENABLE_TOUCHBAR
 
 #include <Carbon/Carbon.h>
 #import <Foundation/Foundation.h>
@@ -151,4 +152,6 @@ void ShowTouchBar(GLFWwindow *window) {
     NSTouchBar *touchBar = [g_TouchBarDelegate makeTouchBar];
     NSWindow *nswin = glfwGetCocoaWindow(window);
     nswin.touchBar = touchBar;
-  }
+}
+
+#endif 

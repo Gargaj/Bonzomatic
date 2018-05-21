@@ -24,6 +24,8 @@ endif ()
 
 option(BONZOMATIC_NDI "Enable NDI?" OFF)
 
+option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support?" ON)
+
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
@@ -457,6 +459,9 @@ if (APPLE AND GLFW_USE_RETINA)
 endif ()
 # Set compiler specific flags
 if (APPLE)
+  if (BONZOMATIC_TOUCHBAR)
+    target_compile_definitions(${BZC_EXE_NAME} PUBLIC -DBONZOMATIC_ENABLE_TOUCHBAR)
+  endif ()
   #target_compile_options(${BZC_EXE_NAME} PUBLIC -Werror -pedantic-errors -Wall -Wno-format-security)
 elseif (UNIX)
   if (NOT BONZOMATIC_64BIT)
