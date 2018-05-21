@@ -24,6 +24,8 @@ endif ()
 
 option(BONZOMATIC_NDI "Enable NDI?" OFF)
 
+option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support?" ON)
+
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
@@ -325,6 +327,7 @@ if (APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Clipboard.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_osx/TouchBar.mm
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
   set(BZC_RESOURCES_DATA
@@ -447,7 +450,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
 # create the executable
 link_directories(${BZC_LINK_DIRS})
 if (UNIX AND (NOT APPLE))
-	set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
 if (APPLE AND GLFW_USE_RETINA)
@@ -456,6 +459,9 @@ if (APPLE AND GLFW_USE_RETINA)
 endif ()
 # Set compiler specific flags
 if (APPLE)
+  if (BONZOMATIC_TOUCHBAR)
+    target_compile_definitions(${BZC_EXE_NAME} PUBLIC -DBONZOMATIC_ENABLE_TOUCHBAR)
+  endif ()
   #target_compile_options(${BZC_EXE_NAME} PUBLIC -Werror -pedantic-errors -Wall -Wno-format-security)
 elseif (UNIX)
   if (NOT BONZOMATIC_64BIT)
