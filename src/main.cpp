@@ -48,7 +48,8 @@ std::string replaceAll(std::string const& original, std::string const& from, std
   std::string::const_iterator end = original.end();
   std::string::const_iterator current = original.begin();
   std::string::const_iterator next = std::search(current, end, from.begin(), from.end());
-  while (next != end) {
+  while (next != end) 
+  {
     results.append(current, next);
     results.append(to);
     current = next + from.size();
@@ -496,34 +497,53 @@ int main(int argc, char *argv[])
         fwrite( szShader, strlen(szShader), 1, f );
         fclose(f);
         mDebugOutput.SetText( "" );
+        if (shadertoyExport)
+        {
+          f = fopen("shadertoy.glsl", "wb");
+          if (f)
+          {
+            std::string portedShader = std::string(szShader);
+
+            // replace Bonzomatic names with the Shadertoy ones
+            portedShader = replaceAll(portedShader, "fGlobalTime", "iTime");
+            portedShader = replaceAll(portedShader, "v2Resolution", "iResolution");
+            portedShader = replaceAll(portedShader, "out_color", "fragColor");
+            portedShader = replaceAll(portedShader, "void main(void)", "void mainImage( out vec4 fragColor, in vec2 fragCoord )");
+            portedShader = replaceAll(portedShader, "void main()", "void mainImage( out vec4 fragColor, in vec2 fragCoord )");
+
+            // remove #version
+            size_t pos;
+            if ((pos = portedShader.find("#version")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            // remove layout()
+            if ((pos = portedShader.find("layout(location = 0)")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            // remove all uniforms
+            while ((pos = portedShader.find("uniform")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            fwrite(portedShader.c_str(), portedShader.length(), 1, f);
+            fclose(f);
+          }
+        }
       }
       else
       {
         mDebugOutput.SetText( "Unable to save shader! Your work will be lost when you quit!" );
       }
-
-      if (shadertoyExport)
-      {
-        // Save a Shadertoy compatible version of the shader
-        f = fopen("shadertoy.glsl", "wb");
-        if (f)
-        {
-          std::string shader = std::string(szShader);
-          
-          shader = replaceAll(shader, "fGlobalTime", "iTime");
-
-          fwrite(szShader, strlen(szShader), 1, f);
-          fclose(f);
-          mDebugOutput.SetText("");
-        }
-        else
-        {
-          mDebugOutput.SetText("Unable to save Shadertoy shader!");
-        }
-      }
     }
   }
-
 
   delete surface;
 
