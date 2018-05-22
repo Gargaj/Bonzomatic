@@ -10,6 +10,7 @@ matrix:
       env: BONZOMATIC_X64=ON
     - os: osx
       env: BONZOMATIC_X64=OFF
+      osx_image: xcode9.3
   exclude:
     - compiler: gcc    # travis bug: https://github.com/travis-ci/travis-ci/issues/4681
 

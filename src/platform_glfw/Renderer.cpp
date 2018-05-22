@@ -23,6 +23,10 @@
 #include "stb_image.h"
 #include "Scintilla.h"
 
+#ifdef __APPLE__
+#include "../TouchBar.h"
+#endif
+
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
@@ -244,6 +248,12 @@ namespace Renderer
       return false;
     }
 
+#ifdef __APPLE__
+#ifdef BONZOMATIC_ENABLE_TOUCHBAR
+    ShowTouchBar(mWindow);
+#endif
+#endif
+	  
     glfwMakeContextCurrent(mWindow);
 
     // TODO: here add text callbacks
