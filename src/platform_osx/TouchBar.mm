@@ -146,12 +146,14 @@ typedef enum {
 @end
 
 void ShowTouchBar(GLFWwindow *window) {
-    TouchBar* g_TouchBarDelegate = [[TouchBar alloc] init];
-    [NSApplication sharedApplication].automaticCustomizeTouchBarMenuItemEnabled = YES;
+    if (@available(macOS 10.12.2, *)) {
+        TouchBar* g_TouchBarDelegate = [[TouchBar alloc] init];
+        [NSApplication sharedApplication].automaticCustomizeTouchBarMenuItemEnabled = YES;
 		
-    NSTouchBar *touchBar = [g_TouchBarDelegate makeTouchBar];
-    NSWindow *nswin = glfwGetCocoaWindow(window);
-    nswin.touchBar = touchBar;
+        NSTouchBar *touchBar = [g_TouchBarDelegate makeTouchBar];
+        NSWindow *nswin = glfwGetCocoaWindow(window);
+        nswin.touchBar = touchBar;
+    }
 }
 
 #endif 

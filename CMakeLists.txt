@@ -24,7 +24,7 @@ endif ()
 
 option(BONZOMATIC_NDI "Enable NDI?" OFF)
 
-option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support?" ON)
+option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
 
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
