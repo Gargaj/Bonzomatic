@@ -61,7 +61,8 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
     "frameRate": 60.0, // frames per second
     "progressive": true, // progressive or interleaved?
   },
-  "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
+  "postExitCmd":"copy_to_dropbox.bat", // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
+  "shadertoyExport": true // creates a (mostly) Shadertoy compatible shader file along with the Bonzomatic one. Any use of textures and mixed int and float types needs to be manually edited
 }
 ```
 

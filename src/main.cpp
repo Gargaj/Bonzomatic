@@ -41,6 +41,24 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
+// Helper function to replace all occurances of a substring with another one
+std::string replaceAll(std::string const& original, std::string const& from, std::string const& to)
+{
+  std::string results;
+  std::string::const_iterator end = original.end();
+  std::string::const_iterator current = original.begin();
+  std::string::const_iterator next = std::search(current, end, from.begin(), from.end());
+  while (next != end) 
+  {
+    results.append(current, next);
+    results.append(to);
+    current = next + from.size();
+    next = std::search(current, end, from.begin(), from.end());
+  }
+  results.append(current, next);
+  return results;
+}
+
 int main(int argc, char *argv[])
 {
   Misc::PlatformStartup();
@@ -117,6 +135,7 @@ int main(int argc, char *argv[])
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
   std::string sPostExitCmd;
+  bool shadertoyExport = false;
 
   if (!options.empty())
   {
@@ -187,6 +206,10 @@ int main(int argc, char *argv[])
     if (options.has<jsonxx::String>("postExitCmd"))
     {
       sPostExitCmd = options.get<jsonxx::String>("postExitCmd");
+    }
+    if (options.has<jsonxx::Boolean>("shadertoyExport"))
+    {
+      shadertoyExport = options.get<jsonxx::Boolean>("shadertoyExport");
     }
     Capture::LoadSettings( options );
   }
@@ -474,6 +497,46 @@ int main(int argc, char *argv[])
         fwrite( szShader, strlen(szShader), 1, f );
         fclose(f);
         mDebugOutput.SetText( "" );
+        if (shadertoyExport)
+        {
+          f = fopen("shadertoy.glsl", "wb");
+          if (f)
+          {
+            std::string portedShader = std::string(szShader);
+
+            // replace Bonzomatic names with the Shadertoy ones
+            portedShader = replaceAll(portedShader, "fGlobalTime", "iTime");
+            portedShader = replaceAll(portedShader, "v2Resolution", "iResolution");
+            portedShader = replaceAll(portedShader, "out_color", "fragColor");
+            portedShader = replaceAll(portedShader, "void main(void)", "void mainImage( out vec4 fragColor, in vec2 fragCoord )");
+            portedShader = replaceAll(portedShader, "void main()", "void mainImage( out vec4 fragColor, in vec2 fragCoord )");
+
+            // remove #version
+            size_t pos;
+            if ((pos = portedShader.find("#version")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            // remove layout()
+            if ((pos = portedShader.find("layout(location = 0)")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            // remove all uniforms
+            while ((pos = portedShader.find("uniform")) != std::string::npos)
+            {
+              size_t endOfLinePos = portedShader.find('\n', pos);
+              portedShader = portedShader.erase(pos, endOfLinePos - pos + 1);
+            }
+
+            fwrite(portedShader.c_str(), portedShader.length(), 1, f);
+            fclose(f);
+          }
+        }
       }
       else
       {
@@ -481,7 +544,6 @@ int main(int argc, char *argv[])
       }
     }
   }
-
 
   delete surface;
 
