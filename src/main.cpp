@@ -41,6 +41,23 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
+// Helper function to replace all occurances of a substring with another one
+std::string replaceAll(std::string const& original, std::string const& from, std::string const& to)
+{
+  std::string results;
+  std::string::const_iterator end = original.end();
+  std::string::const_iterator current = original.begin();
+  std::string::const_iterator next = std::search(current, end, from.begin(), from.end());
+  while (next != end) {
+    results.append(current, next);
+    results.append(to);
+    current = next + from.size();
+    next = std::search(current, end, from.begin(), from.end());
+  }
+  results.append(current, next);
+  return results;
+}
+
 int main(int argc, char *argv[])
 {
   Misc::PlatformStartup();
@@ -117,6 +134,7 @@ int main(int argc, char *argv[])
   float fFFTSlightSmoothingFactor = 0.6f; // higher value, smoother FFT
 
   std::string sPostExitCmd;
+  bool shadertoyExport = false;
 
   if (!options.empty())
   {
@@ -187,6 +205,10 @@ int main(int argc, char *argv[])
     if (options.has<jsonxx::String>("postExitCmd"))
     {
       sPostExitCmd = options.get<jsonxx::String>("postExitCmd");
+    }
+    if (options.has<jsonxx::Boolean>("shadertoyExport"))
+    {
+      shadertoyExport = options.get<jsonxx::Boolean>("shadertoyExport");
     }
     Capture::LoadSettings( options );
   }
@@ -478,6 +500,26 @@ int main(int argc, char *argv[])
       else
       {
         mDebugOutput.SetText( "Unable to save shader! Your work will be lost when you quit!" );
+      }
+
+      if (shadertoyExport)
+      {
+        // Save a Shadertoy compatible version of the shader
+        f = fopen("shadertoy.glsl", "wb");
+        if (f)
+        {
+          std::string shader = std::string(szShader);
+          
+          shader = replaceAll(shader, "fGlobalTime", "iTime");
+
+          fwrite(szShader, strlen(szShader), 1, f);
+          fclose(f);
+          mDebugOutput.SetText("");
+        }
+        else
+        {
+          mDebugOutput.SetText("Unable to save Shadertoy shader!");
+        }
       }
     }
   }
