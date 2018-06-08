@@ -21,7 +21,7 @@ On Windows, both DirectX 9 and 11 are supported.
 
 For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 
-On MacBooks with a TouchBar that are running macOS Mojave: Open up System Preferences, click on Security & Privacy, click on the privacy tab then click on the Accessibility menu item. Make sure Bonzomatic.app is ticked, otherwise only the "Quit" TouchBar button will not work.
+On MacBooks with a TouchBar that are running macOS Mojave: Open up System Preferences, click on Security & Privacy, click on the privacy tab then click on the Accessibility menu item. Make sure Bonzomatic.app is ticked, otherwise only the "Quit" TouchBar button will work.
 
 ## Configuration
 Create a `config.json` with e.g. the following contents: (all fields are optional)
