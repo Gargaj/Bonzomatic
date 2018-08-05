@@ -88,7 +88,18 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  if (!FFT::Open())
+  FFT_SETTINGS fft_settings;
+  fft_settings.nFFTsize = 1024;
+  fft_settings.bLoopback = false;
+  if (options.has<jsonxx::Object>("fft"))
+  {
+	  if (options.get<jsonxx::Object>("fft").has<jsonxx::Number>("size"))
+		  fft_settings.nFFTsize = options.get<jsonxx::Object>("fft").get<jsonxx::Number>("size");
+	  if (options.get<jsonxx::Object>("fft").has<jsonxx::Boolean>("loopback"))
+		  fft_settings.bLoopback = options.get<jsonxx::Object>("fft").get<jsonxx::Boolean>("loopback");
+  }
+
+  if (!FFT::Open( &fft_settings ))
   {
     printf("FFT::Open() failed, continuing anyway...\n");
     //return -1;
@@ -201,9 +212,9 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
-  Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
-  Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
+  Renderer::Texture * texFFT = Renderer::Create1DR32Texture( fft_settings.nFFTsize );
+  Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( fft_settings.nFFTsize );
+  Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( fft_settings.nFFTsize );
 
   bool shaderInitSuccessful = false;
   char szShader[65535];
@@ -273,16 +284,15 @@ int main(int argc, char *argv[])
   mDebugOutput.SetText( "" );
   mDebugOutput.SetReadOnly(true);
 
-  static float fftData[FFT_SIZE];
-  memset(fftData, 0, sizeof(float) * FFT_SIZE);
-  static float fftDataSmoothed[FFT_SIZE];
-  memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
+  static float *fftData = new float[fft_settings.nFFTsize];
+  memset(fftData, 0, sizeof(float) * fft_settings.nFFTsize);
+  static float *fftDataSmoothed = new float[fft_settings.nFFTsize];
+  memset(fftDataSmoothed, 0, sizeof(float) * fft_settings.nFFTsize);
 
-
-  static float fftDataSlightlySmoothed[FFT_SIZE];
-  memset(fftDataSlightlySmoothed, 0, sizeof(float) * FFT_SIZE);
-  static float fftDataIntegrated[FFT_SIZE];
-  memset(fftDataIntegrated, 0, sizeof(float) * FFT_SIZE);
+  static float *fftDataSlightlySmoothed = new float[fft_settings.nFFTsize];
+  memset(fftDataSlightlySmoothed, 0, sizeof(float) * fft_settings.nFFTsize);
+  static float *fftDataIntegrated = new float[fft_settings.nFFTsize];
+  memset(fftDataIntegrated, 0, sizeof(float) * fft_settings.nFFTsize);
 
   bool bShowGui = true;
   Timer::Start();
@@ -388,8 +398,8 @@ int main(int argc, char *argv[])
     {
       Renderer::UpdateR32Texture( texFFT, fftData );
 
-      const static float maxIntegralValue = 1024.0f;
-      for ( int i = 0; i < FFT_SIZE; i++ )
+	  static float maxIntegralValue = fft_settings.nFFTsize;
+      for ( int i = 0; i < fft_settings.nFFTsize; i++ )
       {
         fftDataSmoothed[i] = fftDataSmoothed[i] * fFFTSmoothingFactor + (1 - fFFTSmoothingFactor) * fftData[i];
 
@@ -487,6 +497,11 @@ int main(int argc, char *argv[])
 
   MIDI::Close();
   FFT::Close();
+
+  delete[] fftData;
+  delete[] fftDataSmoothed;
+  delete[] fftDataSlightlySmoothed;
+  delete[] fftDataIntegrated;
 
   Renderer::ReleaseTexture( texFFT );
   Renderer::ReleaseTexture( texFFTSmoothed );

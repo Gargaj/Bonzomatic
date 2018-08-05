@@ -4,12 +4,19 @@
 
 namespace FFT
 {
+  FFT_SETTINGS * settings;
   HRECORD hRecord = NULL;
-  bool Open()
+  bool Open( FFT_SETTINGS * settings )
   {
+    FFT::settings = settings;
     const int freq = 44100;
     const int channels = 1;
     int device = -1;
+
+	if (settings->bLoopback)
+	{
+      printf("[FFT] This OS does not support loopback. Microphone will be used instead.\n");
+	}
 
     if( !BASS_RecordInit( device ) )
     {
@@ -32,7 +39,7 @@ namespace FFT
 
     unsigned int len = 0;
 
-    switch( FFT_SIZE*2 ) // for 256 fft, only 128 values will contain DC in our case
+    switch(settings->nFFTsize * 2) // for 256 fft, only 128 values will contain DC in our case
     {
       case 256:
         len = BASS_DATA_FFT256;
@@ -55,8 +62,12 @@ namespace FFT
       case 16384:
         len = BASS_DATA_FFT16384;
         break;
+	  case 32768:
+	    len = BASS_DATA_FFT32768;
+	    break;
       default:
-        //fprintf( stderr, "BASS invalid fft window size\n" );
+	    fprintf(stderr, "[FFT] BASS invalid fft window size\n");
+	    Close();
         break;
     }
 
