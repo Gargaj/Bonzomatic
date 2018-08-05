@@ -127,6 +127,17 @@ elseif (MSVC)
 endif ()
 
 ##############################################################################
+# BASSWASAPI
+if (MSVC)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/basswasapi)
+  if (BONZOMATIC_64BIT)
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/basswasapi/x64/basswasapi.lib)
+  else ()
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/basswasapi/x86/basswasapi.lib)
+  endif ()
+endif ()
+
+##############################################################################
 # JSONXX
 set(JSONXX_SRCS
   ${CMAKE_SOURCE_DIR}/external/jsonxx/jsonxx.cc
@@ -349,7 +360,7 @@ elseif (MSVC)
   if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -360,7 +371,7 @@ elseif (MSVC)
   elseif (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX9")
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -371,7 +382,7 @@ elseif (MSVC)
   else ()
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
-      ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_w32_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -480,8 +491,10 @@ target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 if (MSVC)
   if (BONZOMATIC_64BIT)
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x64/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+	add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/basswasapi/x64/basswasapi.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
   else ()
     add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x86/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
+	add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/basswasapi/x86/basswasapi.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
   endif ()
   if (BONZOMATIC_NDI)
     if (BONZOMATIC_64BIT)
