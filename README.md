@@ -52,6 +52,10 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
     "tabSize": 8,
     "visibleWhitespace": true,
   },
+  "fft":{
+    "size": 1024, // size of the fft sample, 256 is the lowest while 32768 is the biggest
+    "loopback": false // use loopback device for fft, true will use pc audio while false will use microphone. WINDOWS ONLY
+  },
   "midi":{ // the keys below will become the shader variable names, the values are the CC numbers
     "fMidiKnob": 16, // e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2
   },
@@ -86,6 +90,7 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 - Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
 - OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net/)
 - BASS.DLL by Ian Luck (http://www.un4seen.com/)
+- BASSWASAPI.DLL by Un4seen (http://www.un4seen.com/)
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
