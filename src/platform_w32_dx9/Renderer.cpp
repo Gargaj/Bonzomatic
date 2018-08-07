@@ -99,8 +99,8 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.dx9.hlsl";
-  char defaultShader[65536] = 
+  const char * defaultShaderFilename = "shader.dx9.hlsl";
+  const char defaultShader[65536] = 
     "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
     "// towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "texture texFFTSmoothedT; sampler1D texFFTSmoothed = sampler_state { Texture = <texFFTSmoothedT>; }; \n"
@@ -566,7 +566,7 @@ namespace Renderer
     pDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     LPD3DXBUFFER pShader = NULL;
     LPD3DXBUFFER pErrors = NULL;
@@ -574,7 +574,7 @@ namespace Renderer
     if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_3_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
-      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      strncpy( szErrorBuffer, (const char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
       return false;
     }
 
@@ -592,12 +592,12 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     pConstantTable->SetFloat( pDevice, szConstName, x );
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     pConstantTable->SetVector( pDevice, szConstName, &D3DXVECTOR4(x, y, 0, 0) );
   }
@@ -608,7 +608,7 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
     D3DXIMAGE_INFO info;
@@ -660,7 +660,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     int idx = pConstantTable->GetSamplerIndex( szTextureName );
     if (idx >= 0)
@@ -684,7 +684,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
     pDevice->CreateTexture( w, h, 0, NULL, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTex, NULL );
@@ -694,11 +694,11 @@ namespace Renderer
 
     D3DLOCKED_RECT rect;
     pTex->LockRect( 0, &rect, NULL, NULL );
-    unsigned char * src = data;
+    const unsigned char * src = data;
     unsigned char * dst = (unsigned char *)rect.pBits;
     for (int i=0; i<h; i++)
     {
-      unsigned char * srcLine = src;
+      const unsigned char * srcLine = src;
       unsigned int * dstLine = (unsigned int *)dst;
       for (int j=0; j<w; j++)
       {

@@ -98,7 +98,7 @@ public:
   void FineTickerStart(TickReason, int, int);
   void FineTickerCancel(TickReason);
 
-  void SetText( char * buf );
+  void SetText( const char * buf );
   void GetText( char * buf, int len );
 
   void Paint();

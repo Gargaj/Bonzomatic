@@ -29,7 +29,7 @@ namespace Clipboard
       return 0;
 
     HANDLE hData = GetClipboardData(CF_TEXT);
-    char * buffer = (char*)GlobalLock( hData );
+    const char * buffer = (const char*)GlobalLock( hData );
     int n = strlen(buffer);
 
     CloseClipboard();
@@ -44,7 +44,7 @@ namespace Clipboard
       return;
 
     HANDLE hData = GetClipboardData(CF_TEXT);
-    char * buffer = (char*)GlobalLock( hData );
+    const char * buffer = (const char*)GlobalLock( hData );
     strncpy( data, buffer, len );
 
     CloseClipboard();

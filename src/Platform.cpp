@@ -428,7 +428,7 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   
   float position = 0;
-  char * p = (char*)str;
+  const char * p = str;
   while (len-- > 0) 
   {
     unsigned int c = *p;
@@ -446,7 +446,7 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     
     position     += advance;
-    for (int i=0; i<charLength; i++) // we need to loop here because UTF8 characters count as multiple unless their position is the same
+    for (unsigned int i=0; i<charLength; i++) // we need to loop here because UTF8 characters count as multiple unless their position is the same
       *positions++  = position*realFont->scale;
 
     p += charLength;

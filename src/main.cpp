@@ -41,7 +41,7 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   Misc::PlatformStartup();
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
       std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("textures").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
-        char * fn = (char*)it->second->string_value_->c_str();
+        const char * fn = it->second->string_value_->c_str();
         printf("* %s...\n",fn);
         Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
         if (!tex)
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
           printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
           return -1;
         }
-        textures.insert( std::make_pair( it->first, tex ) );
+        textures[it->first] = tex;
       }
     }
     if (options.has<jsonxx::Object>("font"))
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
       std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
-        midiRoutes.insert( std::make_pair( it->second->number_value_, it->first ) );
+        midiRoutes[it->second->number_value_] = it->first;
       }
     }
     if (options.has<jsonxx::String>("postExitCmd"))
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
 
   bool bShowGui = true;
   Timer::Start();
-  float fNextTick = 0.1;
+  float fNextTick = 0.1f;
   while (!Renderer::WantsToQuit())
   {
     bool newShader = false;
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
-      Renderer::SetShaderConstant( (char*)it->second.c_str(), MIDI::GetCCValue( it->first ) );
+      Renderer::SetShaderConstant( it->second.c_str(), MIDI::GetCCValue( it->first ) );
     }
 
 
@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
 
     for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
     {
-      Renderer::SetShaderTexture( (char*)it->first.c_str(), it->second );
+      Renderer::SetShaderTexture( it->first.c_str(), it->second );
     }
 
     Renderer::RenderFullscreenQuad();
@@ -499,7 +499,7 @@ int main(int argc, char *argv[])
 
   if ( !sPostExitCmd.empty() )
   {
-    Misc::ExecuteCommand( (char*)sPostExitCmd.c_str(), Renderer::defaultShaderFilename );
+    Misc::ExecuteCommand( sPostExitCmd.c_str(), Renderer::defaultShaderFilename );
   }
 
   Misc::PlatformShutdown();

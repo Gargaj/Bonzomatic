@@ -42,7 +42,7 @@ void Misc::GetKeymapName(char* sz)
 	strncpy(sz,"<native>",7);
 }
 
-bool Misc::ExecuteCommand( char * cmd, char * param )
+bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
 	return false;
 }
