@@ -117,8 +117,8 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.glsl";
-  char defaultShader[65536] =
+  const char * defaultShaderFilename = "shader.glsl";
+  const char defaultShader[65536] =
     "#version 410 core\n"
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
@@ -306,7 +306,7 @@ namespace Renderer
 
     glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
 
-    char * szVertexShader =
+    const char * szVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec2 in_texcoord;\n"
@@ -334,7 +334,7 @@ namespace Renderer
 
 #define GUIQUADVB_SIZE (1024 * 6)
 
-    char * defaultGUIVertexShader =
+    const char * defaultGUIVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec4 in_color;\n"
@@ -353,7 +353,7 @@ namespace Renderer
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
       "}\n";
-    char * defaultGUIPixelShader =
+    const char * defaultGUIPixelShader =
       "#version 410 core\n"
       "uniform sampler2D tex;\n"
       "in vec4 out_color;\n"
@@ -599,7 +599,7 @@ namespace Renderer
     glUseProgram(NULL);
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     GLuint prg = glCreateProgram();
     GLuint shd = glCreateShader(GL_FRAGMENT_SHADER);
@@ -637,7 +637,7 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -646,7 +646,7 @@ namespace Renderer
     }
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -662,12 +662,12 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, (int*)&width, (int*)&height, &comp, STBI_rgb_alpha );
+    unsigned char * c = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
     if (!c) return NULL;
 
     GLuint glTexId = 0;
@@ -724,7 +724,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     if (!tex)
       return;
@@ -751,7 +751,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     GLuint glTexId = 0;
     glGenTextures(1, &glTexId);

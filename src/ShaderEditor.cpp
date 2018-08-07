@@ -234,7 +234,7 @@ void ShaderEditor::Paint()
   Scintilla::Editor::Paint( surfaceWindow, GetClientRectangle() );
 }
 
-void ShaderEditor::SetText( char * buf )
+void ShaderEditor::SetText( const char * buf )
 {
   WndProc( SCI_SETREADONLY, false, NULL );
   WndProc( SCI_CLEARALL, false, NULL );

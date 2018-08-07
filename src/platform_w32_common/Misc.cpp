@@ -40,7 +40,7 @@ namespace Misc
         LONG resultKey = RegQueryValueExA( hkSub, "Layout Text", NULL, &type, szValue, &nValue );
 
         CharLowerA( szKeyName );
-        keymaps.insert( std::make_pair( szKeyName, (char*)szValue ) );
+        keymaps[szKeyName] = (const char*)szValue;
       }
       idx++;
     }
@@ -54,7 +54,7 @@ namespace Misc
     strncpy( sz, keymaps.count(szCode) ? keymaps[szCode].c_str() : "<unknown>" ,255);
   }
 
-  bool ExecuteCommand( char * cmd, char * param )
+  bool ExecuteCommand( const char * cmd, const char * param )
   {
     HINSTANCE hI = ShellExecute( NULL, NULL, cmd, param, NULL, SW_SHOW );
     return (int)hI >= 32;

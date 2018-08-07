@@ -100,8 +100,8 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.dx11.hlsl";
-  char defaultShader[65536] = 
+  const char * defaultShaderFilename = "shader.dx11.hlsl";
+  const char defaultShader[65536] =
     "{%textures:begin%}" // leave off \n here
     "Texture2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
@@ -392,7 +392,7 @@ namespace Renderer
             DXGI_MODE_DESC * pModes = new DXGI_MODE_DESC[ nModeCount ];
             pOutput->GetDisplayModeList( format, DXGI_ENUM_MODES_INTERLACED | DXGI_ENUM_MODES_SCALING, &nModeCount, pModes);
 
-            for (int i=0; i<nModeCount; i++)
+            for (unsigned int i=0; i<nModeCount; i++)
             {
               if (pModes[i].Width == pSetup->nWidth && pModes[i].Height == pSetup->nHeight)
               {
@@ -819,14 +819,14 @@ namespace Renderer
   }
 
   ID3D11ShaderReflectionConstantBuffer * pCBuf = NULL;
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
     if (D3DCompile( szShaderCode, nShaderCodeSize, NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
-      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      strncpy( szErrorBuffer, (const char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
       return false;
     }
 
@@ -854,7 +854,7 @@ namespace Renderer
     pContext->Unmap( pFullscreenQuadConstantBuffer, NULL );
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName( szConstName );
     D3D11_SHADER_VARIABLE_DESC pDesc;
@@ -866,7 +866,7 @@ namespace Renderer
     __UpdateConstants();
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName(szConstName);
     D3D11_SHADER_VARIABLE_DESC pDesc;
@@ -907,12 +907,12 @@ namespace Renderer
   }
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, (int*)&width, (int*)&height, &comp, STBI_rgb_alpha );
+    unsigned char * c = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
     if (!c) return NULL;
 
     D3D11_TEXTURE2D_DESC desc;
@@ -974,7 +974,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     D3D11_SHADER_INPUT_BIND_DESC desc;
     if (pShaderReflection->GetResourceBindingDescByName( szTextureName, &desc ) == S_OK)
@@ -995,7 +995,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
@@ -1107,7 +1107,7 @@ namespace Renderer
     *(unsigned int *)(f++) = v.c;
     *(f++) = v.u;
     *(f++) = v.v;
-    *(f++) = lastTexture ? 0.0 : 1.0;
+    *(f++) = lastTexture ? 0.0f : 1.0f;
     bufferPointer++;
   }
   void BindTexture( Texture * tex )
