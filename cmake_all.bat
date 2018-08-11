@@ -61,7 +61,6 @@ cmake --build . --config Release
 mkdir ..\_package.%BNZ_OUT_DIR%\
 del ..\_package.%BNZ_OUT_DIR%\Bonzomatic_%BNZ_PLATFORM%_%BNZ_FLAVOR%.exe
 copy .\Release\Bonzomatic.exe ..\_package.%BNZ_OUT_DIR%\Bonzomatic_%BNZ_PLATFORM%_%BNZ_FLAVOR%.exe
-copy .\Release\bass.dll ..\_package.%BNZ_OUT_DIR%\
 copy .\Release\Processing.NDI.Lib.%BNZ_OUT_DIR%.dll ..\_package.%BNZ_OUT_DIR%\
 cd ..
 goto :eof
