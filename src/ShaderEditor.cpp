@@ -210,7 +210,7 @@ void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
 
 void ShaderEditor::CopyToClipboard( const Scintilla::SelectionText &selectedText )
 {
-  Clipboard::Copy( selectedText.Data(), selectedText.Length() );
+  Clipboard::Copy( selectedText.Data(), (int)selectedText.Length() );
 }
 
 void ShaderEditor::SetMouseCapture( bool on )
@@ -271,7 +271,7 @@ void ShaderEditor::GetText( char * buf, int len )
 {
   memset( buf, 0, len );
 
-  int lengthDoc = WndProc( SCI_GETLENGTH, NULL, NULL );
+  int lengthDoc = (int)WndProc( SCI_GETLENGTH, NULL, NULL );
 
   Scintilla::TextRange tr;
   tr.chrg.cpMin = 0;
