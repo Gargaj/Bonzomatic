@@ -1,4 +1,7 @@
 #include <windows.h>
+#ifdef __MINGW32__
+#include <stdio.h>
+#endif
 #include <tchar.h>
 #include "../Renderer.h"
 #include "resource.h"
