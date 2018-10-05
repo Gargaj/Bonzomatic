@@ -95,17 +95,23 @@ if (APPLE OR UNIX OR (WIN32 AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
 
   ##############################################################################
   # GLEW
-  set(GLEW_SRCS
-  ${CMAKE_SOURCE_DIR}/external/glew/glew.c
-  )
-  add_library(bzc_glew STATIC ${GLEW_SRCS})
-  target_include_directories(bzc_glew PUBLIC ${CMAKE_SOURCE_DIR}/external/glew)
-  target_compile_definitions(bzc_glew PUBLIC -DGLEW_STATIC)
-  if (MSVC)
-    target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
+  pkg_check_modules(GLEW glew)
+  if (GLEW_FOUND)
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${GLEW_INCLUDES})
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${GLEW_LIBRARIES})
+  else ()
+    set(GLEW_SRCS
+    ${CMAKE_SOURCE_DIR}/external/glew/glew.c
+    )
+    add_library(bzc_glew STATIC ${GLEW_SRCS})
+    target_include_directories(bzc_glew PUBLIC ${CMAKE_SOURCE_DIR}/external/glew)
+    target_compile_definitions(bzc_glew PUBLIC -DGLEW_STATIC)
+    if (MSVC)
+      target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
+    endif ()
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glew)
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_glew)
   endif ()
-  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glew)
-  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_glew)
 else ()
   # for windows, use DirectX
   set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} $ENV{DXSDK_DIR}/Include)
