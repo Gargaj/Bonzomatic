@@ -11,6 +11,15 @@
 
 #define DEVTYPE D3DDEVTYPE_HAL
 
+#if defined(__MINGW32__) && !defined(D3D9b_SDK_VERSION)
+#define D3D9b_SDK_VERSION 31
+  // From https://docs.rs/winapi/0.2.8/i686-pc-windows-gnu/winapi/d3d9/constant.D3D9b_SDK_VERSION.html
+#endif
+
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL (0x020E)
+#endif
+
 const char * shaderKeyword =
   " register packoffset static const"
   " break continue discard do for if else switch while case default return true false"
@@ -597,9 +606,14 @@ namespace Renderer
     pConstantTable->SetFloat( pDevice, szConstName, x );
   }
 
+  static D3DXVECTOR4 SetShaderConstant_VEC4;
   void SetShaderConstant( const char * szConstName, float x, float y )
   {
-    pConstantTable->SetVector( pDevice, szConstName, &D3DXVECTOR4(x, y, 0, 0) );
+    SetShaderConstant_VEC4.x = x;
+    SetShaderConstant_VEC4.y = y;
+    SetShaderConstant_VEC4.z = 0;
+    SetShaderConstant_VEC4.w = 0;
+    pConstantTable->SetVector( pDevice, szConstName, &SetShaderConstant_VEC4 );
   }
 
   struct DX9Texture : public Texture
