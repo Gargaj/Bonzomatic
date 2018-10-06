@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(BZC_EXE_NAME "Bonzomatic")
+set(BZC_EXE_NAME "bonzomatic")
 
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
