@@ -29,6 +29,9 @@ option(BONZOMATIC_NDI "Enable NDI?" OFF)
 
 option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
 
+option(BONZOMATIC_USE_SYSTEMWIDE_GLFW "Use the system-wide version of GLFW instead of the vendored one (this build option is not supported by upstream)?" OFF)
+option(BONZOMATIC_USE_SYSTEMWIDE_GLEW "Use the system-wide version of GLEW instead of the vendored one (this build option is not supported by upstream)?" OFF)
+
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
 
@@ -69,8 +72,10 @@ if (APPLE OR UNIX OR (WIN32 AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
   # GLFW
   # GLFW settings and project inclusion
   find_package(PkgConfig)
-  pkg_check_modules(GLFW glfw3)
-  if (GLFW_FOUND)
+  if (PKG_CONFIG_FOUND AND BONZOMATIC_USE_SYSTEMWIDE_GLFW)
+    pkg_check_modules(GLFW glfw3)
+  endif()
+  if (BONZOMATIC_USE_SYSTEMWIDE_GLFW AND GLFW_FOUND)
     set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${GLFW_INCLUDES})
     set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${GLFW_LIBRARIES})
   else()
@@ -95,8 +100,10 @@ if (APPLE OR UNIX OR (WIN32 AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
 
   ##############################################################################
   # GLEW
-  pkg_check_modules(GLEW glew)
-  if (GLEW_FOUND)
+  if (PKG_CONFIG_FOUND AND BONZOMATIC_USE_SYSTEMWIDE_GLEW)
+    pkg_check_modules(GLEW glew)
+  endif()
+  if (BONZOMATIC_USE_SYSTEMWIDE_GLEW AND GLEW_FOUND)
     set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${GLEW_INCLUDES})
     set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${GLEW_LIBRARIES})
   else ()
