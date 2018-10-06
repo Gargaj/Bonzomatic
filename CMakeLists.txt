@@ -502,4 +502,9 @@ if (UNIX AND (NOT APPLE))
     install(FILES "${CMAKE_SOURCE_DIR}/external/bass/x86/libbass.so" DESTINATION lib)
   endif ()
   install(TARGETS ${BZC_EXE_NAME} RUNTIME DESTINATION bin)
+  install(FILES "${CMAKE_SOURCE_DIR}/data/unix/bonzomatic.desktop"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications")
+  install(FILES "${CMAKE_SOURCE_DIR}/data/unix/icon.png"
+          RENAME "bonzomatic.png"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps")
 endif ()
