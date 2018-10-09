@@ -478,16 +478,7 @@ endif ()
 target_include_directories(${BZC_EXE_NAME} PUBLIC ${BZC_PROJECT_INCLUDES})
 target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 
-<<<<<<< HEAD
-if (WIN32)
-  if (BONZOMATIC_64BIT)
-    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x64/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  else ()
-    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x86/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  endif ()
-=======
 if (MSVC)
->>>>>>> remove dependency to bass, use mini_al instead
   if (BONZOMATIC_NDI)
     if (BONZOMATIC_64BIT)
       add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${NDI_SDK_DIR}/Bin/x64/Processing.NDI.Lib.x64.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
