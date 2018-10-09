@@ -38,6 +38,7 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
   },
   "rendering":{
     "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
+    "fftAmplification": 1.0, // 1.0 means no change, larger values will result in brighter/stronger bands, smaller values in darker/weaker ones
   },
   "textures":{ // the keys below will become the shader variable names
     "texChecker":"textures/checker.png",

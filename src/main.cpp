@@ -124,6 +124,8 @@ int main(int argc, const char *argv[])
     {
       if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
         fFFTSmoothingFactor = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
+      if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftAmplification"))
+        FFT::fAmplification = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftAmplification");
     }
 
     if (options.has<jsonxx::Object>("textures"))

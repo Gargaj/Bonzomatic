@@ -13,6 +13,7 @@ namespace FFT
   mal_context context;
   mal_device captureDevice;
   float sampleBuf[ FFT_SIZE * 2 ];
+  float fAmplification = 1.0f;
 
   void OnLog( mal_context* pContext, mal_device* pDevice, const char* message )
   {
@@ -24,7 +25,7 @@ namespace FFT
     frameCount = frameCount < FFT_SIZE * 2 ? frameCount : FFT_SIZE * 2;
 
     // Just rotate the buffer; copy existing, append new
-    const mal_int16 * samples = (const mal_int16 *)pSamples;
+    const float * samples = (const float *)pSamples;
     float * p = sampleBuf;
     for ( int i = 0; i < FFT_SIZE * 2 - frameCount; i++ )
     {
@@ -32,7 +33,7 @@ namespace FFT
     }
     for ( int i = 0; i < frameCount; i++ )
     {
-      *( p++ ) = ( samples[ i * 2 ] + samples[ i * 2 + 1 ] ) / 65535.0f; // int16 max * 2 -> -1..1
+      *( p++ ) = ( samples[ i * 2 ] + samples[ i * 2 + 1 ] ) / 2.0f * fAmplification;
     }
   }
 
@@ -52,7 +53,7 @@ namespace FFT
 
     printf( "[FFT] MAL context initialized, backend is '%s'\n", mal_get_backend_name( context.backend ) );
 
-    const mal_device_config config = mal_device_config_init( mal_format_s16, 2, 44100, OnReceiveFrames, NULL );
+    const mal_device_config config = mal_device_config_init( mal_format_f32, 2, 44100, OnReceiveFrames, NULL );
     
     result = mal_device_init( &context, mal_device_type_capture, NULL, &config, NULL, &captureDevice );
     if ( result != MAL_SUCCESS )
@@ -73,7 +74,7 @@ namespace FFT
 
     return true;
   }
-  bool GetFFT( float * samples )
+  bool GetFFT( float * _samples )
   {
     kiss_fft_cpx out[ FFT_SIZE + 1 ];
     kiss_fftr( fftcfg, sampleBuf, out );
@@ -81,7 +82,7 @@ namespace FFT
     for ( int i = 0; i < FFT_SIZE; i++ )
     {
       static const float scaling = 1.0f / (float)FFT_SIZE;
-      samples[ i ] = 2.0 * sqrtf( out[ i ].r * out[ i ].r + out[ i ].i * out[ i ].i ) * scaling;
+      _samples[ i ] = 2.0 * sqrtf( out[ i ].r * out[ i ].r + out[ i ].i * out[ i ].i ) * scaling;
     }
 
     return true;

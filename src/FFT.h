@@ -2,7 +2,9 @@
 
 namespace FFT
 {
+  extern float fAmplification;
+
   bool Open();
-  bool GetFFT( float * samples );
+  bool GetFFT( float * _samples );
   void Close();
 }
