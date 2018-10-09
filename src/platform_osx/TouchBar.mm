@@ -21,7 +21,6 @@ static NSString *touchBarItemIdQuit = @"bonzomatic.quit";
 @interface TouchBar : NSObject <NSTouchBarDelegate>
 - (NSTouchBar *)makeTouchBar;
 - (NSTouchBarItem *)touchBar:(NSTouchBar *)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier;
-- (void)glfwButtonAction:(id)sender;
 
 typedef enum {
     toggleTextures,
