@@ -354,7 +354,7 @@ void SurfaceImpl::RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesi
 void SurfaceImpl::AlphaRectangle(PRectangle rc, int /*cornerSize*/, ColourDesired fill, int alphaFill,
     ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) 
 {
-  unsigned int back = fill.AsLong() & 0xFFFFFF | ((alphaFill & 0xFF) << 24);
+  unsigned int back = (fill.AsLong() & 0xFFFFFF) | ((alphaFill & 0xFF) << 24);
   FillRectangle(rc, back);
 }
 

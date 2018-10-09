@@ -53,7 +53,7 @@ int main(int argc, const char *argv[])
 
     char szConfig[65535];
     memset( szConfig, 0, 65535 );
-    int n = fread( szConfig, 1, 65535, fConf );
+    fread( szConfig, 1, 65535, fConf );
     fclose(fConf);
 
     options.parse( szConfig );
@@ -214,7 +214,7 @@ int main(int argc, const char *argv[])
     printf("Loading last shader...\n");
 
     memset( szShader, 0, 65535 );
-    int n = fread( szShader, 1, 65535, f );
+    fread( szShader, 1, 65535, f );
     fclose(f);
     if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
     {
