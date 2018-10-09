@@ -272,7 +272,7 @@ namespace Renderer
         return false;
     }
     printf("[GLFW] Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    GLenum i = glGetError(); // reset glew error
+    glGetError(); // reset glew error
 
     glfwSwapInterval(1);
 
