@@ -3,7 +3,6 @@ project(Bonzomatic)
 cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_OSX_ARCHITECTURES x86_64)
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 if (APPLE OR WIN32)
 	set(BZC_EXE_NAME "Bonzomatic")
