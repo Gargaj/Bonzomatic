@@ -1,79 +1,99 @@
-#include <bass.h>
+#define MINI_AL_IMPLEMENTATION
+#include <mini_al.h>
+
+#include <kiss_fft.h>
+#include <kiss_fftr.h>
 #include <stdio.h>
-#include "../FFT.h"
+#include <memory.h>
+#include "FFT.h"
 
 namespace FFT
 {
-  HRECORD hRecord = NULL;
+  kiss_fftr_cfg fftcfg;
+  mal_context context;
+  mal_device captureDevice;
+  float sampleBuf[ FFT_SIZE * 2 ];
+  float fAmplification = 1.0f;
+
+  void OnLog( mal_context* pContext, mal_device* pDevice, const char* message )
+  {
+    printf( "[FFT] [mal:%p:%p]\n %s", pContext, pDevice, message );
+  }
+
+  void OnReceiveFrames( mal_device* pDevice, mal_uint32 frameCount, const void* pSamples )
+  {
+    frameCount = frameCount < FFT_SIZE * 2 ? frameCount : FFT_SIZE * 2;
+
+    // Just rotate the buffer; copy existing, append new
+    const float * samples = (const float *)pSamples;
+    float * p = sampleBuf;
+    for ( int i = 0; i < FFT_SIZE * 2 - frameCount; i++ )
+    {
+      *( p++ ) = sampleBuf[ i + frameCount ];
+    }
+    for ( int i = 0; i < frameCount; i++ )
+    {
+      *( p++ ) = ( samples[ i * 2 ] + samples[ i * 2 + 1 ] ) / 2.0f * fAmplification;
+    }
+  }
+
   bool Open()
   {
-    const int freq = 44100;
-    const int channels = 1;
-    int device = -1;
+    memset( sampleBuf, 0, sizeof( float ) * FFT_SIZE * 2 );
 
-    if( !BASS_RecordInit( device ) )
+    fftcfg = kiss_fftr_alloc( FFT_SIZE * 2, false, NULL, NULL );
+
+    const mal_context_config context_config = mal_context_config_init( OnLog );
+    mal_result result = mal_context_init( NULL, 0, &context_config, &context );
+    if ( result != MAL_SUCCESS )
     {
-      printf("[FFT] BASS_RecordInit failed: %08X\n",BASS_ErrorGetCode());
+      printf( "[FFT] Failed to initialize context: %d", result );
       return false;
     }
 
-    hRecord = BASS_RecordStart( freq, channels, BASS_SAMPLE_8BITS, 0, 0 );
-    if (!hRecord)
+    printf( "[FFT] MAL context initialized, backend is '%s'\n", mal_get_backend_name( context.backend ) );
+
+    const mal_device_config config = mal_device_config_init( mal_format_f32, 2, 44100, OnReceiveFrames, NULL );
+    
+    result = mal_device_init( &context, mal_device_type_capture, NULL, &config, NULL, &captureDevice );
+    if ( result != MAL_SUCCESS )
     {
-      printf("[FFT] BASS_RecordStart failed: %08X\n",BASS_ErrorGetCode());
+      mal_context_uninit( &context );
+      printf( "[FFT] Failed to initialize capture device: %d\n", result );
       return false;
     }
+
+    result = mal_device_start( &captureDevice );
+    if ( result != MAL_SUCCESS )
+    {
+      mal_device_uninit( &captureDevice );
+      mal_context_uninit( &context );
+      printf( "[FFT] Failed to start capture device: %d\n", result );
+      return false;
+    }
+
     return true;
   }
-  bool GetFFT( float * samples )
+  bool GetFFT( float * _samples )
   {
-    if (!hRecord)
-      return false;
+    kiss_fft_cpx out[ FFT_SIZE + 1 ];
+    kiss_fftr( fftcfg, sampleBuf, out );
 
-    unsigned int len = 0;
-
-    switch( FFT_SIZE*2 ) // for 256 fft, only 128 values will contain DC in our case
+    for ( int i = 0; i < FFT_SIZE; i++ )
     {
-      case 256:
-        len = BASS_DATA_FFT256;
-        break;
-      case 512:
-        len = BASS_DATA_FFT512;
-        break;
-      case 1024:
-        len = BASS_DATA_FFT1024;
-        break;
-      case 2048:
-        len = BASS_DATA_FFT2048;
-        break;
-      case 4096:
-        len = BASS_DATA_FFT4096;
-        break;
-      case 8192:
-        len = BASS_DATA_FFT8192;
-        break;
-      case 16384:
-        len = BASS_DATA_FFT16384;
-        break;
-      default:
-        //fprintf( stderr, "BASS invalid fft window size\n" );
-        break;
+      static const float scaling = 1.0f / (float)FFT_SIZE;
+      _samples[ i ] = 2.0 * sqrtf( out[ i ].r * out[ i ].r + out[ i ].i * out[ i ].i ) * scaling;
     }
-
-    const int numBytes = BASS_ChannelGetData( hRecord, samples, len | BASS_DATA_FFT_REMOVEDC );
-    if( numBytes <= 0 )
-      return false;
 
     return true;
   }
   void Close()
   {
-    if (hRecord)
-    {
-      BASS_ChannelStop( hRecord );
-      hRecord = NULL;
-    }
+    mal_device_stop( &captureDevice );
 
-    BASS_RecordFree();
+    mal_device_uninit( &captureDevice );
+    mal_context_uninit( &context );
+
+    kiss_fft_free( fftcfg );
   }
 }

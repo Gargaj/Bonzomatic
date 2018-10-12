@@ -38,6 +38,7 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
   },
   "rendering":{
     "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
+    "fftAmplification": 1.0, // 1.0 means no change, larger values will result in brighter/stronger bands, smaller values in darker/weaker ones
   },
   "textures":{ // the keys below will become the shader variable names
     "texChecker":"textures/checker.png",
@@ -85,7 +86,8 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 ### Libraries and other included software
 - Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
 - OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net/)
-- BASS.DLL by Ian Luck (http://www.un4seen.com/)
+- mini_al by David Reid (https://github.com/dr-soft/mini_al)
+- KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft/)
 - STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
 - GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)

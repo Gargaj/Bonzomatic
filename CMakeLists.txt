@@ -111,23 +111,23 @@ set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
 )
 
 ##############################################################################
-# BASS
-set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/bass)
-if (APPLE)
-  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/bass/libbass.dylib)
-elseif (UNIX)
-  if (BONZOMATIC_64BIT)
-    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/bass/x64/libbass.so)
-  else ()
-    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/bass/x86/libbass.so)
-  endif ()
-elseif (WIN32)
-  if (BONZOMATIC_64BIT)
-    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/bass/x64/bass.lib)
-  else ()
-    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${CMAKE_SOURCE_DIR}/external/bass/x86/bass.lib)
-  endif ()
+# mini_al
+set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/mini_al)
+
+##############################################################################
+# kiss_fft
+set(KISSFFT_SRCS
+  ${CMAKE_SOURCE_DIR}/external/kiss_fft/kiss_fft.c
+  ${CMAKE_SOURCE_DIR}/external/kiss_fft/tools/kiss_fftr.c
+)
+add_library(bzc_kissfft STATIC ${KISSFFT_SRCS})
+target_include_directories(bzc_kissfft PUBLIC ${CMAKE_SOURCE_DIR}/external/kiss_fft ${CMAKE_SOURCE_DIR}/external/kiss_fft/tools)
+if (MSVC)
+  target_compile_options(bzc_kissfft PUBLIC "$<$<CONFIG:Release>:/MT>")
 endif ()
+set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/kiss_fft)
+set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/kiss_fft/tools)
+set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_kissfft)
 
 ##############################################################################
 # JSONXX
@@ -425,7 +425,6 @@ if (APPLE)
 
   set_source_files_properties(${BZC_RESOURCES_DATA} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-  set(OSX_LIB_FILES ${CMAKE_SOURCE_DIR}/external/bass/libbass.dylib)
   set_source_files_properties(${OSX_LIB_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION MacOS)
   set(BZC_PROJECT_SRCS ${BZC_PROJECT_SRCS} ${OSX_LIB_FILES})
 
@@ -482,12 +481,7 @@ endif ()
 target_include_directories(${BZC_EXE_NAME} PUBLIC ${BZC_PROJECT_INCLUDES})
 target_link_libraries(${BZC_EXE_NAME} ${BZC_PROJECT_LIBS})
 
-if (WIN32)
-  if (BONZOMATIC_64BIT)
-    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x64/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  else ()
-    add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/bass/x86/bass.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
-  endif ()
+if (MSVC)
   if (BONZOMATIC_NDI)
     if (BONZOMATIC_64BIT)
       add_custom_command(TARGET ${BZC_EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${NDI_SDK_DIR}/Bin/x64/Processing.NDI.Lib.x64.dll" $<TARGET_FILE_DIR:${BZC_EXE_NAME}>)
@@ -499,11 +493,6 @@ endif ()
 
 ## install
 if (UNIX AND (NOT APPLE))
-  if (BONZOMATIC_64BIT)
-    install(FILES "${CMAKE_SOURCE_DIR}/external/bass/x64/libbass.so" DESTINATION lib)
-  else ()
-    install(FILES "${CMAKE_SOURCE_DIR}/external/bass/x86/libbass.so" DESTINATION lib)
-  endif ()
   install(TARGETS ${BZC_EXE_NAME} RUNTIME DESTINATION bin)
   install(FILES "${CMAKE_SOURCE_DIR}/data/unix/bonzomatic.desktop"
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications")
