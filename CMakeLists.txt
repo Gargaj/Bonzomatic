@@ -29,8 +29,10 @@ option(BONZOMATIC_NDI "Enable NDI?" OFF)
 
 option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
 
-option(BONZOMATIC_USE_SYSTEMWIDE_GLFW "Use the system-wide version of GLFW instead of the vendored one (this build option is not supported by upstream)?" OFF)
-option(BONZOMATIC_USE_SYSTEMWIDE_GLEW "Use the system-wide version of GLEW instead of the vendored one (this build option is not supported by upstream)?" OFF)
+if (UNIX AND (NOT APPLE))
+  option(BONZOMATIC_USE_SYSTEMWIDE_GLFW "Use the system-wide version of GLFW instead of the vendored one (this build option is not supported by upstream)?" OFF)
+  option(BONZOMATIC_USE_SYSTEMWIDE_GLEW "Use the system-wide version of GLEW instead of the vendored one (this build option is not supported by upstream)?" OFF)
+endif ()
 
 set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
 set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
