@@ -8,6 +8,10 @@
 
 #include "../Renderer.h"
 
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL (0x020E)
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "Scintilla.h"
