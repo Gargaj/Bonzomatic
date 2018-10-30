@@ -20,7 +20,7 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
     && sDefShader.find(sTokenBegin) < sDefShader.find(sTokenName)
     && sDefShader.find(sTokenName) < sDefShader.find(sTokenEnd))
   {
-    int nTokenStart = sDefShader.find(sTokenBegin) + strlen(sTokenBegin);
+    int nTokenStart = (int)(sDefShader.find(sTokenBegin) + strlen(sTokenBegin));
     std::string sTextureToken = sDefShader.substr( nTokenStart, sDefShader.find(sTokenEnd) - nTokenStart );
 
     std::string sFinalShader;
@@ -218,7 +218,7 @@ int main(int argc, const char *argv[])
     memset( szShader, 0, 65535 );
     fread( szShader, 1, 65535, f );
     fclose(f);
-    if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+    if (Renderer::ReloadShader( szShader, (int)strlen(szShader), szError, 4096 ))
     {
       printf("Last shader works fine.\n");
       shaderInitSuccessful = true;
@@ -244,7 +244,7 @@ int main(int argc, const char *argv[])
     ReplaceTokens(sDefShader, "{%midi:begin%}", "{%midi:name%}", "{%midi:end%}", tokens);
 
     strncpy( szShader, sDefShader.c_str(), 65535 );
-    if (!Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+    if (!Renderer::ReloadShader( szShader, (int)strlen(szShader), szError, 4096 ))
     {
       printf("Default shader compile failed:\n");
       puts(szError);
@@ -338,7 +338,7 @@ int main(int argc, const char *argv[])
       else if (Renderer::keyEventBuffer[i].scanCode == 286 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'r')) // F5
       {
         mShaderEditor.GetText(szShader,65535);
-        if (Renderer::ReloadShader( szShader, strlen(szShader), szError, 4096 ))
+        if (Renderer::ReloadShader( szShader, (int)strlen(szShader), szError, 4096 ))
         {
           // Shader compilation successful; we set a flag to save if the frame render was successful
           // (If there is a driver crash, don't save.)
@@ -370,7 +370,7 @@ int main(int argc, const char *argv[])
           char    utf8[5] = {0,0,0,0,0};
           wchar_t utf16[2] = {Renderer::keyEventBuffer[i].character, 0};
           Scintilla::UTF8FromUTF16(utf16, 1, utf8, 4 * sizeof(char));
-          mShaderEditor.AddCharUTF(utf8, strlen(utf8));
+          mShaderEditor.AddCharUTF(utf8, (unsigned int)strlen(utf8));
         }
 
       }
@@ -448,7 +448,7 @@ int main(int argc, const char *argv[])
             Renderer::Vertex( x2, y2, 0xccFFFFFF, 1.0, 1.0 ),
             Renderer::Vertex( x1, y2, 0xccFFFFFF, 0.0, 1.0 )
           );
-          surface->DrawTextNoClip( Scintilla::PRectangle(x1,y1,x2,y2), *mShaderEditor.GetTextFont(), y2 - 5.0, it->first.c_str(), it->first.length(), 0xffFFFFFF, 0x00000000);
+          surface->DrawTextNoClip( Scintilla::PRectangle(x1,y1,x2,y2), *mShaderEditor.GetTextFont(), y2 - 5.0, it->first.c_str(), (int)it->first.length(), 0xffFFFFFF, 0x00000000);
           y1 = y2 + nMargin;
         }
       }
@@ -457,7 +457,7 @@ int main(int argc, const char *argv[])
       Misc::GetKeymapName(szLayout);
       std::string sHelp = "F2 - toggle texture preview   F5 or Ctrl-R - recompile shader   F11 - hide GUI   Current keymap: ";
       sHelp += szLayout;
-      surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), sHelp.length(), 0x80FFFFFF, 0x00000000);
+      surface->DrawTextNoClip( Scintilla::PRectangle(20,Renderer::nHeight - 20,100,Renderer::nHeight), *mShaderEditor.GetTextFont(), Renderer::nHeight - 5.0, sHelp.c_str(), (int)sHelp.length(), 0x80FFFFFF, 0x00000000);
     }
 
 

@@ -253,7 +253,7 @@ namespace Renderer
     ShowTouchBar(mWindow);
 #endif
 #endif
-	  
+      
     glfwMakeContextCurrent(mWindow);
 
     // TODO: here add text callbacks
@@ -316,7 +316,7 @@ namespace Renderer
       "  gl_Position = vec4( in_pos.x, in_pos.y, in_pos.z, 1.0 );\n"
       "  out_texcoord = in_texcoord;\n"
       "}";
-    GLint nShaderSize = strlen(szVertexShader);
+    GLint nShaderSize = (GLint)strlen(szVertexShader);
 
     glShaderSource(glhVertexShader, 1, (const GLchar**)&szVertexShader, &nShaderSize);
     glCompileShader(glhVertexShader);
@@ -370,7 +370,7 @@ namespace Renderer
     glhGUIProgram = glCreateProgram();
 
     GLuint vshd = glCreateShader(GL_VERTEX_SHADER);
-    nShaderSize = strlen(defaultGUIVertexShader);
+    nShaderSize = (GLint)strlen(defaultGUIVertexShader);
 
     glShaderSource(vshd, 1, (const GLchar**)&defaultGUIVertexShader, &nShaderSize);
     glCompileShader(vshd);
@@ -383,7 +383,7 @@ namespace Renderer
     }
 
     GLuint fshd = glCreateShader(GL_FRAGMENT_SHADER);
-    nShaderSize = strlen(defaultGUIPixelShader);
+    nShaderSize = (GLint)strlen(defaultGUIPixelShader);
 
     glShaderSource(fshd, 1, (const GLchar**)&defaultGUIPixelShader, &nShaderSize);
     glCompileShader(fshd);

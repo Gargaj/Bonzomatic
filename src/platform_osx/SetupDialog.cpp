@@ -94,7 +94,7 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   } else {
     settings->windowMode = RENDERER_WINDOWMODE_WINDOWED;
   }
-  idx = responseFlags >> 24;
+  idx = (int)responseFlags >> 24;
   if ((idx >= 0) && (idx < resolutions.size())) {
     const auto &r = *std::next(resolutions.cbegin(), idx);
     settings->nWidth = r.w;
