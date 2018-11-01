@@ -80,7 +80,7 @@ public:
 static unsigned int wndID = 1;
 void ShaderEditor::Initialise()
 {
-  wMain = (Scintilla::WindowID)(wndID++);
+  wMain = (Scintilla::WindowID)(unsigned long)(wndID++);
 
   lexState = new Scintilla::LexState( pdoc );
 
