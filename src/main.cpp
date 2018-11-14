@@ -103,9 +103,16 @@ int main(int argc, const char *argv[])
   std::map<std::string,Renderer::Texture*> textures;
   std::map<int,std::string> midiRoutes;
 
+  const char * szDefaultFontPath = Misc::GetDefaultFontPath();
+  if (!szDefaultFontPath)
+  {
+    printf( "Misc::GetDefaultFontPath couldn't find ANY default fonts!\n" );
+    return -1;
+  }
+
   SHADEREDITOR_OPTIONS editorOptions;
   editorOptions.nFontSize = 16;
-  editorOptions.sFontPath = Misc::GetDefaultFontPath();
+  editorOptions.sFontPath = szDefaultFontPath;
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
   editorOptions.nTabSize = 2;
@@ -152,15 +159,12 @@ int main(int argc, const char *argv[])
       if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
       {
         std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
-        if (Misc::FileExists(fontpath.c_str()))
+        if (!Misc::FileExists(fontpath.c_str()))
         {
-          editorOptions.sFontPath = fontpath;
+          printf("Font path (%s) is invalid!\n", fontpath.c_str());
+          return -1;
         }
-      }
-      else if (!editorOptions.sFontPath.size()) // coudn't find a default font
-      {
-        printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
-        return -1;
+        editorOptions.sFontPath = fontpath;
       }
     }
     if (options.has<jsonxx::Object>("gui"))
