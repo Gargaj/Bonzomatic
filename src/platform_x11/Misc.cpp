@@ -46,6 +46,7 @@ const char * Misc::GetDefaultFontPath()
     "/usr/share/fonts/TTF/VeraMono.ttf",
     "/usr/share/fonts/corefonts/cour.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
+    "/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf",
     NULL
   };
   for (int i = 0; fontPaths[i]; ++i)
