@@ -40,12 +40,15 @@ const char * Misc::GetDefaultFontPath()
   // TODO: use fonts.conf(5) or X resources or something like that
   const char* fontPaths[] =
   {
-    "/usr/share/fonts/truetype/freefont/DejaVuSansMono.ttf",
+    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+    "/usr/share/fonts/TTF/FreeMono.ttf",
+    "/usr/share/fonts/TTF/LiberationMono-Regular.ttf",
+    "/usr/share/fonts/TTF/VeraMono.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
     "/usr/share/fonts/truetype/freefont/FreeMono.ttf",
-    "/usr/share/fonts/truetype/freefont/LiberationMono-Regular.ttf",
-    "/usr/share/fonts/truetype/freefont/VeraMono.ttf",
-    "/usr/share/fonts/corefonts/cour.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
+    "/usr/share/fonts/corefonts/cour.ttf",
     NULL
   };
   for (int i = 0; fontPaths[i]; ++i)
