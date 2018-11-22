@@ -75,11 +75,15 @@ As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't
 Use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
 
 ### OSX/macOS
-The ```cmake``` should take care of everything.
+```cmake``` should take care of everything:
+```
+cmake .
+make
+make install
+```
 
 ### Linux
-You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest.
-
+You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
 ```
 apt install xorg-dev libglu1-mesa-dev cmake
 cd Bonzomatic
