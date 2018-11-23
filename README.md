@@ -113,7 +113,7 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 
 These software are available under their respective licenses.
 
-The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
+The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain. OSX / macOS maintenance and ports by Alkama / Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
 If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
