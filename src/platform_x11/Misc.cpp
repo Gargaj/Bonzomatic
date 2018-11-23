@@ -48,6 +48,7 @@ const char * Misc::GetDefaultFontPath()
     "/usr/share/fonts/truetype/freefont/FreeMono.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/cour.ttf",
+    "/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf",
     "/usr/share/fonts/corefonts/cour.ttf",
     NULL
   };
