@@ -70,9 +70,27 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
 
 ## Building
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
-* On Windows, use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
-* On Linux, you'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest.
-* On OSX, ```cmake``` should take care of everything.
+
+### Windows
+Use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
+
+### OSX/macOS
+```cmake``` should take care of everything:
+```
+cmake .
+make
+make install
+```
+
+### Linux
+You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
+```
+apt install xorg-dev libglu1-mesa-dev cmake
+cd Bonzomatic
+cmake .
+make
+make install
+```
 
 ## Organizing a competition
 If you want to organize a competition using Bonzomatic at your party, here's a handy-dandy guide on how to get started:
