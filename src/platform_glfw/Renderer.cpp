@@ -345,7 +345,7 @@ namespace Renderer
     glGetShaderiv(glhVertexShader, GL_COMPILE_STATUS, &result);
     if (!result)
     {
-      printf("[Renderer] Vertex shader compilation failed\n");
+      printf("[Renderer] Vertex shader compilation failed\n%s\n", szErrorBuffer);
       return false;
     }
 
