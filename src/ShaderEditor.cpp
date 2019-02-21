@@ -205,7 +205,12 @@ void ShaderEditor::NotifyChange()
 
 void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
 {
-
+  switch (scn.nmhdr.code) {
+    case SCN_CHARADDED:
+      char ch = static_cast<char>(scn.ch);
+      PreserveIndentation(ch);
+      break;
+    }
 }
 
 void ShaderEditor::CopyToClipboard( const Scintilla::SelectionText &selectedText )
@@ -365,4 +370,82 @@ void ShaderEditor::FineTickerStart( TickReason, int, int )
 void ShaderEditor::FineTickerCancel( TickReason )
 {
 
+}
+
+int ShaderEditor::GetLineLength(int line) {
+  return WndProc(SCI_GETLINEENDPOSITION, line, NULL) - WndProc(SCI_POSITIONFROMLINE, line, NULL);
+}
+
+int ShaderEditor::GetCurrentLineNumber() {
+  return WndProc(SCI_LINEFROMPOSITION, WndProc(SCI_GETCURRENTPOS, NULL, NULL), NULL);
+}
+
+Sci_CharacterRange ShaderEditor::GetSelection() {
+  Sci_CharacterRange chrange;
+  chrange.cpMin = WndProc(SCI_GETSELECTIONSTART, NULL, NULL);
+  chrange.cpMax = WndProc(SCI_GETSELECTIONEND, NULL, NULL);
+  return chrange;
+}
+
+int ShaderEditor::GetLineIndentation(int line) {
+  return WndProc(SCI_GETLINEINDENTATION, line, NULL);
+}
+
+int ShaderEditor::GetLineIndentPosition(int line) {
+  return WndProc(SCI_GETLINEINDENTPOSITION, line, NULL);
+}
+
+void ShaderEditor::SetLineIndentation(int line, int indent) {
+  if (indent < 0)
+    return;
+  Sci_CharacterRange crange = GetSelection();
+  int posBefore = GetLineIndentPosition(line);
+  WndProc(SCI_SETLINEINDENTATION, line, indent);
+  int posAfter = GetLineIndentPosition(line);
+  int posDifference = posAfter - posBefore;
+  if (posAfter > posBefore) {
+    // Move selection on
+    if (crange.cpMin >= posBefore) {
+      crange.cpMin += posDifference;
+    }
+    if (crange.cpMax >= posBefore) {
+      crange.cpMax += posDifference;
+    }
+  } else if (posAfter < posBefore) {
+    // Move selection back
+    if (crange.cpMin >= posAfter) {
+      if (crange.cpMin >= posBefore) {
+        crange.cpMin += posDifference;
+      } else {
+        crange.cpMin = posAfter;
+      }
+    }
+    if (crange.cpMax >= posAfter) {
+      if (crange.cpMax >= posBefore) {
+        crange.cpMax += posDifference;
+      } else {
+        crange.cpMax = posAfter;
+      }
+    }
+  }
+  SetSelection(static_cast<int>(crange.cpMin), static_cast<int>(crange.cpMax));
+}
+
+void ShaderEditor::PreserveIndentation(char ch) {
+  int eolMode = WndProc(SCI_GETEOLMODE, NULL, NULL);
+  int curLine = GetCurrentLineNumber();
+  int lastLine = curLine - 1;
+
+  if (((eolMode == SC_EOL_CRLF || eolMode == SC_EOL_LF) && ch == '\n') || (eolMode == SC_EOL_CR && ch == '\r')) {
+    while (lastLine >= 0 && GetLineLength(lastLine) == 0) {
+      lastLine--;
+    }
+    int indentAmount = 0;
+    if (lastLine >= 0) {
+      indentAmount = GetLineIndentation(lastLine);
+    }
+    if (indentAmount > 0) {
+      SetLineIndentation(curLine, indentAmount);
+    }
+  }
 }
