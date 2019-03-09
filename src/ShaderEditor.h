@@ -113,4 +113,13 @@ public:
 
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
+    
+private:
+  int GetLineLength(int line);
+  int GetCurrentLineNumber();
+  Scintilla::Sci_CharacterRange GetSelection();
+  int GetLineIndentation(int line);
+  int GetLineIndentPosition(int line);
+  void SetLineIndentation(int line, int indent);
+  void PreserveIndentation(char ch);
 };
