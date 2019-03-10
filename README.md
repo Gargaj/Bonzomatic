@@ -21,7 +21,7 @@ On Windows, both DirectX 9 and 11 are supported.
 
 For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 
-On MacBooks with a TouchBar that are running macOS Mojave: Open up System Preferences, click on Security & Privacy, click on the privacy tab then click on the Accessibility menu item. Make sure Bonzomatic.app is ticked, otherwise only the "Quit" TouchBar button will work.
+On recent macOS, to allow sound input to be captured (for FFT textures to be generated), you need to: Open up System Preferences, click on Security & Privacy, click on the Privacy tab then click on the Microphone menu item. Make sure Bonzomatic.app is in the list and ticked.
 
 ## Configuration
 Create a `config.json` with e.g. the following contents: (all fields are optional)
@@ -113,7 +113,7 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 
 These software are available under their respective licenses.
 
-The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain. OSX / macOS maintenance and ports by Alkama / Calodox; Linux maintenance by PoroCYon / K2.
+The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
 If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

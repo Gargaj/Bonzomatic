@@ -10,6 +10,7 @@
 #import <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
 #import "../TouchBar.h"
+#include "../Renderer.h"
 
 static NSString *touchBarCustomizationId = @"com.something.customization_id";
 static NSString *touchBarItemIdCompile = @"bonzomatic.compile";
@@ -116,30 +117,22 @@ typedef enum {
 }
 
 - (void)sendKeyboardCommandForCommand:(BonzomaticCommand)command {
-    pid_t pid = [NSRunningApplication currentApplication].processIdentifier;
-    
-    CGEventRef event1, event2;
-    
+    Renderer::keyEventBuffer[Renderer::keyEventBufferCount].ctrl  = 0;
+    Renderer::keyEventBuffer[Renderer::keyEventBufferCount].alt   = 0;
+    Renderer::keyEventBuffer[Renderer::keyEventBufferCount].shift = 0;
+    Renderer::keyEventBuffer[Renderer::keyEventBufferCount].character = 0;
     switch (command) {
         case toggleGUI:
-            event1 = CGEventCreateKeyboardEvent (NULL, kVK_F11, true);
-            event2 = CGEventCreateKeyboardEvent (NULL, kVK_F11, false);
+            Renderer::keyEventBuffer[Renderer::keyEventBufferCount].scanCode = 292;
             break;
         case toggleTextures:
-            event1 = CGEventCreateKeyboardEvent (NULL, kVK_F2, true);
-            event2 = CGEventCreateKeyboardEvent (NULL, kVK_F2, false);
+            Renderer::keyEventBuffer[Renderer::keyEventBufferCount].scanCode = 283;
             break;
         case compile:
-            event1 = CGEventCreateKeyboardEvent (NULL, kVK_F5, true);
-            event2 = CGEventCreateKeyboardEvent (NULL, kVK_F5, false);
+            Renderer::keyEventBuffer[Renderer::keyEventBufferCount].scanCode = 286;
             break;
     }
-    
-    CGEventPostToPid(pid, event1);
-    CGEventPostToPid(pid, event2);
-    
-    CFRelease(event1);
-    CFRelease(event2);
+    Renderer::keyEventBufferCount++;
 }
 
 @end
