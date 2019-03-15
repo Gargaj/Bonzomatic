@@ -117,6 +117,7 @@ int main(int argc, const char *argv[])
   editorOptions.bUseSpacesForTabs = true;
   editorOptions.nTabSize = 2;
   editorOptions.bVisibleWhitespace = false;
+  editorOptions.eAutoIndent = aitSmart;
 
   int nDebugOutputHeight = 200;
   int nTexPreviewWidth = 64;
@@ -181,6 +182,17 @@ int main(int argc, const char *argv[])
         editorOptions.nTabSize = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
       if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
         editorOptions.bVisibleWhitespace = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::String>("autoindent"))
+      {
+        std::string autoindent = options.get<jsonxx::Object>("gui").get<jsonxx::String>("autoindent");
+        if (autoindent == "smart") {
+          editorOptions.eAutoIndent = aitSmart;
+        } else if (autoindent == "preserve") {
+          editorOptions.eAutoIndent = aitPreserve;
+        } else {
+          editorOptions.eAutoIndent = aitNone;
+        }
+      }
     }
     if (options.has<jsonxx::Object>("midi"))
     {

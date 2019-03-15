@@ -1,8 +1,18 @@
 #include <cstring>
+#include <iterator>
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "PropSetSimple.h"
 #include "Clipboard.h"
+
+const int statementLookback = 20;
+const int blockEndStyleNumber = 10;
+const int statementIndentStyleNumber = 5;
+const int statementEndStyleNumber = 10;
+std::string statementIndent[] = { "case", "default", "do", "else", "for", "if", "while" };
+const std::string statementEnd = ";";
+const std::string blockStart = "{";
+const std::string blockEnd = "}";
 
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
@@ -112,6 +122,7 @@ void ShaderEditor::Initialise()
   }
   WndProc(SCI_SETUSETABS, bUseSpacesForTabs ? 0 : 1, NULL);
   WndProc(SCI_SETTABWIDTH, nTabSize, NULL);
+  WndProc(SCI_SETINDENT, nTabSize, NULL);
   WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
 
   if (bVisibleWhitespace)
@@ -151,6 +162,7 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
   bUseSpacesForTabs = options.bUseSpacesForTabs;
   nTabSize = options.nTabSize;
   bVisibleWhitespace = options.bVisibleWhitespace;
+  eAutoIndent = options.eAutoIndent;
 
   Initialise();
   SetPosition( options.rect );
@@ -208,7 +220,11 @@ void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
   switch (scn.nmhdr.code) {
     case SCN_CHARADDED:
       char ch = static_cast<char>(scn.ch);
-      PreserveIndentation(ch);
+      if(eAutoIndent == aitPreserve) {
+        PreserveIndentation(ch);
+      } else if (aitSmart) {
+        AutomaticIndentation(ch);
+      }
       break;
     }
 }
@@ -372,6 +388,10 @@ void ShaderEditor::FineTickerCancel( TickReason )
 
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Indentation handling
+
 int ShaderEditor::GetLineLength(int line) {
   return WndProc(SCI_GETLINEENDPOSITION, line, NULL) - WndProc(SCI_POSITIONFROMLINE, line, NULL);
 }
@@ -447,5 +467,121 @@ void ShaderEditor::PreserveIndentation(char ch) {
     if (indentAmount > 0) {
       SetLineIndentation(curLine, indentAmount);
     }
+  }
+}
+
+unsigned int ShaderEditor::GetLinePartsInStyle(int line, int style, std::string sv[], int len) {
+  for (int i = 0; i < len; i++)
+    sv[i] = "";
+  std::string s;
+  int part = 0;
+  int thisLineStart = WndProc(SCI_POSITIONFROMLINE, line, NULL);
+  int nextLineStart = WndProc(SCI_POSITIONFROMLINE, line + 1, NULL);
+  for (int pos = thisLineStart; pos < nextLineStart; pos++) {
+    if (static_cast<char>(WndProc(SCI_GETSTYLEAT, pos, 0)) == style) {
+      s += WndProc(SCI_GETCHARAT, pos, NULL);
+    } else if (s.length() > 0) {
+      if (part < len) {
+        sv[part++] = s;
+      }
+      s = "";
+    }
+  }
+  if ((s.length() > 0) && (part < len)) {
+    sv[part++] = s;
+  }
+  return part;
+}
+
+ShaderEditor::IndentationStatus ShaderEditor::GetIndentState(int line) {
+  IndentationStatus indentState = isNone;
+  std::string controlWords[20];
+  unsigned int parts = GetLinePartsInStyle(line, statementIndentStyleNumber, controlWords, ELEMENTS(controlWords));
+  unsigned int i;
+  for (i = 0; i<parts; i++) {
+    std::string *foo = std::find(std::begin(statementIndent), std::end(statementIndent), controlWords[i]);
+    if (foo != std::end(statementIndent)) {
+      indentState = isKeyWordStart;
+    }
+  }
+  
+  parts = GetLinePartsInStyle(line, statementEndStyleNumber, controlWords, ELEMENTS(controlWords));
+  for (i = 0; i<parts; i++) {
+    if (statementEnd == controlWords[i])
+      indentState = isNone;
+  }
+  
+  std::string controlStrings[20];
+  parts = GetLinePartsInStyle(line, blockEndStyleNumber, controlStrings, ELEMENTS(controlStrings));
+  for (unsigned int j = 0; j < parts; j++) {
+    if (blockEnd == controlStrings[j]) {
+      indentState = isBlockEnd;
+    }
+    if (blockStart == controlStrings[j]) {
+      indentState = isBlockStart;
+    }
+  }
+  
+  return indentState;
+}
+
+int ShaderEditor::IndentOfBlock(int line) {
+  if (line < 0)
+    return 0;
+  int indentSize = WndProc(SCI_GETINDENT, NULL, NULL);
+  int indentBlock = GetLineIndentation(line);
+  int backLine = line;
+  IndentationStatus indentState = isNone;
+
+  int lineLimit = line - statementLookback;
+  if (lineLimit < 0) lineLimit = 0;
+
+  while ((backLine >= lineLimit) && (indentState == 0)) {
+    indentState = GetIndentState(backLine);
+    if (indentState != 0) {
+      indentBlock = GetLineIndentation(backLine);
+      if (indentState == isBlockStart) {
+          indentBlock += indentSize;
+      }
+      if (indentState == isBlockEnd) {
+        if (indentBlock < 0)
+          indentBlock = 0;
+      }
+      if ((indentState == isKeyWordStart) && (backLine == line))
+        indentBlock += indentSize;
+    }
+    backLine--;
+  }
+  return indentBlock;
+}
+
+bool ShaderEditor::RangeIsAllWhitespace(int start, int end) {
+  for (int i = start; i < end; i++) {
+    if ((WndProc(SCI_GETCHARAT, i, NULL) != ' ') && (WndProc(SCI_GETCHARAT, i, NULL) != '\t'))
+      return false;
+  }
+  return true;
+}
+
+void ShaderEditor::AutomaticIndentation(char ch) {
+  Sci_CharacterRange crange = GetSelection();
+  int selStart = static_cast<int>(crange.cpMin);
+  int curLine = GetCurrentLineNumber();
+  int thisLineStart = WndProc(SCI_POSITIONFROMLINE, curLine, NULL);
+  int indentSize = WndProc(SCI_GETINDENT, NULL, NULL);
+  int indentBlock = IndentOfBlock(curLine - 1);
+ 
+  if (ch == '}') {
+    if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
+      SetLineIndentation(curLine, indentBlock - indentSize);
+    }
+  } else if (ch == '{') {
+    if (GetIndentState(curLine - 1) == isKeyWordStart) {
+      if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
+        SetLineIndentation(curLine, indentBlock - indentSize);
+      }
+    }
+  } else if ((ch == '\r' || ch == '\n') && (selStart == thisLineStart)) {
+    SetLineIndentation(curLine, indentBlock);
   }
 }
