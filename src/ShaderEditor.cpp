@@ -1,5 +1,4 @@
 #include <cstring>
-#include <iterator>
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "PropSetSimple.h"
