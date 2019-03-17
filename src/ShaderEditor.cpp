@@ -495,25 +495,38 @@ std::vector<std::string> ShaderEditor::GetLinePartsInStyle(int line, int style) 
   return out;
 }
 
+bool ShaderEditor::isAStatementIndent(std::string &word) {
+  for (size_t i=0; i<(sizeof(statementIndent)/sizeof(statementIndent[0])); i++) {
+    std::string &statementElem = statementIndent[i];
+    if (statementElem == word) {
+      return true;
+    }
+  }
+  return false;
+}
+
 ShaderEditor::IndentationStatus ShaderEditor::GetIndentState(int line) {
+  size_t i;
   IndentationStatus indentState = isNone;
   std::vector<std::string> controlWords = GetLinePartsInStyle(line, statementIndentStyleNumber);
-  for (auto &controlWord : controlWords) {
-    std::string *foo = std::find(std::begin(statementIndent), std::end(statementIndent), controlWord);
-    if (foo != std::end(statementIndent)) {
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
+    if (isAStatementIndent(controlWord)) {
       indentState = isKeyWordStart;
     }
   }
   
   controlWords = GetLinePartsInStyle(line, blockAndStatementEndStyleNumber);
-  for (auto &controlWord : controlWords) {
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
     if (controlWord.size() < 1) continue;
     if (statementEnd == controlWord[0]) {
       indentState = isNone;
     }
   }
   
-  for (auto &controlWord : controlWords) {
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
     if (controlWord.size() < 1) continue;
     if (blockEnd == controlWord[0]) {
       indentState = isBlockEnd;

@@ -138,6 +138,7 @@ private:
   void SetLineIndentation(int line, int indent);
   void PreserveIndentation(char ch);
   std::vector<std::string> GetLinePartsInStyle(int line, int style);
+  bool isAStatementIndent(std::string &word);
   IndentationStatus GetIndentState(int line);
   int IndentOfBlock(int line);
   bool RangeIsAllWhitespace(int start, int end);

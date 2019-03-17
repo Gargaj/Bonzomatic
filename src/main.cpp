@@ -182,12 +182,12 @@ int main(int argc, const char *argv[])
         editorOptions.nTabSize = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
       if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
         editorOptions.bVisibleWhitespace = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::String>("autoindent"))
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::String>("autoIndent"))
       {
-        std::string autoindent = options.get<jsonxx::Object>("gui").get<jsonxx::String>("autoindent");
-        if (autoindent == "smart") {
+        std::string autoIndent = options.get<jsonxx::Object>("gui").get<jsonxx::String>("autoIndent");
+        if (autoIndent == "smart") {
           editorOptions.eAutoIndent = aitSmart;
-        } else if (autoindent == "preserve") {
+        } else if (autoIndent == "preserve") {
           editorOptions.eAutoIndent = aitPreserve;
         } else {
           editorOptions.eAutoIndent = aitNone;
