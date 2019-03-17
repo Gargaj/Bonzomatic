@@ -52,6 +52,7 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
     "spacesForTabs": false,
     "tabSize": 8,
     "visibleWhitespace": true,
+    "autoIndent": "smart", // can be "none", "preserve" or "smart"
   },
   "midi":{ // the keys below will become the shader variable names, the values are the CC numbers
     "fMidiKnob": 16, // e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2
