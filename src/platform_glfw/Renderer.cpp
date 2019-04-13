@@ -583,18 +583,28 @@ namespace Renderer
 
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
 
-    GLuint position = glGetAttribLocation( theShader, "in_pos" );
-    glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+    const GLint position = glGetAttribLocation( theShader, "in_pos" );
+    if (position >= 0)
+    {
+      glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+      glEnableVertexAttribArray( position );
+    }
 
-    GLuint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
-    glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+    const GLint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
+    if (texcoord >= 0)
+    {
+      glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+      glEnableVertexAttribArray( texcoord );
+    }
 
-    glEnableVertexAttribArray( position );
-    glEnableVertexAttribArray( texcoord );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-    glDisableVertexAttribArray( texcoord );
-    glDisableVertexAttribArray( position );
+
+    if (texcoord >= 0)
+      glDisableVertexAttribArray( texcoord );
+
+    if (position >= 0)
+      glDisableVertexAttribArray( position );
 
     glUseProgram(NULL);
   }
