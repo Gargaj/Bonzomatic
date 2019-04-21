@@ -314,7 +314,7 @@ namespace Renderer
     glGenBuffers( 1, &glhFullscreenQuadVB );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     glGenVertexArrays(1, &glhFullscreenQuadVA);
 
@@ -430,7 +430,7 @@ namespace Renderer
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
     glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     glViewport(0, 0, nWidth, nHeight);
     
@@ -620,7 +620,7 @@ namespace Renderer
     if (position >= 0)
       glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
   }
 
   bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
@@ -959,7 +959,7 @@ namespace Renderer
     glDisableVertexAttribArray( color );
     glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
 
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
@@ -988,7 +988,7 @@ namespace Renderer
       }
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     return true;
   }
