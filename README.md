@@ -93,6 +93,19 @@ make
 make install
 ```
 
+### OpenBSD
+[Xenocara](https://xenocara.org) contains all required components.  Hack away with
+```
+cmake .
+make
+```
+or use the port
+```
+cd /usr/ports/graphics/bonzomatic
+make install
+```
+
+
 ## Organizing a competition
 If you want to organize a competition using Bonzomatic at your party, here's a handy-dandy guide on how to get started:
 https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
