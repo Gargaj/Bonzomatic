@@ -77,7 +77,7 @@ bool match(const char* pattern, std::istream& input) {
 bool parse_string(std::istream& input, String& value) {
     char ch = '\0', delimiter = '"';
     if (!match("\"", input))  {
-        if (Parser == Strict) {
+        if (parser_is_strict()) {
             return false;
         }
         delimiter = '\'';
@@ -121,7 +121,7 @@ bool parse_string(std::istream& input, String& value) {
                             ss << std::hex << ch;
                         }
                         if( input.good() && (ss >> i) )
-                            value.push_back(i);
+                            value.push_back(static_cast<char>(i));
                     }
                     break;
                 default:
@@ -168,7 +168,7 @@ bool parse_identifier(std::istream& input, String& value) {
             (ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
             (ch >= '0' && ch <= '9')) {
-            value.push_back(ch);            
+            value.push_back(ch);
         }
         else if(ch == '\t' || ch == ' ') {
             input >> std::ws;
@@ -209,7 +209,7 @@ bool parse_null(std::istream& input) {
     if (match("null", input))  {
         return true;
     }
-    if (Parser == Strict) {
+    if (parser_is_strict()) {
         return false;
     }
     return (input.peek()==',');
@@ -224,7 +224,7 @@ bool parse_object(std::istream& input, Object& object) {
 }
 
 bool parse_comment(std::istream &input) {
-    if( Parser == Permissive )
+    if( parser_is_permissive() )
     if( !input.eof() && input.peek() == '/' )
     {
         char ch0(0);
@@ -281,9 +281,9 @@ bool Object::parse(std::istream& input, Object& object) {
 
     do {
         std::string key;
-        if(UnquotedKeys == Enabled) {
+        if (unquoted_keys_are_enabled()) {
             if (!parse_identifier(input, key)) {
-                if (Parser == Permissive) {
+                if (parser_is_permissive()) {
                     if (input.peek() == '}')
                         break;
                 }
@@ -292,7 +292,7 @@ bool Object::parse(std::istream& input, Object& object) {
         }
         else {
             if (!parse_string(input, key)) {
-                if (Parser == Permissive) {
+                if (parser_is_permissive()) {
                     if (input.peek() == '}')
                         break;
                 }
@@ -307,7 +307,18 @@ bool Object::parse(std::istream& input, Object& object) {
             delete v;
             break;
         }
-        object.value_map_[key] = v;
+        // TODO(hjiang): Add an option to allow duplicated keys?
+        if (object.value_map_.find(key) == object.value_map_.end()) {
+          object.value_map_[key] = v;
+        } else {
+          if (parser_is_permissive()) {
+            delete object.value_map_[key];
+            object.value_map_[key] = v;
+          } else {
+            delete v;
+            return false;
+          }
+        }
     } while (match(",", input));
 
 
@@ -1066,6 +1077,13 @@ Array::Array(const Array &other) {
 }
 Array::Array(const Value &value) {
   import(value);
+}
+void Array::append(const Array &other) {
+    if (this != &other) {
+        values_.push_back( new Value(other) );
+    } else {
+        append( Array(*this) );
+    }
 }
 void Array::import(const Array &other) {
   if (this != &other) {
