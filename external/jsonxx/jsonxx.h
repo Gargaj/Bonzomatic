@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cassert>
 #include <iostream>
 #include <map>
@@ -32,11 +33,25 @@
 #define JSONXX_COMPILER_HAS_CXX11 0
 #endif
 
+#ifdef _MSC_VER
+// disable the C4127 warning if using VC, see http://stackoverflow.com/a/12042515
+#define JSONXX_ASSERT(...) \
+  do { \
+    __pragma(warning(push)) __pragma(warning(disable:4127)) \
+    if( jsonxx::Assertions ) \
+    __pragma(warning(pop)) \
+      jsonxx::assertion(__FILE__,__LINE__,#__VA_ARGS__,bool(__VA_ARGS__)); \
+  __pragma(warning(push)) __pragma(warning(disable:4127)) \
+  } while(0) \
+  __pragma(warning(pop))
+#else
 #define JSONXX_ASSERT(...) do { if( jsonxx::Assertions ) \
   jsonxx::assertion(__FILE__,__LINE__,#__VA_ARGS__,bool(__VA_ARGS__)); } while(0)
+#endif
 
 namespace jsonxx {
 
+// FIXME(hjiang): Those should really be dynamic.
 // Settings
 enum Settings {
   // constants
@@ -49,6 +64,17 @@ enum Settings {
   UnquotedKeys = Disabled, // support of unquoted keys
   Assertions = Enabled  // enabled or disabled assertions (these asserts work both in DEBUG and RELEASE builds)
 };
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4127)
+#endif
+inline bool parser_is_strict() { return Parser == Strict; }
+inline bool parser_is_permissive() { return Parser == Permissive; }
+inline bool unquoted_keys_are_enabled() { return UnquotedKeys == Enabled; }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 // Constants for .write() and .xml() methods
 enum Format {
@@ -166,6 +192,8 @@ class Array {
   bool parse(std::istream &input);
   bool parse(const std::string &input);
   typedef std::vector<Value*> container;
+  void append(const Array &other);
+  void append(const Value &value) { import(value); }
   void import(const Array &other);
   void import(const Value &value);
   Array &operator<<(const Array &other);
@@ -382,7 +410,7 @@ const T& Object::get(const std::string& key, const typename identity<T>::type& d
     return default_value;
   }
 }
-    
+
 template<>
 inline bool Value::is<Value>() const {
     return true;
@@ -417,12 +445,12 @@ template<>
 inline bool Value::is<Object>() const {
   return type_ == OBJECT_;
 }
-    
+
 template<>
 inline Value& Value::get<Value>() {
     return *this;
 }
-    
+
 template<>
 inline const Value& Value::get<Value>() const {
     return *this;
