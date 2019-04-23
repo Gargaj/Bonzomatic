@@ -118,8 +118,8 @@ set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
 )
 
 ##############################################################################
-# mini_al
-set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/mini_al)
+# miniaudio
+set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/miniaudio)
 
 ##############################################################################
 # kiss_fft
