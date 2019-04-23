@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vulkan_20reference',['Vulkan reference',['../group__vulkan.html',1,'']]]
+  ['standard_20cursor_20shapes',['Standard cursor shapes',['../group__shapes.html',1,'']]]
 ];

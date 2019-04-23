@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['vulkan_20reference',['Vulkan reference',['../group__vulkan.html',1,'']]],
-  ['vulkan_2edox',['vulkan.dox',['../vulkan_8dox.html',1,'']]],
-  ['vulkan_20guide',['Vulkan guide',['../vulkan_guide.html',1,'']]]
+  ['release_20notes',['Release notes',['../news.html',1,'']]],
+  ['red',['red',['../structGLFWgammaramp.html#a2cce5d968734b685623eef913e635138',1,'GLFWgammaramp']]],
+  ['redbits',['redBits',['../structGLFWvidmode.html#a6066c4ecd251098700062d3b735dba1b',1,'GLFWvidmode']]],
+  ['refreshrate',['refreshRate',['../structGLFWvidmode.html#a791bdd6c7697b09f7e9c97054bf05649',1,'GLFWvidmode']]]
 ];

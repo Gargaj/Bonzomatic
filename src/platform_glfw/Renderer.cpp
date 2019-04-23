@@ -212,11 +212,17 @@ namespace Renderer
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
+    
+#ifdef __APPLE__
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+#endif
+
     if(!glfwInit())
     {
       printf("[Renderer] GLFW init failed\n");
       return false;
     }
+    printf("[GLFW] Version String: %s\n", glfwGetVersionString());
 
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
@@ -228,15 +234,20 @@ namespace Renderer
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GLFW_FALSE);
+#endif
+
     // TODO: change in case of resize support
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
@@ -281,7 +292,10 @@ namespace Renderer
       wglSwapIntervalEXT(1);
 #endif
 
+    printf("[GLFW] OpenGL Version %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+    
     // Now, since OpenGL is behaving a lot in fullscreen modes, lets collect the real obtained size!
+    printf("[GLFW] Requested framebuffer size: %d x %d\n", nWidth, nHeight);
     int fbWidth = 1;
     int fbHeight = 1;
     glfwGetFramebufferSize(mWindow, &fbWidth, &fbHeight);

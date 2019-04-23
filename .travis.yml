@@ -7,10 +7,8 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: BONZOMATIC_X64=ON
     - os: osx
-      env: BONZOMATIC_X64=OFF
-      osx_image: xcode9.3
+      osx_image: xcode10.2
   exclude:
     - compiler: gcc    # travis bug: https://github.com/travis-ci/travis-ci/issues/4681
 
@@ -23,7 +21,7 @@ before_install:
     fi
 
 script:
-  - cmake -DBONZOMATIC_64BIT=$BONZOMATIC_X64 . && cmake --build .
+  - cmake . && cmake --build .
   
 notifications:
-  email: false  
+  email: false
