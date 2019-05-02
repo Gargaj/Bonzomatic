@@ -249,6 +249,9 @@ namespace Renderer
     // TODO: change in case of resize support
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
+    // Prevent fullscreen window minimize on focus loss
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
+
     GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
     mWindow = glfwCreateWindow(nWidth, nHeight, "BONZOMATIC - GLFW edition", monitor, NULL);
