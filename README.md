@@ -68,6 +68,17 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
   "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
 }
 ```
+### Automatic shader backup
+If you want the shader to be backed up once you quit Bonzomatic, you can use the above `postExitCmd` parameter in the config, and use a batch file like this:
+```
+@echo off
+REM ### cf. https://stackoverflow.com/a/23476347
+for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
+set "YY=%dt:~2,2%" & set "YYYY=%dt:~0,4%" & set "MM=%dt:~4,2%" & set "DD=%dt:~6,2%"
+set "HH=%dt:~8,2%" & set "Min=%dt:~10,2%" & set "Sec=%dt:~12,2%"
+copy shader.glsl X:\MyShaderBackups\%YYYY%%MM%%DD%-%HH%%Min%%Sec%.glsl
+```
+This will copy the shader timestamped into a specified folder.
 
 ## Building
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
