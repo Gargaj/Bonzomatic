@@ -11,6 +11,7 @@
 #include <AppKit/AppKit.h>
 #import "../TouchBar.h"
 #include "../Renderer.h"
+#include "../Misc.h"
 
 static NSString *touchBarCustomizationId = @"com.something.customization_id";
 static NSString *touchBarItemIdCompile = @"bonzomatic.compile";
@@ -101,6 +102,7 @@ typedef enum {
 }
 
 - (void)quit {
+    Misc::ExecuteCommand(Misc::defaultPostExitCmd, Renderer::defaultShaderFilename);
     exit(0);
 }
 

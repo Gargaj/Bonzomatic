@@ -1,6 +1,7 @@
 // Dummy Keymap functions that don't actually map anything,
 // just to fix the SDL build.
 
+#include <stdlib.h>
 #include <string.h>
 #include "../Misc.h"
 
@@ -8,6 +9,8 @@
 
 #include <sys/param.h> // For MAXPATHLEN
 #include "CoreFoundation/CoreFoundation.h"
+
+const char * Misc::defaultPostExitCmd = "exit_cmd.sh";
 
 void Misc::PlatformStartup()
 {
@@ -44,7 +47,11 @@ void Misc::GetKeymapName(char* sz)
 
 bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
-	return false;
+  char command[512];
+  sprintf(command, "%s %s", cmd, param);
+  system(command);
+
+  return true;
 }
 
 bool Misc::FileExists(const char * path)
