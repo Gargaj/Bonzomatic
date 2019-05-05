@@ -104,15 +104,17 @@ int main(int argc, const char *argv[])
   std::map<int,std::string> midiRoutes;
 
   const char * szDefaultFontPath = Misc::GetDefaultFontPath();
-  if (!szDefaultFontPath)
-  {
-    printf( "Misc::GetDefaultFontPath couldn't find ANY default fonts!\n" );
-    return -1;
-  }
 
   SHADEREDITOR_OPTIONS editorOptions;
   editorOptions.nFontSize = 16;
-  editorOptions.sFontPath = szDefaultFontPath;
+  if ( !szDefaultFontPath )
+  {
+    printf( "Misc::GetDefaultFontPath couldn't find ANY default fonts!\n" );
+  }
+  else
+  {
+    editorOptions.sFontPath = szDefaultFontPath;
+  }
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
   editorOptions.nTabSize = 2;
@@ -208,7 +210,7 @@ int main(int argc, const char *argv[])
     }
     Capture::LoadSettings( options );
   }
-  else if (!editorOptions.sFontPath.size())
+  if (!editorOptions.sFontPath.size())
   {
     printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
     return -1;
