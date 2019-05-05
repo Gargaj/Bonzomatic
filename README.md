@@ -124,21 +124,22 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
-- Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org/)
+- Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org)
 
 ### Libraries and other included software
-- Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
-- OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net/)
+- Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org)
+- OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net)
 - mini_al by David Reid (https://github.com/dr-soft/mini_al)
-- KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft/)
-- STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
+- KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft)
+- STB Image and Truetype libraries by Sean Barrett (http://nothings.org)
 - GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
 - NDI(tm) SDK by NewTek(tm) (http://www.newtek.com/ndi.html)
 
 These software are available under their respective licenses.
 
-The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
+The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
+OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
 If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
