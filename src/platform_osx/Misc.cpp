@@ -10,7 +10,10 @@
 #include <sys/param.h> // For MAXPATHLEN
 #include "CoreFoundation/CoreFoundation.h"
 
-const char * Misc::defaultPostExitCmd = "exit_cmd.sh";
+namespace Misc
+{
+  const char * defaultPostExitCmd = "exit_cmd.sh";
+}
 
 void Misc::PlatformStartup()
 {
