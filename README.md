@@ -6,7 +6,7 @@
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
 
-![Screenshot](http://i.imgur.com/8K8IztLl.jpg)
+![Screenshot](https://i.imgur.com/8K8IztLl.jpg)
 
 The tool was originally conceived and implemented after the Revision 2014 demoscene party's live coding competition where two contestants improv-code an effect in 25 minutes head-to-head. Wanna see how it looks in action? Check https://www.youtube.com/watch?v=KG_2q4OEhKc
 
@@ -127,14 +127,14 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 - Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org)
 
 ### Libraries and other included software
-- Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org)
+- Scintilla editing component by the Scintilla Dev Team (https://www.scintilla.org)
 - OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net)
 - mini_al by David Reid (https://github.com/dr-soft/mini_al)
 - KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft)
-- STB Image and Truetype libraries by Sean Barrett (http://nothings.org)
-- GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
+- STB Image and Truetype libraries by Sean Barrett (https://nothings.org)
+- GLFW by whoever made GLFW (https://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
-- NDI(tm) SDK by NewTek(tm) (http://www.newtek.com/ndi.html)
+- NDI(tm) SDK by NewTek(tm) (https://www.newtek.com/ndi.html)
 
 These software are available under their respective licenses.
 
@@ -142,4 +142,4 @@ The remainder of this project code was (mostly, I guess) written by Gargaj / Con
 OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
-If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+If you have anything to say, do it at https://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
