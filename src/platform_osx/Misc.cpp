@@ -10,10 +10,7 @@
 #include <sys/param.h> // For MAXPATHLEN
 #include "CoreFoundation/CoreFoundation.h"
 
-namespace Misc
-{
-  const char * postExitCmd = "";
-}
+const char * Misc::postExitCmd = "";
 
 void Misc::PlatformStartup()
 {

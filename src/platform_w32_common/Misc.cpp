@@ -6,6 +6,8 @@
 
 namespace Misc
 {
+  const char * postExitCmd = "";
+
   void PlatformStartup()
   {
   }

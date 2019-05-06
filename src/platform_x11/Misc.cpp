@@ -6,6 +6,8 @@
 
 #include <unistd.h>
 
+const char * Misc::postExitCmd = "";
+
 void Misc::PlatformStartup()
 {
 }
