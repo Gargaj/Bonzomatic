@@ -2,7 +2,7 @@
 
 namespace Misc
 {
-  extern const char * defaultPostExitCmd;
+  extern const char * postExitCmd;
 
   void PlatformStartup();
   void PlatformShutdown();

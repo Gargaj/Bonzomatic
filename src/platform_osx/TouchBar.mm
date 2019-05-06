@@ -102,7 +102,10 @@ typedef enum {
 }
 
 - (void)quit {
-    Misc::ExecuteCommand(Misc::defaultPostExitCmd, Renderer::defaultShaderFilename);
+    if (strlen(Misc::postExitCmd) > 0 ) {
+      Misc::ExecuteCommand(Misc::postExitCmd, Renderer::defaultShaderFilename);
+    }
+
     exit(0);
 }
 

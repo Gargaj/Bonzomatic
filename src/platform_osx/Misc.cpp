@@ -12,7 +12,7 @@
 
 namespace Misc
 {
-  const char * defaultPostExitCmd = "exit_cmd.sh";
+  const char * postExitCmd = "";
 }
 
 void Misc::PlatformStartup()
