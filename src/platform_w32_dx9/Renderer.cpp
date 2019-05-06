@@ -524,6 +524,16 @@ namespace Renderer
     return true;
   }
 
+  void ShowCursor()
+  {
+
+  }
+
+  void HideCursor()
+  {
+    
+  }
+
   unsigned int nCacheFlushCount = 0;
   void StartFrame()
   {

@@ -747,6 +747,16 @@ namespace Renderer
     return true;
   }
 
+  void ShowCursor()
+  {
+
+  }
+
+  void HideCursor()
+  {
+    
+  }
+
   void StartFrame()
   {
     MSG msg;

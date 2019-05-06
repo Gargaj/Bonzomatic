@@ -570,6 +570,16 @@ namespace Renderer
     mouseEventBufferCount++;
   }
 
+  void ShowCursor()
+  {
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+
+  void HideCursor()
+  {
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+  }
+
   void StartFrame()
   {
     glClearColor(0.08f, 0.18f, 0.18f, 1.0f);

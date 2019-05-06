@@ -59,6 +59,8 @@ int main(int argc, const char *argv[])
     options.parse( szConfig );
   }
 
+  bool bShowMode = false;
+
   RENDERER_SETTINGS settings;
   settings.bVsync = false;
 #ifdef _DEBUG
@@ -77,8 +79,10 @@ int main(int argc, const char *argv[])
       settings.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
     if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
       settings.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+    if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("showMode"))
+      bShowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("showMode");
   }
-  if (!Renderer::OpenSetupDialog( &settings ))
+  if (!bShowMode && !Renderer::OpenSetupDialog( &settings ))
     return -1;
 #endif
 
@@ -310,7 +314,10 @@ int main(int argc, const char *argv[])
   static float fftDataIntegrated[FFT_SIZE];
   memset(fftDataIntegrated, 0, sizeof(float) * FFT_SIZE);
 
-  bool bShowGui = true;
+  bool bShowGui = !bShowMode;
+  if(!bShowGui)
+    Renderer::HideCursor();
+
   Timer::Start();
   float fNextTick = 0.1f;
   while (!Renderer::WantsToQuit())
@@ -376,6 +383,7 @@ int main(int argc, const char *argv[])
       else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f  
       {
         bShowGui = !bShowGui;
+        bShowGui? Renderer::ShowCursor() : Renderer::HideCursor();
       }
       else if (bShowGui)
       {

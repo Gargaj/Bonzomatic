@@ -25,6 +25,9 @@ namespace Renderer
   bool OpenSetupDialog( RENDERER_SETTINGS * settings );
   bool Open( RENDERER_SETTINGS * settings );
   
+  void ShowCursor();
+  void HideCursor();
+
   void StartFrame();
   void EndFrame();
   bool WantsToQuit();
