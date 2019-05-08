@@ -44,6 +44,13 @@ void Misc::GetKeymapName(char* sz)
 
 bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
+	if (cmd && *cmd) // param is always set
+	{
+		char command[512];
+		sprintf(command, "%s %s", cmd, param);
+		system(command);
+		return true;
+	}
 	return false;
 }
 
