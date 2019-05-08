@@ -47,11 +47,25 @@ void Misc::GetKeymapName(char* sz)
 
 bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
-  char command[512];
-  sprintf(command, "%s %s", cmd, param);
-  system(command);
+  bool ret = false;
 
-  return true;
+  if(cmd != NULL && strlen(cmd) > 0)
+  {
+    if(param != NULL && strlen(param) > 0)
+    {
+      char command[512];
+      sprintf(command, "%s %s", cmd, param);
+      system(command);
+    }
+    else
+    {
+      system(cmd);
+    }
+
+    ret = true;
+  }
+
+  return ret;
 }
 
 bool Misc::FileExists(const char * path)
