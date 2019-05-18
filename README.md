@@ -17,6 +17,7 @@ The tool was originally conceived and implemented after the Revision 2014 demosc
 - F5 or Ctrl-R: recompile shader
 - F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4 or Shift+Escape: exbobolate your planet
+- Ctrl/Cmd + /: comment or uncomment the selected lines of code
 
 ## Requirements
 On Windows, both DirectX 9 and 11 are supported.

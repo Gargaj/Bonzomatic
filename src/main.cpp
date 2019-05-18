@@ -381,7 +381,6 @@ int main(int argc, const char *argv[])
   static float fftDataSmoothed[FFT_SIZE];
   memset(fftDataSmoothed, 0, sizeof(float) * FFT_SIZE);
 
-
   static float fftDataSlightlySmoothed[FFT_SIZE];
   memset(fftDataSlightlySmoothed, 0, sizeof(float) * FFT_SIZE);
   static float fftDataIntegrated[FFT_SIZE];
@@ -450,6 +449,10 @@ int main(int argc, const char *argv[])
           mDebugOutput.SetText( szError );
         }
       }
+      else if (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == '/') // Ctrl Slash (/)
+      {
+        mShaderEditor.CommentSelection();
+      }
       else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f  
       {
         bShowGui = !bShowGui;
@@ -473,7 +476,6 @@ int main(int argc, const char *argv[])
           Scintilla::UTF8FromUTF16(utf16, 1, utf8, 4 * sizeof(char));
           mShaderEditor.AddCharUTF(utf8, (unsigned int)strlen(utf8));
         }
-
       }
     }
     Renderer::keyEventBufferCount = 0;

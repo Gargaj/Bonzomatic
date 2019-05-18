@@ -414,6 +414,27 @@ void ShaderEditor::FineTickerCancel( TickReason )
 
 }
 
+void ShaderEditor::CommentSelection()
+{
+  int selectionStartPosition = WndProc(SCI_GETSELECTIONSTART, 0, 0);
+  int selectionEndPosition = WndProc(SCI_GETSELECTIONEND, 0, 0);
+  int firstSelectedLine = WndProc(SCI_LINEFROMPOSITION, selectionStartPosition, 0);
+  int lastSelectedLine = WndProc(SCI_LINEFROMPOSITION, selectionEndPosition, 0);
+
+  for (int line = firstSelectedLine; line <= lastSelectedLine; line++) {
+    int lineStartPosition = WndProc(SCI_POSITIONFROMLINE, line, 0);
+    char firstCharacterOFLine = WndProc(SCI_GETCHARAT, lineStartPosition, 0);
+    if (firstCharacterOFLine == '/') {
+        // We are uncommenting this line
+        WndProc(SCI_DELETERANGE, lineStartPosition, 2);
+    }
+    else {
+        // We are commenting this line
+        WndProc(SCI_INSERTTEXT, lineStartPosition, reinterpret_cast<sptr_t>("//"));
+    }
+  }
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Indentation handling

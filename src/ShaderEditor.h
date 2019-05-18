@@ -152,6 +152,7 @@ public:
 
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
+  void CommentSelection();
     
 private:
   enum IndentationStatus {
