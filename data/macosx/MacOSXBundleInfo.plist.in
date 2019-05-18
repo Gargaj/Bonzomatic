@@ -40,5 +40,7 @@
 	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.6.4</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Bonzomatic requires microphone access for the FFT textures to work.</string>
 </dict>
 </plist>
