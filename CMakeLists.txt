@@ -26,7 +26,6 @@ endif ()
 
 if (APPLE)
   option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
-  option(BONZOMATIC_RETINA "Support HiDPI (warning: huge framebuffer, low fps in sight)?" OFF)
 endif ()
 
 if (WIN32)
@@ -463,12 +462,9 @@ if (UNIX AND (NOT APPLE))
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
-if (APPLE AND BONZOMATIC_RETINA)
-  # Add special plist to enable Retina display support
-  set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
-endif ()
 # Set compiler specific flags
 if (APPLE)
+  set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
   if (BONZOMATIC_TOUCHBAR)
     target_compile_definitions(${BZC_EXE_NAME} PUBLIC -DBONZOMATIC_ENABLE_TOUCHBAR)
   endif ()
