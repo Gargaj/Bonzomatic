@@ -1,6 +1,8 @@
 #include <string>
 #include <Windows.h>
 #include <tchar.h>
+#include <Shlobj.h>
+#include <Shlwapi.h>
 
 #include <map>
 
@@ -67,16 +69,23 @@ namespace Misc
 
   const char * GetDefaultFontPath()
   {
+    char windowsPath[ MAX_PATH ];
+    if ( SHGetFolderPath( NULL, CSIDL_WINDOWS, NULL, 0, windowsPath ) != S_OK )
+    {
+      return NULL;
+    }
     const char* fontPaths[] = 
     {
-      "c:\\Windows\\Fonts\\cour.ttf",
+      "Fonts\\cour.ttf",
       NULL
     };
     for (int i = 0; fontPaths[i]; ++i)
     {
-      if (FileExists(fontPaths[i]))
+      static char fullPath[ MAX_PATH ] = { 0 };
+      PathCombineA( fullPath, windowsPath, fontPaths[ i ] );
+      if (FileExists( fullPath ))
       {
-        return fontPaths[i];
+        return fullPath;
       }
     }
     return NULL;
