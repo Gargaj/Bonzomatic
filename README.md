@@ -24,7 +24,7 @@ For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 On recent macOS, to allow sound input to be captured (for FFT textures to be generated), you need to: Open up System Preferences, click on Security & Privacy, click on the Privacy tab then click on the Microphone menu item. Make sure Bonzomatic.app is in the list and ticked.
 
 ## Configuration
-Create a `config.json` with e.g. the following contents: (all fields are optional)
+Create a `config.json` and place it next to the executable with e.g. the following contents: (all fields are optional)
 ``` javascript
 {
   "window":{ // default window size / state, if there's a setup dialog, it will override it
