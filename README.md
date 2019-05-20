@@ -89,10 +89,12 @@ Use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needi
 ### OSX/macOS
 ```cmake``` should take care of everything:
 ```
-cmake .
-make
-make install
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ../
+cmake --build .
 ```
+The Bonzomatic.app bundle, resulting from the compilation, should be found in `./build/Bonzomatic.app`. You can place it anywhere.
+We do NOT recommend putting it in /Applications. Bonzomatic is looking for config.json files and resources living at the same level of the app.
 
 ### Linux
 You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
