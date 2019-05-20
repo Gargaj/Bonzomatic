@@ -2,6 +2,13 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
@@ -45,8 +52,23 @@ int main(int argc, const char *argv[])
 {
   Misc::PlatformStartup();
 
+  const char * configFile = "config.json";
+  if ( argc > 1 )
+  {
+    configFile = argv[ 1 ];
+    printf( "Loading config file '%s'...\n", configFile );
+  }
+  else
+  {
+    char configPath[ 256 ] = { 0 };
+    if ( getcwd( configPath, 255 ) )
+    {
+      printf( "Looking for config.json in '%s'...\n", configPath );
+    }
+  }
+
   jsonxx::Object options;
-  FILE * fConf = fopen( (argc > 1) ? argv[1] : "config.json","rb");
+  FILE * fConf = fopen( configFile, "rb" );
   if (fConf)
   {
     printf("Config file found, parsing...\n");
