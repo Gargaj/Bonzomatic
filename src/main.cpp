@@ -449,7 +449,7 @@ int main(int argc, const char *argv[])
           mDebugOutput.SetText( szError );
         }
       }
-      else if (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == '/') // Ctrl Slash (/)
+      else if (Renderer::keyEventBuffer[i].ctrl && (Renderer::keyEventBuffer[i].scanCode == '/' || Renderer::keyEventBuffer[i].scanCode == 'k')) // Ctrl/Cmd Slash (/) or Ctrl/Cmd-k
       {
         mShaderEditor.CommentSelection();
       }
