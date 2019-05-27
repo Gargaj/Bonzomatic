@@ -245,7 +245,8 @@ int main(int argc, const char *argv[])
   bool shaderInitSuccessful = false;
   char szShader[65535];
   char szError[4096];
-  FILE * f = fopen(Renderer::defaultShaderFilename,"rb");
+  std::string defaultShaderFilePath = app_settings.get_data_directory() + std::string("/") + std::string(Renderer::defaultShaderFilename);
+  FILE * f = fopen( defaultShaderFilePath.c_str(),"rb" );
   if (f)
   {
     printf("Loading last shader...\n");
