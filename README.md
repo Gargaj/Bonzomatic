@@ -25,6 +25,7 @@ On recent macOS, to allow sound input to be captured (for FFT textures to be gen
 
 ## Configuration
 You can configure Bonzomatic by creating a `config.json` and placing it next to the binary executable you're planning to run in the working directory for the binary; Bonzomatic will helpfully print this directory out for you when you run it, and you can also pass a file (with absolute or relative path, whichever you want) to load any other file as `config.json`. This allows you to have multiple configurations for multiple situations.
+
 On Linux this file will be searched, in this order, in the executable directory, then in `~/.config/bonzomatic`, and finally in `/etc/bonzomatic`. Data (textures and last shader) will then be searched in a directory relative to where the `config.json` file was found. The only exception is if `config.json` is found in `/etc/bonzomatic` then data will be searched in `/usr/share/bonzomatic`.
 
 The file can have the following contents: (all fields are optional)
