@@ -331,6 +331,7 @@ if (APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Misc.mm
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
@@ -362,6 +363,7 @@ elseif (WIN32)
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -374,6 +376,7 @@ elseif (WIN32)
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -386,6 +389,7 @@ elseif (WIN32)
       ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
