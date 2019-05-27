@@ -1,0 +1,41 @@
+{
+  "window":{ // default window size / state, if there's a setup dialog, it will override it
+    "width":1920,
+    "height":1080,
+    "fullscreen":true,
+  },
+//  "font":{ // all paths in the file are also relative to the binary, but again, can be absolute paths if that's more convenient
+//    "file":"Input-Regular_(InputMono-Medium).ttf",
+//    "size":16,
+//  },
+  "rendering":{
+    "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
+    "fftAmplification": 1.0, // 1.0 means no change, larger values will result in brighter/stronger bands, smaller values in darker/weaker ones
+  },
+  "textures":{ // the keys below will become the shader variable names
+    "texChecker":"textures/checker.png",
+    "texNoise":"textures/noise.png",
+    "texTex1":"textures/tex1.jpg",
+  },
+  "gui":{
+    "outputHeight": 200,
+    "opacity": 192, // 255 means the editor occludes the effect completely, 0 means the editor is fully transparent
+    "texturePreviewWidth": 128,
+    "spacesForTabs": false,
+    "tabSize": 8,
+    "visibleWhitespace": false,
+    "autoIndent": "smart", // can be "none", "preserve" or "smart"
+  },
+  "midi":{ // the keys below will become the shader variable names, the values are the CC numbers
+    "fMidiKnob": 16, // e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2
+  },
+  // this section is if you want to enable NDI streaming; otherwise just ignore it
+  "ndi":{
+    "enabled": true,
+    "connectionString": "<ndi_product something=\"123\"/>", // metadata sent to the receiver; completely optional
+    "identifier": "hello!", // additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network
+    "frameRate": 60.0, // frames per second
+    "progressive": true, // progressive or interleaved?
+  },
+  "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
+}
