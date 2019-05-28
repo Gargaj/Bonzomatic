@@ -14,19 +14,19 @@ namespace Config
 	public:
 		enum Location
 		{
-			SYSTEM,
-			USER,
-			DIRECTORY,
-			NONE
+			LOC_SYSTEM,
+			LOC_USER,
+			LOC_DIRECTORY,
+			LOC_NONE
 		};
 
 		ApplicationSettings( const std::string& cfg_filename )
-			: location_( Location::NONE ), config_filename_( cfg_filename ) {}
+			: location_( LOC_NONE ), config_filename_( cfg_filename ) {}
 
 		void load()
 		{
 			find_location();
-			if( location_ != Location::NONE )
+			if( location_ != LOC_NONE )
 			{
 				read_config();
 			}

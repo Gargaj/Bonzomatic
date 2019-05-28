@@ -26,13 +26,13 @@ namespace Config
 			config_directory_ = curDir;
 			data_directory_ = curDir;
 			cfgFile.close();
-			location_ = Location::DIRECTORY;
+			location_ = LOC_DIRECTORY;
 			std::cout << "Config file found in current directory (" << config_directory_ << ")...\n";
 			return;
 		}
 
 		config_directory_ = curDir;
-		location_ = Location::NONE;
+		location_ = LOC_NONE;
 		std::cout << "No config file found, using default settings...\n";
 	}
 }

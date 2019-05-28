@@ -28,7 +28,7 @@ namespace Config
 			config_directory_ = curDir;
 			data_directory_ = curDir;
 			cfgFile.close();
-			location_ = Location::DIRECTORY;
+			location_ = LOC_DIRECTORY;
 			std::cout << "Config file found in current directory (" << config_directory_ << ")...\n";
 			return;
 		}
@@ -40,7 +40,7 @@ namespace Config
 			config_directory_ = userPath;
 			data_directory_ = userPath;
 			userCfgFile.close();
-			location_ = Location::USER;
+			location_ = LOC_USER;
 			std::cout << "Config file found in user directory (" << config_directory_ << ")...\n";
 			return;
 		}
@@ -52,13 +52,13 @@ namespace Config
 			config_directory_ = sysPath;
 			data_directory_ = "/usr/share/bonzomatic";
 			sysCfgFile.close();
-			location_ = Location::SYSTEM;
+			location_ = LOC_SYSTEM;
 			std::cout << "Config file found in system config path (" << config_directory_ << ")...\n";
 			return;
 		}
 
 		config_directory_ = curDir;
-		location_ = Location::NONE;
+		location_ = LOC_NONE;
 		std::cout << "No config file found, using default settings...\n";
 	}
 
