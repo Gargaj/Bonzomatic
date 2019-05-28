@@ -1,5 +1,8 @@
 #include "Config.h"
 
+#include <string>
+#include <fstream>
+
 #ifdef _WIN32
 #include <direct.h>
 #define getcwd _getcwd
