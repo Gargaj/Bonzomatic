@@ -23,7 +23,7 @@ namespace Config
 		std::string curDir( cwd );
 
 	  	// 1. search in current directory
-		std::ifstream cfgFile( config_filename_ );
+		std::ifstream cfgFile( config_filename_.c_str() );
 		if( cfgFile.is_open() )
 		{
 			config_directory_ = curDir;
@@ -35,7 +35,8 @@ namespace Config
 		}
 
 	  	// 2. search in user config path
-		std::ifstream userCfgFile( localPath + std::string( "/" ) + config_filename_ );
+	  	std::string userCfgPath( localPath + std::string( "/" ) + config_filename_ );
+		std::ifstream userCfgFile( userCfgPath.c_str() );
 		if( userCfgFile.is_open() )
 		{
 			config_directory_ = userPath;
@@ -47,7 +48,8 @@ namespace Config
 		}
 
 	  	// 3. search in system config path
-		std::ifstream sysCfgFile( sysPath + std::string( "/" ) + config_filename_ );
+	  	std::string sysCfgPath( sysPath + std::string( "/" ) + config_filename_ );
+		std::ifstream sysCfgFile(  sysCfgPath.c_str());
 		if( sysCfgFile.is_open() )
 		{
 			config_directory_ = sysPath;

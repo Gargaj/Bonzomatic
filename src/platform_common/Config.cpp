@@ -20,7 +20,7 @@ namespace Config
 		getcwd( cwd, 255 );
 		std::string curDir( cwd );
 
-		std::ifstream cfgFile( config_filename_ );
+		std::ifstream cfgFile( config_filename_.c_str() );
 		if( cfgFile.is_open() )
 		{
 			config_directory_ = curDir;
