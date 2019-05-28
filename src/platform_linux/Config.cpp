@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <unistd.h>
+#include <stdlib.h>
 
 
 namespace Config
