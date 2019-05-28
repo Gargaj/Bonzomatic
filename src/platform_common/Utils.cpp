@@ -7,7 +7,7 @@ namespace Utils
 
 	bool read_file( const std::string& filename, std::vector< char >& out )
 	{
-		std::ifstream fp( filename );
+		std::ifstream fp( filename.c_str() );
 		if( !fp.is_open() ) return false;
 		fp.seekg( 0, std::ios::end );
 		size_t file_size_in_byte = fp.tellg();
