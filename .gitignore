@@ -4,3 +4,4 @@ tmp
 build
 .vs
 .DS_Store
+.vscode

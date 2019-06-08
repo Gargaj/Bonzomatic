@@ -477,6 +477,7 @@ namespace Renderer
 //           case GLFW_KEY_RSUPER:       sciKey = SCK_RWIN;      break;
         case GLFW_KEY_MENU:         sciKey = SCK_MENU;      break;
         case GLFW_KEY_SLASH:        sciKey = '/';           break;
+        case GLFW_KEY_8:            sciKey = '*';           break;
 //           case GLFW_KEY_ASTERISK:     sciKey = '`';           break;
 //           case GLFW_KEY_LEFTBRACKET:  sciKey = '[';           break;
 //           case GLFW_KEY_BACKSLASH:    sciKey = '\\';          break;

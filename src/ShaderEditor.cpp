@@ -414,27 +414,72 @@ void ShaderEditor::FineTickerCancel( TickReason )
 
 }
 
-void ShaderEditor::CommentSelection()
+// Comment or uncomment the selected text in the code editor.
+// Returns true if an action was performed
+bool ShaderEditor::CommentSelection(CommentType commentType)
 {
   int selectionStartPosition = WndProc(SCI_GETSELECTIONSTART, 0, 0);
   int selectionEndPosition = WndProc(SCI_GETSELECTIONEND, 0, 0);
   int firstSelectedLine = WndProc(SCI_LINEFROMPOSITION, selectionStartPosition, 0);
   int lastSelectedLine = WndProc(SCI_LINEFROMPOSITION, selectionEndPosition, 0);
 
-  for (int line = firstSelectedLine; line <= lastSelectedLine; line++) {
-    int lineStartPosition = WndProc(SCI_POSITIONFROMLINE, line, 0);
-    char firstCharacterOFLine = WndProc(SCI_GETCHARAT, lineStartPosition, 0);
-    if (firstCharacterOFLine == '/') {
-        // We are uncommenting this line
-        WndProc(SCI_DELETERANGE, lineStartPosition, 2);
-    }
-    else {
-        // We are commenting this line
+  CommentMode commentMode;
+
+  switch (commentType) {
+  case ctLinesSelectedOnly:
+    // If no lines are selected then do nothing
+    if (selectionStartPosition == selectionEndPosition) return false;
+  case ctLinesAll:
+    // Perform line (un)commenting "//"
+    for (int line = firstSelectedLine; line <= lastSelectedLine; line++) {
+      int lineStartPosition = WndProc(SCI_POSITIONFROMLINE, line, 0);
+      char firstCharacterOfLine = WndProc(SCI_GETCHARAT, lineStartPosition, 0);
+      commentMode = firstCharacterOfLine == '/' ? cmUncomment : cmComment;
+      if (commentMode == cmComment) {
         WndProc(SCI_INSERTTEXT, lineStartPosition, reinterpret_cast<sptr_t>("//"));
+      }
+      else {
+        WndProc(SCI_DELETERANGE, lineStartPosition, 2);
+      }
     }
+    return true;
+  case ctBlock:
+    // If no lines are selected then do nothing
+    if (selectionStartPosition == selectionEndPosition) return false;
+
+    // Perform block (un)commenting between selection start and end of selected text (*/ /*)
+    commentMode = cmComment;
+    int beginningSelectionOffset;
+    int endSelectionOffset;
+    for (beginningSelectionOffset = -2; beginningSelectionOffset <= 0; beginningSelectionOffset++) {
+      char characterAtOffset = WndProc(SCI_GETCHARAT, selectionStartPosition + beginningSelectionOffset, 0);
+      char secondCharacterFromOffset = WndProc(SCI_GETCHARAT, selectionStartPosition + beginningSelectionOffset + 1, 0);
+      if (characterAtOffset == '/' && secondCharacterFromOffset == '*') {
+        // We have found a "/*" at the beginning of selection. Looks like we are going to uncomment a block but let's check for a "*/" at the end to make sure.
+        for (endSelectionOffset = -2; endSelectionOffset <= 0; endSelectionOffset++) {
+          characterAtOffset = WndProc(SCI_GETCHARAT, selectionEndPosition + endSelectionOffset, 0);
+          secondCharacterFromOffset = WndProc(SCI_GETCHARAT, selectionEndPosition + endSelectionOffset + 1, 0);
+          if (characterAtOffset == '*' && secondCharacterFromOffset == '/') {
+            commentMode = cmUncomment;
+            break;
+          }
+        }
+        break;
+      }
+    }
+
+    if (commentMode == cmComment) {
+      char characterAtOffset = WndProc(SCI_GETCHARAT, selectionStartPosition, 0);
+      WndProc(SCI_INSERTTEXT, selectionStartPosition, reinterpret_cast<sptr_t>("/*"));
+      WndProc(SCI_INSERTTEXT, selectionEndPosition + 2, reinterpret_cast<sptr_t>("*/"));
+    }
+    else if (commentMode == cmUncomment) {
+      WndProc(SCI_DELETERANGE, selectionStartPosition + beginningSelectionOffset, 2);
+      WndProc(SCI_DELETERANGE, selectionEndPosition + endSelectionOffset - 2, 2);
+    }
+    return true;
   }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Indentation handling

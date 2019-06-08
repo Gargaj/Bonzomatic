@@ -449,9 +449,21 @@ int main(int argc, const char *argv[])
           mDebugOutput.SetText( szError );
         }
       }
+      else if (!Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == '/')
+      {
+        bool clearKeyEventBuffer = mShaderEditor.CommentSelection(ctLinesSelectedOnly);
+        if (clearKeyEventBuffer)
+          Renderer::keyEventBufferCount = 0;
+      }
+      else if (Renderer::keyEventBuffer[i].shift && Renderer::keyEventBuffer[i].scanCode == '*')
+      {
+        bool clearKeyEventBuffer = mShaderEditor.CommentSelection(ctBlock);
+        if (clearKeyEventBuffer)
+          Renderer::keyEventBufferCount = 0;
+      }
       else if (Renderer::keyEventBuffer[i].ctrl && (Renderer::keyEventBuffer[i].scanCode == '/' || Renderer::keyEventBuffer[i].scanCode == 'k')) // Ctrl/Cmd Slash (/) or Ctrl/Cmd-k
       {
-        mShaderEditor.CommentSelection();
+        mShaderEditor.CommentSelection(ctLinesAll);
       }
       else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f  
       {
