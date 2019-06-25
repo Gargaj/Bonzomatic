@@ -556,7 +556,7 @@ namespace Renderer
     if (theShader) theShader->Release();
     if (pDevice) pDevice->Release();
     if (pD3D) pD3D->Release();
-    if (!hWnd) 
+    if (hWnd) 
     {
       DestroyWindow(hWnd);
       UnregisterClass(_T("fwzwnd"),GetModuleHandle(NULL));
