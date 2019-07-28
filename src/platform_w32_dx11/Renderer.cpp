@@ -916,14 +916,27 @@ namespace Renderer
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
-    if (!c) return NULL;
+
+    DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    void * data = NULL;
+    unsigned int pitch = 0;
+    if ( stbi_is_hdr( szFilename ) )
+    {
+      data = stbi_loadf( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+      format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+      pitch = width * sizeof( float ) * 4;
+    }
+    else
+    {
+      data = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+      pitch = width * sizeof( unsigned char ) * 4;
+    }
 
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
     desc.Width = width;
     desc.Height = height;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    desc.Format = format;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.SampleDesc.Count = 1;
@@ -931,15 +944,15 @@ namespace Renderer
     
     D3D11_SUBRESOURCE_DATA subData;
     ZeroMemory(&subData,sizeof(D3D11_SUBRESOURCE_DATA));
-    subData.pSysMem = c;
-    subData.SysMemPitch = width * sizeof(unsigned char) * 4;
+    subData.pSysMem = data;
+    subData.SysMemPitch = pitch;
 
     ID3D11Texture2D * pTex = NULL;
 
     if (pDevice->CreateTexture2D( &desc, &subData, &pTex ) != S_OK)
       return NULL;
 
-    stbi_image_free(c);
+    stbi_image_free(data);
 
     DX11Texture * tex = new DX11Texture();
     tex->width = width;

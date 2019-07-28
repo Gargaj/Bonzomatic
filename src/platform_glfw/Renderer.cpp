@@ -694,8 +694,21 @@ namespace Renderer
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
-    if (!c) return NULL;
+    void * data = nullptr;
+    GLenum internalFormat = GL_SRGB8_ALPHA8;
+    GLenum srcFormat = GL_RGBA;
+    GLenum format = GL_UNSIGNED_BYTE;
+    if ( stbi_is_hdr( szFilename ) )
+    {
+      internalFormat = GL_RGBA32F;
+      format = GL_FLOAT;
+      data = stbi_loadf( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    else
+    {
+      data = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    if (!data) return NULL;
 
     GLuint glTexId = 0;
     glGenTextures( 1, &glTexId );
@@ -706,12 +719,9 @@ namespace Renderer
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    GLenum internalFormat = GL_SRGB8_ALPHA8;
-    GLenum srcFormat = GL_RGBA;
+    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, format, data );
 
-    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, GL_UNSIGNED_BYTE, c );
-
-    stbi_image_free(c);
+    stbi_image_free(data);
 
     GLTexture * tex = new GLTexture();
     tex->width = width;
