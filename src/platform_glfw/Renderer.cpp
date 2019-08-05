@@ -694,7 +694,7 @@ namespace Renderer
     int comp = 0;
     int width = 0;
     int height = 0;
-    void * data = nullptr;
+    void * data = NULL;
     GLenum internalFormat = GL_SRGB8_ALPHA8;
     GLenum srcFormat = GL_RGBA;
     GLenum format = GL_UNSIGNED_BYTE;
