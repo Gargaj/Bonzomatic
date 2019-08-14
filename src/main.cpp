@@ -19,6 +19,11 @@
 #include "jsonxx.h"
 #include "Capture.h"
 
+// #FLO
+#include "Config.h"
+
+#include <iostream>
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -48,38 +53,24 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
+
+
+
+
 int main(int argc, const char *argv[])
 {
   Misc::PlatformStartup();
 
-  const char * configFile = "config.json";
+  std::string cfg_file_name( "config.json" );
+
   if ( argc > 1 )
   {
-    configFile = argv[ 1 ];
-    printf( "Loading config file '%s'...\n", configFile );
+    cfg_file_name = argv[ 1 ];
   }
-  else
-  {
-    char configPath[ 256 ] = { 0 };
-    if ( getcwd( configPath, 255 ) )
-    {
-      printf( "Looking for config.json in '%s'...\n", configPath );
-    }
-  }
+  std::cout << "Loading config file '" << cfg_file_name << "'...\n";
 
-  jsonxx::Object options;
-  FILE * fConf = fopen( configFile, "rb" );
-  if (fConf)
-  {
-    printf("Config file found, parsing...\n");
-
-    char szConfig[65535];
-    memset( szConfig, 0, 65535 );
-    fread( szConfig, 1, 65535, fConf );
-    fclose(fConf);
-
-    options.parse( szConfig );
-  }
+  Config::ApplicationSettings app_settings( cfg_file_name );
+  app_settings.load();
 
   RENDERER_SETTINGS settings;
   settings.bVsync = false;
@@ -91,14 +82,15 @@ int main(int argc, const char *argv[])
   settings.nWidth = 1920;
   settings.nHeight = 1080;
   settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
-  if (options.has<jsonxx::Object>("window"))
+  jsonxx::Object opts = app_settings.get_options();
+  if (opts.has<jsonxx::Object>("window"))
   {
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))
-      settings.nWidth = options.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("height"))
-      settings.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
-      settings.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+    if (opts.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))
+      settings.nWidth = opts.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
+    if (opts.get<jsonxx::Object>("window").has<jsonxx::Number>("height"))
+      settings.nHeight = opts.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
+    if (opts.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
+      settings.windowMode = opts.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
   }
   if (!Renderer::OpenSetupDialog( &settings ))
     return -1;
@@ -150,40 +142,43 @@ int main(int argc, const char *argv[])
 
   std::string sPostExitCmd;
 
-  if (!options.empty())
+  if (!opts.empty())
   {
-    if (options.has<jsonxx::Object>("rendering"))
+    if (opts.has<jsonxx::Object>("rendering"))
     {
-      if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
-        fFFTSmoothingFactor = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
-      if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftAmplification"))
-        FFT::fAmplification = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftAmplification");
+      if (opts.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftSmoothFactor"))
+        fFFTSmoothingFactor = opts.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
+      if (opts.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftAmplification"))
+        FFT::fAmplification = opts.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftAmplification");
     }
 
-    if (options.has<jsonxx::Object>("textures"))
+    if (opts.has<jsonxx::Object>("textures"))
     {
       printf("Loading textures...\n");
-      std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("textures").kv_map();
+      std::map<std::string, jsonxx::Value*> tex = opts.get<jsonxx::Object>("textures").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
-        const char * fn = it->second->string_value_->c_str();
-        printf("* %s...\n",fn);
-        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        //const char * fn = it->second->string_value_->c_str();
+        std::string file_name = app_settings.get_data_directory() + std::string( "/" ) + std::string( it->second->string_value_->c_str() );
+        //printf("* %s...\n",fn);
+        std::cout << file_name << "...\n";
+        //Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( fn );
+        Renderer::Texture * tex = Renderer::CreateRGBA8TextureFromFile( file_name.c_str() );
         if (!tex)
         {
-          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",fn);
+          printf("Renderer::CreateRGBA8TextureFromFile(%s) failed\n",file_name.c_str());
           return -1;
         }
         textures[it->first] = tex;
       }
     }
-    if (options.has<jsonxx::Object>("font"))
+    if (opts.has<jsonxx::Object>("font"))
     {
-      if (options.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
-        editorOptions.nFontSize = options.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
-      if (options.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
+      if (opts.get<jsonxx::Object>("font").has<jsonxx::Number>("size"))
+        editorOptions.nFontSize = opts.get<jsonxx::Object>("font").get<jsonxx::Number>("size");
+      if (opts.get<jsonxx::Object>("font").has<jsonxx::String>("file"))
       {
-        std::string fontpath = options.get<jsonxx::Object>("font").get<jsonxx::String>("file");
+        std::string fontpath = opts.get<jsonxx::Object>("font").get<jsonxx::String>("file");
         if (!Misc::FileExists(fontpath.c_str()))
         {
           printf("Font path (%s) is invalid!\n", fontpath.c_str());
@@ -192,23 +187,23 @@ int main(int argc, const char *argv[])
         editorOptions.sFontPath = fontpath;
       }
     }
-    if (options.has<jsonxx::Object>("gui"))
+    if (opts.has<jsonxx::Object>("gui"))
     {
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
-        nDebugOutputHeight = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
-        nTexPreviewWidth = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
-        editorOptions.nOpacity = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
-        editorOptions.bUseSpacesForTabs = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
-        editorOptions.nTabSize = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
-        editorOptions.bVisibleWhitespace = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
-      if (options.get<jsonxx::Object>("gui").has<jsonxx::String>("autoIndent"))
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Number>("outputHeight"))
+        nDebugOutputHeight = opts.get<jsonxx::Object>("gui").get<jsonxx::Number>("outputHeight");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Number>("texturePreviewWidth"))
+        nTexPreviewWidth = opts.get<jsonxx::Object>("gui").get<jsonxx::Number>("texturePreviewWidth");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Number>("opacity"))
+        editorOptions.nOpacity = opts.get<jsonxx::Object>("gui").get<jsonxx::Number>("opacity");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("spacesForTabs"))
+        editorOptions.bUseSpacesForTabs = opts.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("spacesForTabs");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Number>("tabSize"))
+        editorOptions.nTabSize = opts.get<jsonxx::Object>("gui").get<jsonxx::Number>("tabSize");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("visibleWhitespace"))
+        editorOptions.bVisibleWhitespace = opts.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("visibleWhitespace");
+      if (opts.get<jsonxx::Object>("gui").has<jsonxx::String>("autoIndent"))
       {
-        std::string autoIndent = options.get<jsonxx::Object>("gui").get<jsonxx::String>("autoIndent");
+        std::string autoIndent = opts.get<jsonxx::Object>("gui").get<jsonxx::String>("autoIndent");
         if (autoIndent == "smart") {
           editorOptions.eAutoIndent = aitSmart;
         } else if (autoIndent == "preserve") {
@@ -218,19 +213,19 @@ int main(int argc, const char *argv[])
         }
       }
     }
-    if (options.has<jsonxx::Object>("midi"))
+    if (opts.has<jsonxx::Object>("midi"))
     {
-      std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("midi").kv_map();
+      std::map<std::string, jsonxx::Value*> tex = opts.get<jsonxx::Object>("midi").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)
       {
         midiRoutes[it->second->number_value_] = it->first;
       }
     }
-    if (options.has<jsonxx::String>("postExitCmd"))
+    if (opts.has<jsonxx::String>("postExitCmd"))
     {
-      sPostExitCmd = options.get<jsonxx::String>("postExitCmd");
+      sPostExitCmd = opts.get<jsonxx::String>("postExitCmd");
     }
-    Capture::LoadSettings( options );
+    Capture::LoadSettings( opts );
   }
   if (!editorOptions.sFontPath.size())
   {
@@ -250,7 +245,8 @@ int main(int argc, const char *argv[])
   bool shaderInitSuccessful = false;
   char szShader[65535];
   char szError[4096];
-  FILE * f = fopen(Renderer::defaultShaderFilename,"rb");
+  std::string defaultShaderFilePath = app_settings.get_data_directory() + std::string("/") + std::string(Renderer::defaultShaderFilename);
+  FILE * f = fopen( defaultShaderFilePath.c_str(),"rb" );
   if (f)
   {
     printf("Loading last shader...\n");
@@ -389,7 +385,7 @@ int main(int argc, const char *argv[])
           mDebugOutput.SetText( szError );
         }
       }
-      else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f  
+      else if (Renderer::keyEventBuffer[i].scanCode == 292 || (Renderer::keyEventBuffer[i].ctrl && Renderer::keyEventBuffer[i].scanCode == 'f')) // F11 or Ctrl/Cmd-f
       {
         bShowGui = !bShowGui;
       }

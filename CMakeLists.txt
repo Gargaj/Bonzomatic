@@ -34,7 +34,7 @@ endif ()
 
 if (WIN32)
   set(BONZOMATIC_WINDOWS_FLAVOR "GLFW" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
-  set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
+  set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW)
 endif ()
 
 if (NOT (UNIX AND (NOT APPLE))) #if not linux
@@ -151,7 +151,7 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
 ##############################################################################
 # NDI
 if (WIN32 AND BONZOMATIC_NDI)
-  if(DEFINED ENV{NDI_SDK_DIR}) 
+  if(DEFINED ENV{NDI_SDK_DIR})
     set(NDI_SDK_DIR "$ENV{NDI_SDK_DIR}")
   else()
     message(FATAL_ERROR "Could not find NDI SDK. The NDI_SDK_DIR environment variable must be set to the SDK path.")
@@ -330,6 +330,8 @@ if (APPLE)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Misc.mm
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
@@ -346,11 +348,13 @@ elseif (UNIX)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Clipboard.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_linux/Config.cpp
   )
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
 elseif (WIN32)
@@ -358,6 +362,8 @@ elseif (WIN32)
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx11/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -369,6 +375,8 @@ elseif (WIN32)
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_w32_dx9/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
@@ -380,6 +388,8 @@ elseif (WIN32)
     set(BZC_PLATFORM_SRCS
       ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Utils.cpp
+      ${CMAKE_SOURCE_DIR}/src/platform_common/Config.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/MIDI.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/Misc.cpp
       ${CMAKE_SOURCE_DIR}/src/platform_w32_common/SetupDialog.cpp
