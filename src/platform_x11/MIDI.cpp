@@ -9,6 +9,7 @@
 struct AlsaMidiDevice {
 	snd_rawmidi_t *handle;
 	char name[32];
+	int errors;
 };
 
 static struct {
@@ -118,37 +119,55 @@ bool MIDI::Open() {
 }
 
 bool MIDI::Close() {
-	for (int i = 0; i < g.num_devices; ++i)
-		snd_rawmidi_close(g.devices[i].handle);
+	for (int i = 0; i < g.num_devices; ++i) {
+		AlsaMidiDevice *dev = g.devices + i;
+		if (dev->handle) {
+			snd_rawmidi_close(dev->handle);
+			dev->handle = NULL;
+		}
+	}
 	return true;
 }
 
 float MIDI::GetCCValue(unsigned char cc) {
 	for (int d = 0; d < g.num_devices; ++d) {
 		AlsaMidiDevice *dev = g.devices + d;
+		if (!dev->handle)
+			continue;
 		unsigned char midi_buf[1024];
 		const int err = snd_rawmidi_read(dev->handle, midi_buf, sizeof(midi_buf));
 		if (err < 0 && err != -EAGAIN) {
-			MSG_ERR("Failed to read stream from device %s: %s\n", dev->name, snd_strerror(err));
+			MSG_ERR("Failed to read stream from device %s: %s", dev->name, snd_strerror(err));
+			++dev->errors;
+			if (dev->errors == 10) {
+				MSG_ERR("Failed to read device %s 10 times in a row, disabling", dev->name);
+				snd_rawmidi_close(dev->handle);
+				dev->handle = NULL;
+			}
+			continue;
 		}
-		if (err > 0) {
-			for (int i = 0; i < err; ++i) {
-				const unsigned char b = midi_buf[i];
-				if (!(b & 0x80))
-					continue; /* skip unsync data bytes */
 
-				if (err - i < 3)
-					break; /* expect at least 2 args */
+		dev->errors = 0;
 
-				const int channel = b & 0x0f;
-				if ((b & 0xf0) == 0xb0) { /* control change */
-					const int controller = midi_buf[i + 1];
-					const int value = midi_buf[i + 2];
-					if (g.verbose)
-						MSG("%s: control change ch=%d p=%d v=%d", dev->name, channel, controller, value);
-					g.nCCValues[controller] = value;
-					i += 2;
-				}
+		if (err <= 0)
+			continue;
+
+		for (int i = 0; i < err; ++i) {
+			const unsigned char b = midi_buf[i];
+			if (!(b & 0x80))
+				continue; /* skip unsync data bytes */
+
+			if (err - i < 3)
+				break; /* expect at least 2 args */
+
+			const int channel = b & 0x0f;
+			if ((b & 0xf0) == 0xb0) { /* control change */
+				const int controller = midi_buf[i + 1];
+				const int value = midi_buf[i + 2];
+				if (g.verbose)
+					MSG("%s: control change ch=%d p=%d v=%d", dev->name, channel, controller, value);
+				g.nCCValues[controller] = value;
+				i += 2;
 			}
 		}
 	}
