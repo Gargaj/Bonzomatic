@@ -39,15 +39,15 @@ bool Misc::FileExists(const char * path)
   return access(path, R_OK) != -1;
 }
 
-static char * ScanFontDir(const char * path, const char **fontNames)
+static std::string ScanFontDir(const std::string path, const char **fontNames)
 {
-  if (!Misc::FileExists(path)) {
-    return NULL;
+  if (!Misc::FileExists(path.c_str())) {
+    return "";
   }
 
-  DIR *d = opendir(path);
+  DIR *d = opendir(path.c_str());
   if (d == NULL) {
-    return NULL;
+    return "";
   }
   struct dirent *de;
 
@@ -59,18 +59,18 @@ static char * ScanFontDir(const char * path, const char **fontNames)
     if (de->d_type == DT_REG) {
       for (int i = 0; fontNames[i] != NULL; i++) {
         if (strcmp(de->d_name, fontNames[i]) == 0) {
-          char *ret;
-          (void) asprintf(&ret, "%s/%s", path, fontNames[i]);
-          closedir(d);
+          std::string ret = path;
+          ret += "/";
+          ret += fontNames[i];
           return ret;
         }
       }
     } else if (de->d_type == DT_DIR) {
-      char *subdir;
-      (void) asprintf(&subdir, "%s/%s", path, de->d_name);
-      char *subdir_match = ScanFontDir(subdir, fontNames);
-      free(subdir);
-      if (subdir_match != NULL) {
+      std::string subdir = path;
+      subdir += "/";
+      subdir += de->d_name;
+      std::string subdir_match = ScanFontDir(subdir, fontNames);
+      if (!subdir_match.empty()) {
         closedir(d);
         return subdir_match;
       }
@@ -78,7 +78,7 @@ static char * ScanFontDir(const char * path, const char **fontNames)
   }
 
   closedir(d);
-  return NULL;
+  return "";
 }
 
 const char * Misc::GetDefaultFontPath()
@@ -134,11 +134,11 @@ const char * Misc::GetDefaultFontPath()
   }
 
   while (d != NULL) {
-   char *tmp = ScanFontDir((const char *)d->FirstChild()->Value(), fontNames);
-    if (tmp != NULL) {
+    std::string tmp = ScanFontDir((const char *)d->FirstChild()->Value(),
+        fontNames);
+    if (!tmp.empty()) {
       static char fontPath[PATH_MAX] = { 0 };
-      strcpy(fontPath, tmp);
-      free(tmp);
+      strcpy(fontPath, tmp.c_str());
       return fontPath;
     }
     d = d->NextSiblingElement("dir");
