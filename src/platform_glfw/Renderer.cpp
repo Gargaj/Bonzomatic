@@ -212,11 +212,17 @@ namespace Renderer
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
+    
+#ifdef __APPLE__
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+#endif
+
     if(!glfwInit())
     {
       printf("[Renderer] GLFW init failed\n");
       return false;
     }
+    printf("[GLFW] Version String: %s\n", glfwGetVersionString());
 
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
@@ -228,15 +234,23 @@ namespace Renderer
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GLFW_FALSE);
+#endif
+
     // TODO: change in case of resize support
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    // Prevent fullscreen window minimize on focus loss
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 
     GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
@@ -281,7 +295,10 @@ namespace Renderer
       wglSwapIntervalEXT(1);
 #endif
 
+    printf("[GLFW] OpenGL Version %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+    
     // Now, since OpenGL is behaving a lot in fullscreen modes, lets collect the real obtained size!
+    printf("[GLFW] Requested framebuffer size: %d x %d\n", nWidth, nHeight);
     int fbWidth = 1;
     int fbHeight = 1;
     glfwGetFramebufferSize(mWindow, &fbWidth, &fbHeight);
@@ -300,7 +317,7 @@ namespace Renderer
     glGenBuffers( 1, &glhFullscreenQuadVB );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     glGenVertexArrays(1, &glhFullscreenQuadVA);
 
@@ -416,7 +433,7 @@ namespace Renderer
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
     glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     glViewport(0, 0, nWidth, nHeight);
     
@@ -606,7 +623,7 @@ namespace Renderer
     if (position >= 0)
       glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
   }
 
   bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
@@ -677,8 +694,21 @@ namespace Renderer
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
-    if (!c) return NULL;
+    void * data = NULL;
+    GLenum internalFormat = GL_SRGB8_ALPHA8;
+    GLenum srcFormat = GL_RGBA;
+    GLenum format = GL_UNSIGNED_BYTE;
+    if ( stbi_is_hdr( szFilename ) )
+    {
+      internalFormat = GL_RGBA32F;
+      format = GL_FLOAT;
+      data = stbi_loadf( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    else
+    {
+      data = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    if (!data) return NULL;
 
     GLuint glTexId = 0;
     glGenTextures( 1, &glTexId );
@@ -689,12 +719,9 @@ namespace Renderer
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    GLenum internalFormat = GL_SRGB8_ALPHA8;
-    GLenum srcFormat = GL_RGBA;
+    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, format, data );
 
-    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, GL_UNSIGNED_BYTE, c );
-
-    stbi_image_free(c);
+    stbi_image_free(data);
 
     GLTexture * tex = new GLTexture();
     tex->width = width;
@@ -945,7 +972,7 @@ namespace Renderer
     glDisableVertexAttribArray( color );
     glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
 
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
@@ -974,7 +1001,7 @@ namespace Renderer
       }
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     return true;
   }

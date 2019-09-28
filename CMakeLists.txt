@@ -14,23 +14,28 @@ set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
 string(TIMESTAMP VERSION_PATCH "%Y%m%d")
 
-option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
 if (WIN32)
+  option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
+
   if (CMAKE_GENERATOR MATCHES "64")
     set(BONZOMATIC_64BIT ON CACHE BOOL "Compile for 64 bit target?")
   else ()
     set(BONZOMATIC_64BIT OFF CACHE BOOL "Compile for 64 bit target?")
   endif ()
-else ()
-  set(BONZOMATIC_64BIT ON CACHE BOOL "Compile for 64 bit target?")
 endif ()
 
-option(BONZOMATIC_NDI "Enable NDI?" OFF)
+if (APPLE)
+  option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
+endif ()
 
-option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
+if (WIN32)
+  option(BONZOMATIC_NDI "Enable NDI?" OFF)
+endif ()
 
-set(BONZOMATIC_WINDOWS_FLAVOR "DX11" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
-set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
+if (WIN32)
+  set(BONZOMATIC_WINDOWS_FLAVOR "GLFW" CACHE STRING "Windows renderer flavor selected at CMake configure time (DX11, DX9 or GLFW)")
+  set_property(CACHE BONZOMATIC_WINDOWS_FLAVOR PROPERTY STRINGS DX11 DX9 GLFW) 
+endif ()
 
 if (NOT (UNIX AND (NOT APPLE))) #if not linux
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
@@ -68,17 +73,18 @@ if (APPLE OR UNIX OR (WIN32 AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
   ##############################################################################
   # GLFW
   # GLFW settings and project inclusion
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
   set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
   set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
   set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-  mark_as_advanced(GLFW_BUILD_EXAMPLES GLFW_BUILD_TESTS GLFW_BUILD_DOCS GLFW_INSTALL)
-  if (APPLE)
-    set(GLFW_USE_CHDIR OFF CACHE BOOL "" FORCE)
-    set(GLFW_USE_RETINA OFF CACHE BOOL "" FORCE)
-    set(GLFW_USE_MENUBAR ON CACHE BOOL "" FORCE)
-    mark_as_advanced(GLFW_USE_CHDIR GLFW_USE_RETINA GLFW_USE_MENUBAR)
-  elseif (WIN32)
+  set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
+  mark_as_advanced(BUILD_SHARED_LIBS GLFW_BUILD_EXAMPLES GLFW_BUILD_TESTS GLFW_BUILD_DOCS GLFW_INSTALL GLFW_VULKAN_STATIC)
+  if (UNIX)
+    set(GLFW_USE_OSMESA OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(GLFW_USE_OSMESA)
+  endif()
+  if (WIN32)
     set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
     mark_as_advanced(USE_MSVC_RUNTIME_LIBRARY_DLL)
   endif()
@@ -111,8 +117,8 @@ set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
 )
 
 ##############################################################################
-# mini_al
-set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/mini_al)
+# miniaudio
+set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/miniaudio)
 
 ##############################################################################
 # kiss_fft
@@ -145,7 +151,6 @@ set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_jsonxx)
 ##############################################################################
 # NDI
 if (WIN32 AND BONZOMATIC_NDI)
-
   if(DEFINED ENV{NDI_SDK_DIR}) 
     set(NDI_SDK_DIR "$ENV{NDI_SDK_DIR}")
   else()
@@ -326,7 +331,7 @@ if (APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_osx/Misc.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_osx/Misc.mm
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Clipboard.cpp
@@ -417,11 +422,11 @@ if (APPLE)
   set(MACOSX_BUNDLE_BUNDLE_NAME ${BZC_EXE_NAME})
   set(MACOSX_BUNDLE_GUI_IDENTIFIER "${BZC_EXE_NAME}")
   set(MACOSX_BUNDLE_ICON_FILE icon.icns)
-  set(MACOSX_BUNDLE_INFO_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH},Copyright © 2018 The Bonzomatic Contributors")
+  set(MACOSX_BUNDLE_INFO_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH},Copyright © 2019 The Bonzomatic Contributors")
   set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set(MACOSX_BUNDLE_LONG_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set(MACOSX_BUNDLE_BUNDLE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-  set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2014-2018 The Bonzomatic Contributors. All rights reserved.")
+  set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2014-2019 The Bonzomatic Contributors. All rights reserved.")
 
   set_source_files_properties(${BZC_RESOURCES_DATA} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
@@ -433,17 +438,19 @@ if (APPLE)
   find_library(COCOA_FRAMEWORK Cocoa)
   find_library(OPENGL_FRAMEWORK OpenGL)
   find_library(CARBON_FRAMEWORK Carbon)
-  mark_as_advanced(COCOA_FRAMEWORK OPENGL_FRAMEWORK CARBON_FRAMEWORK)
-  set(PLATFORM_LIBS ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK})
+  find_library(COREAUDIO_FRAMEWORK CoreAudio)
+  find_library(AVFOUNDATION_FRAMEWORK AVFoundation)
+  mark_as_advanced(COCOA_FRAMEWORK OPENGL_FRAMEWORK CARBON_FRAMEWORK COREAUDIO_FRAMEWORK AVFOUNDATION_FRAMEWORK)
+  set(PLATFORM_LIBS ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK} ${COREAUDIO_FRAMEWORK} ${AVFOUNDATION_FRAMEWORK})
 elseif (UNIX)
   set(PLATFORM_LIBS GL)
 elseif (WIN32)
     if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
-        set(PLATFORM_LIBS d3d11 d3dcompiler dxguid DXGI winmm)
+        set(PLATFORM_LIBS d3d11 d3dcompiler dxguid DXGI winmm shlwapi)
     elseif (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX9")
-        set(PLATFORM_LIBS d3d9 d3dx9 winmm)
+        set(PLATFORM_LIBS d3d9 d3dx9 winmm shlwapi)
     else ()
-        set(PLATFORM_LIBS opengl32 glu32 winmm)
+        set(PLATFORM_LIBS opengl32 glu32 winmm shlwapi)
     endif ()
 endif ()
 set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PLATFORM_LIBS})
@@ -455,19 +462,11 @@ if (UNIX AND (NOT APPLE))
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif ()
 add_executable(${BZC_EXE_NAME} ${BZC_PROJECT_SRCS})
-if (APPLE AND GLFW_USE_RETINA)
-  # Add special plist to enable Retina display support
-  set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
-endif ()
 # Set compiler specific flags
 if (APPLE)
+  set_target_properties(${BZC_EXE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/macosx/MacOSXBundleInfo.plist.in)
   if (BONZOMATIC_TOUCHBAR)
     target_compile_definitions(${BZC_EXE_NAME} PUBLIC -DBONZOMATIC_ENABLE_TOUCHBAR)
-  endif ()
-  #target_compile_options(${BZC_EXE_NAME} PUBLIC -Werror -pedantic-errors -Wall -Wno-format-security)
-elseif (UNIX)
-  if (NOT BONZOMATIC_64BIT)
-  #  set_target_properties(${BZC_EXE_NAME} PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
   endif ()
 elseif (WIN32)
   if (BONZOMATIC_NDI)

@@ -6,7 +6,7 @@
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
 
-![Screenshot](http://i.imgur.com/8K8IztLl.jpg)
+![Screenshot](https://i.imgur.com/8K8IztLl.jpg)
 
 The tool was originally conceived and implemented after the Revision 2014 demoscene party's live coding competition where two contestants improv-code an effect in 25 minutes head-to-head. Wanna see how it looks in action? Check https://www.youtube.com/watch?v=KG_2q4OEhKc
 
@@ -24,7 +24,9 @@ For the OpenGL version (for any platform), at least OpenGL 4.1 is required.
 On recent macOS, to allow sound input to be captured (for FFT textures to be generated), you need to: Open up System Preferences, click on Security & Privacy, click on the Privacy tab then click on the Microphone menu item. Make sure Bonzomatic.app is in the list and ticked.
 
 ## Configuration
-Create a `config.json` with e.g. the following contents: (all fields are optional)
+You can configure Bonzomatic by creating a `config.json` and placing it next to the binary executable you're planning to run in the working directory for the binary; Bonzomatic will helpfully print this directory out for you when you run it, and you can also pass a file (with absolute or relative path, whichever you want) as parameter to the executable to load any other file as `config.json`. This allows you to have multiple configurations for multiple situations.
+
+The file can have the following contents: (all fields are optional)
 ``` javascript
 {
   "window":{ // default window size / state, if there's a setup dialog, it will override it
@@ -32,7 +34,7 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
     "height":1080,
     "fullscreen":true,
   },
-  "font":{
+  "font":{ // all paths in the file are also relative to the binary, but again, can be absolute paths if that's more convenient
     "file":"Input-Regular_(InputMono-Medium).ttf",
     "size":16,
   },
@@ -68,6 +70,17 @@ Create a `config.json` with e.g. the following contents: (all fields are optiona
   "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
 }
 ```
+### Automatic shader backup
+If you want the shader to be backed up once you quit Bonzomatic, you can use the above `postExitCmd` parameter in the config, and use a batch file like this:
+```
+@echo off
+REM ### cf. https://stackoverflow.com/a/23476347
+for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
+set "YY=%dt:~2,2%" & set "YYYY=%dt:~0,4%" & set "MM=%dt:~4,2%" & set "DD=%dt:~6,2%"
+set "HH=%dt:~8,2%" & set "Min=%dt:~10,2%" & set "Sec=%dt:~12,2%"
+copy %1 X:\MyShaderBackups\%YYYY%%MM%%DD%-%HH%%Min%%Sec%.glsl
+```
+This will copy the shader timestamped into a specified folder.
 
 ## Building
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
@@ -78,10 +91,12 @@ Use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needi
 ### OSX/macOS
 ```cmake``` should take care of everything:
 ```
-cmake .
-make
-make install
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ../
+cmake --build .
 ```
+The Bonzomatic.app bundle, resulting from the compilation, should be found in `./build/Bonzomatic.app`. You can place it anywhere.
+We do NOT recommend putting it in /Applications. Bonzomatic is looking for config.json files and resources living at the same level of the app.
 
 ### Linux
 You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
@@ -93,6 +108,19 @@ make
 make install
 ```
 
+### OpenBSD
+[Xenocara](https://xenocara.org) contains all required components.  Hack away with
+```
+cmake .
+make
+```
+or use the port
+```
+cd /usr/ports/graphics/bonzomatic
+make install
+```
+
+
 ## Organizing a competition
 If you want to organize a competition using Bonzomatic at your party, here's a handy-dandy guide on how to get started:
 https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
@@ -100,21 +128,22 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 ## Credits and acknowledgements
 ### Original / parent project authors
 - "ScintillaGL" project by Mykhailo Parfeniuk (https://github.com/sopyer/ScintillaGL)
-- Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org/)
+- Riverwash LiveCoding Tool by Michał Staniszewski and Michal Szymczyk (http://www.plastic-demo.org)
 
 ### Libraries and other included software
-- Scintilla editing component by the Scintilla Dev Team (http://www.scintilla.org/)
-- OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net/)
+- Scintilla editing component by the Scintilla Dev Team (https://www.scintilla.org)
+- OpenGL Extension Wrangler Library by Nigel Stewart (http://glew.sourceforge.net)
 - mini_al by David Reid (https://github.com/dr-soft/mini_al)
-- KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft/)
-- STB Image and Truetype libraries by Sean Barrett (http://nothings.org/)
-- GLFW by whoever made GLFW (http://www.glfw.org/faq.html)
+- KISSFFT by Mark Borgerding (https://github.com/mborgerding/kissfft)
+- STB Image and Truetype libraries by Sean Barrett (https://nothings.org)
+- GLFW by whoever made GLFW (https://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
-- NDI(tm) SDK by NewTek(tm) (http://www.newtek.com/ndi.html)
+- NDI(tm) SDK by NewTek(tm) (https://www.newtek.com/ndi.html)
 
 These software are available under their respective licenses.
 
-The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
+The remainder of this project code was (mostly, I guess) written by Gargaj / Conspiracy and is public domain.
+OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
-If you have anything to say, do it at http://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+If you have anything to say, do it at https://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

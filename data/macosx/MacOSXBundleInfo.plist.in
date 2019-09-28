@@ -26,19 +26,13 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
-	<key>NSMainNibFile</key>
-	<string>appnib</string>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
 	<key>CSResourcesFileMapped</key>
 	<true/>
-	<key>LSRequiresCarbon</key>
+	<key>NSHumanReadableCopyright</key>
+	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
+	<key>NSHighResolutionCapable</key>
 	<true/>
-	<key>LSMinimumSystemVersion</key>
-	<string>10.6.4</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Bonzomatic requires microphone access for the FFT textures to work.</string>
 </dict>
 </plist>

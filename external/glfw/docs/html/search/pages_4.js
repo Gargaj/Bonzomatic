@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['monitor_20guide',['Monitor guide',['../monitor_guide.html',1,'']]],
-  ['moving_20from_20glfw_202_20to_203',['Moving from GLFW 2 to 3',['../moving_guide.html',1,'']]]
+  ['input_20guide',['Input guide',['../input_guide.html',1,'']]],
+  ['internal_20structure',['Internal structure',['../internals_guide.html',1,'']]],
+  ['introduction_20to_20the_20api',['Introduction to the API',['../intro_guide.html',1,'']]]
 ];

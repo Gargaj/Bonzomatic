@@ -2,6 +2,13 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+
 #include "ShaderEditor.h"
 #include "Renderer.h"
 #include "FFT.h"
@@ -45,8 +52,23 @@ int main(int argc, const char *argv[])
 {
   Misc::PlatformStartup();
 
+  const char * configFile = "config.json";
+  if ( argc > 1 )
+  {
+    configFile = argv[ 1 ];
+    printf( "Loading config file '%s'...\n", configFile );
+  }
+  else
+  {
+    char configPath[ 256 ] = { 0 };
+    if ( getcwd( configPath, 255 ) )
+    {
+      printf( "Looking for config.json in '%s'...\n", configPath );
+    }
+  }
+
   jsonxx::Object options;
-  FILE * fConf = fopen( (argc > 1) ? argv[1] : "config.json","rb");
+  FILE * fConf = fopen( configFile, "rb" );
   if (fConf)
   {
     printf("Config file found, parsing...\n");
@@ -104,15 +126,17 @@ int main(int argc, const char *argv[])
   std::map<int,std::string> midiRoutes;
 
   const char * szDefaultFontPath = Misc::GetDefaultFontPath();
-  if (!szDefaultFontPath)
-  {
-    printf( "Misc::GetDefaultFontPath couldn't find ANY default fonts!\n" );
-    return -1;
-  }
 
   SHADEREDITOR_OPTIONS editorOptions;
   editorOptions.nFontSize = 16;
-  editorOptions.sFontPath = szDefaultFontPath;
+  if ( !szDefaultFontPath )
+  {
+    printf( "Misc::GetDefaultFontPath couldn't find ANY default fonts!\n" );
+  }
+  else
+  {
+    editorOptions.sFontPath = szDefaultFontPath;
+  }
   editorOptions.nOpacity = 0xC0;
   editorOptions.bUseSpacesForTabs = true;
   editorOptions.nTabSize = 2;
@@ -208,7 +232,7 @@ int main(int argc, const char *argv[])
     }
     Capture::LoadSettings( options );
   }
-  else if (!editorOptions.sFontPath.size())
+  if (!editorOptions.sFontPath.size())
   {
     printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
     return -1;
