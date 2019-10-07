@@ -330,7 +330,7 @@ if (APPLE)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform_common/MIDIDummy.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/Misc.mm
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_osx/SetupDialog.cpp
@@ -443,7 +443,7 @@ if (APPLE)
   mark_as_advanced(COCOA_FRAMEWORK OPENGL_FRAMEWORK CARBON_FRAMEWORK COREAUDIO_FRAMEWORK AVFOUNDATION_FRAMEWORK)
   set(PLATFORM_LIBS ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${CARBON_FRAMEWORK} ${COREAUDIO_FRAMEWORK} ${AVFOUNDATION_FRAMEWORK})
 elseif (UNIX)
-  set(PLATFORM_LIBS GL fontconfig)
+  set(PLATFORM_LIBS GL asound fontconfig)
 elseif (WIN32)
     if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")
         set(PLATFORM_LIBS d3d11 d3dcompiler dxguid DXGI winmm shlwapi)
