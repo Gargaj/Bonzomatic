@@ -19,6 +19,22 @@
 #include "jsonxx.h"
 #include "Capture.h"
 
+unsigned int ParseColor(const std::string& color) {
+  if (color.size() < 6 || color.size() > 8) return 0xFFFFFFFF;
+  if (color.size() == 6)
+  {
+    std::string text = "0x" + color;
+    unsigned int v = std::stoul(text, 0, 16);
+    return (0xFF000000 | ((v & 0xFF0000) >> 16) | (v & 0x00FF00) | ((v & 0x0000FF) << 16));
+  }
+  else
+  {
+    std::string text = "0x" + color;
+    unsigned int v = std::stoul(text, 0, 16);
+    return ((v & 0xFF000000) | ((v & 0x00FF0000) >> 16) | (v & 0x0000FF00) | ((v & 0x000000FF) << 16));
+  }
+}
+
 void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const char * sTokenName, const char * sTokenEnd, std::vector<std::string> &tokens )
 {
   if (sDefShader.find(sTokenBegin) != std::string::npos
@@ -223,6 +239,32 @@ int main(int argc, const char *argv[])
         fScrollXFactor = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("scrollXFactor");
       if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("scrollYFactor"))
         fScrollYFactor = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("scrollYFactor");
+    }
+    if (options.has<jsonxx::Object>("theme"))
+    {
+      const auto& theme = options.get<jsonxx::Object>("theme");
+      if (theme.has<jsonxx::String>("text"))
+        editorOptions.theme.text = ParseColor(theme.get<jsonxx::String>("text"));
+      if (theme.has<jsonxx::String>("comment"))
+        editorOptions.theme.comment = ParseColor(theme.get<jsonxx::String>("comment"));
+      if (theme.has<jsonxx::String>("number"))
+        editorOptions.theme.number = ParseColor(theme.get<jsonxx::String>("number"));
+      if (theme.has<jsonxx::String>("op"))
+        editorOptions.theme.op = ParseColor(theme.get<jsonxx::String>("op"));
+      if (theme.has<jsonxx::String>("keyword"))
+        editorOptions.theme.keyword = ParseColor(theme.get<jsonxx::String>("keyword"));
+      if (theme.has<jsonxx::String>("type"))
+        editorOptions.theme.type = ParseColor(theme.get<jsonxx::String>("type"));
+      if (theme.has<jsonxx::String>("builtin"))
+        editorOptions.theme.builtin = ParseColor(theme.get<jsonxx::String>("builtin"));
+      if (theme.has<jsonxx::String>("preprocessor"))
+        editorOptions.theme.preprocessor = ParseColor(theme.get<jsonxx::String>("preprocessor"));
+      if (theme.has<jsonxx::String>("selection"))
+        editorOptions.theme.selection = ParseColor(theme.get<jsonxx::String>("selection"));
+      if (theme.has<jsonxx::String>("charBackground")) {
+        editorOptions.theme.bUseCharBackground = true;
+        editorOptions.theme.charBackground = ParseColor(theme.get<jsonxx::String>("charBackground"));
+      }
     }
     if (options.has<jsonxx::Object>("midi"))
     {
