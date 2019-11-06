@@ -101,8 +101,8 @@ namespace Renderer
   struct MouseEvent
   {
     MOUSEEVENTTYPE eventType;
-    int x;
-    int y;
+    float x;
+    float y;
     MOUSEBUTTON button;
   };
   extern MouseEvent mouseEventBuffer[512];
