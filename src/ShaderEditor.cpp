@@ -193,6 +193,8 @@ void ShaderEditor::Copy()
 void ShaderEditor::Paste()
 {
   int n = Clipboard::GetContentsLength();
+  if (n == 0) return;
+
   char * p = new char[n + 1];
   memset(p,0,n+1);
   Clipboard::GetContents( p, n );
