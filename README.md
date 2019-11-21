@@ -88,7 +88,7 @@ This will copy the shader timestamped into a specified folder.
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
 
 ### Windows
-Use at least Visual C++ 2010. For the DX9/DX11 builds, obviously you'll be needing a DirectX SDK, though a lot of it is already in the Windows 8.1 SDK as well.
+Use at least [Visual C++ 2010](https://support.microsoft.com/ru-ru/help/2977003/the-latest-supported-visual-c-downloads). For the DX9/DX11 builds, obviously you'll be needing a [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812), though a lot of it is already in the Windows 8.1 SDK as well.
 
 ### OSX/macOS
 ```cmake``` should take care of everything:
