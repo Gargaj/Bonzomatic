@@ -34,6 +34,8 @@ The file can have the following contents: (all fields are optional)
   "window":{ // default window size / state; if there's a setup dialog, it will override it
     "width":1920,
     "height":1080,
+    "scale":0.5, //render the shader at 1/2 the size of the window and scale up
+    "linearFilter":true, //use linear filtering when scaling up
     "fullscreen":true,
   },
   "audio":{ // default audio device settings; if there's a setup dialog, it will override it
