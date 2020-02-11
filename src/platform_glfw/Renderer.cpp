@@ -131,7 +131,7 @@ namespace Renderer
     "uniform sampler2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
     "{%midi:begin%}" // leave off \n here
-    "float {%midi:name%};\n"
+    "uniform float {%midi:name%};\n"
     "{%midi:end%}" // leave off \n here
     "\n"
     "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
