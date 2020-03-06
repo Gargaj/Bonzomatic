@@ -880,7 +880,11 @@ void EditView::DrawEOL(Surface *surface, const EditModel &model, const ViewStyle
 		if (background.isSet) {
 			surface->FillRectangle(rcSegment, background);
 		} else if (line < model.pdoc->LinesTotal() - 1) {
+			// Note(Bonzomatic): UGLY HACK TO REMOVE CHAR BACKGROUND ON END OF LINES
+			surface->FillRectangle(rcSegment, vsDraw.styles[STYLE_DEFAULT].back);
+			/*
 			surface->FillRectangle(rcSegment, vsDraw.styles[ll->styles[ll->numCharsInLine]].back);
+			*/
 		} else if (vsDraw.styles[ll->styles[ll->numCharsInLine]].eolFilled) {
 			surface->FillRectangle(rcSegment, vsDraw.styles[ll->styles[ll->numCharsInLine]].back);
 		} else {
