@@ -9,6 +9,7 @@
 #include <sys/param.h> // For MAXPATHLEN
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
+#import <AppKit/AppKit.h>
 
 @interface MiscCocoa : NSObject
 
@@ -108,23 +109,31 @@ bool Misc::ExecuteCommand( const char * cmd, const char * param )
 
 bool Misc::FileExists(const char * path)
 {
-  return access(path, R_OK) != -1;
+  NSString *fontPath = [NSString stringWithUTF8String:path];
+  return [[NSFileManager defaultManager] isReadableFileAtPath:fontPath];
 }
 
 const char * Misc::GetDefaultFontPath()
 {
-  // Linux case
-  // TODO: use fonts.conf(5) or X resources or something like that
-  const char* fontPaths[] =
+  const char *fontNames[] =
   {
-    "/Library/Fonts/Courier New.ttf",
+    "CourierNewPSMT",
     NULL
   };
-  for (int i = 0; fontPaths[i]; ++i)
+  for (int i = 0; fontNames[i]; ++i)
   {
-    if (FileExists(fontPaths[i]))
-    {
-      return fontPaths[i];
+    NSString *fontName = [NSString stringWithUTF8String:fontNames[i]];
+    NSFont *font = [NSFont fontWithName:fontName size:12];
+    if (font) {
+      CTFontDescriptorRef fontRef = CTFontDescriptorCreateWithNameAndSize ((CFStringRef)[font fontName], [font pointSize]);
+      CFURLRef url = (CFURLRef)CTFontDescriptorCopyAttribute(fontRef, kCTFontURLAttribute);
+      NSString *fontPath = [NSString stringWithString:[(NSURL *)CFBridgingRelease(url) path]];
+      const char *path = (char *)[fontPath UTF8String];
+
+      if (FileExists(path))
+      {
+        return path;
+      }
     }
   }
   return NULL;
