@@ -116,7 +116,7 @@ We do NOT recommend putting it in /Applications. Bonzomatic is looking for confi
 ### Linux
 You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
 ```
-apt install xorg-dev libglu1-mesa-dev cmake
+apt install xorg-dev libglu1-mesa-dev libasound2-dev cmake
 cd Bonzomatic
 cmake .
 make
