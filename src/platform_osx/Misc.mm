@@ -118,6 +118,7 @@ const char * Misc::GetDefaultFontPath()
   const char* fontPaths[] =
   {
     "/Library/Fonts/Courier New.ttf",
+    "/System/Library/Fonts/Supplemental/Courier New.ttf",
     NULL
   };
   for (int i = 0; fontPaths[i]; ++i)
