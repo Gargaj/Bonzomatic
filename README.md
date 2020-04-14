@@ -114,7 +114,7 @@ The Bonzomatic.app bundle, resulting from the compilation, should be found in `.
 We do NOT recommend putting it in /Applications. Bonzomatic is looking for config.json files and resources living at the same level of the app.
 
 ### Linux
-You'll need ```xorg-dev``` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
+You'll need ```xorg-dev```, `libasound2-dev` and ```libglu1-mesa-dev```; after that ```cmake``` should take care of the rest:
 ```
 apt install xorg-dev libglu1-mesa-dev libasound2-dev cmake
 cd Bonzomatic
