@@ -4,11 +4,15 @@
 #endif
 #include <tchar.h>
 #include "../Renderer.h"
+#include "../FFT.h"
+#include "../SetupDialog.h"
 #include "resource.h"
 
 #include <vector>
 #include <algorithm>
 
+namespace SetupDialog
+{
 class CSetupDialog;
 
 CSetupDialog * pGlobal = NULL;
@@ -23,7 +27,13 @@ public:
     int nHeight;
   } RESOLUTION;
 
+  typedef struct {
+    bool bIsCapture;
+    void * pDeviceID;
+  } AUDIODEVICE;
+
   std::vector<RESOLUTION> gaResolutions;
+  std::vector<AUDIODEVICE> gaAudioDevices;
   HWND hWndSetupDialog;
 
   CSetupDialog(void)
@@ -35,7 +45,7 @@ public:
   {
   }
 
-  RENDERER_SETTINGS * setup;
+  SETTINGS * setup;
 
   int __cdecl ResolutionSort(const void * a, const void * b)
   {
@@ -47,11 +57,36 @@ public:
     if (aa->nHeight > bb->nHeight) return 1;
     return 0;
   }
+  void FFTDeviceEnum( const bool bIsCaptureDevice, const char * szDeviceName, void * pDeviceID)
+  {
+    TCHAR sz[512];
+    _sntprintf( sz, 512, _T("[%hs] %hs"), bIsCaptureDevice ? "in" : "out", szDeviceName );
+    SendDlgItemMessage(hWndSetupDialog, IDC_AUDIOSOURCE, CB_ADDSTRING, 0, (LPARAM)sz);
+
+    if ( !pDeviceID)
+    {
+      if (setup->sFFT.bUseRecordingDevice == bIsCaptureDevice)
+      {
+        SendDlgItemMessage(hWndSetupDialog, IDC_AUDIOSOURCE, CB_SETCURSEL, gaAudioDevices.size(), 0);
+      }
+    }
+
+    AUDIODEVICE audioDevice;
+    audioDevice.bIsCapture = bIsCaptureDevice;
+    audioDevice.pDeviceID = pDeviceID;
+    gaAudioDevices.push_back(audioDevice);
+  }
+  static void FFTDeviceEnum( const bool bIsCaptureDevice, const char * szDeviceName, void * pDeviceID, void * pUserContext )
+  {
+    ((CSetupDialog*)pUserContext)->FFTDeviceEnum(bIsCaptureDevice, szDeviceName, pDeviceID);
+  }
   bool DialogProcedure( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) 
   {
     switch (uMsg) {
     case WM_INITDIALOG:
-      {        
+      {
+        hWndSetupDialog = hWnd;
+
         int i = 0;
         while(1) {
           DEVMODE d;
@@ -82,7 +117,7 @@ public:
           _sntprintf(s,50,_T("%d * %d"),gaResolutions[i].nWidth,gaResolutions[i].nHeight);
           SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_ADDSTRING, 0, (LPARAM)s);
 
-          if (gaResolutions[i].nWidth == setup->nWidth && gaResolutions[i].nHeight == setup->nHeight)
+          if (gaResolutions[i].nWidth == setup->sRenderer.nWidth && gaResolutions[i].nHeight == setup->sRenderer.nHeight)
           {
             SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0);
             bFoundBest = true;
@@ -93,12 +128,14 @@ public:
           }
         }
 
-        if (setup->windowMode == RENDERER_WINDOWMODE_FULLSCREEN) {
+        if (setup->sRenderer.windowMode == RENDERER_WINDOWMODE_FULLSCREEN) {
           SendDlgItemMessage(hWnd, IDC_FULLSCREEN, BM_SETCHECK, 1, 1);
         }
-        if (setup->bVsync) {
+        if (setup->sRenderer.bVsync) {
           SendDlgItemMessage(hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1);
         }
+
+        FFT::EnumerateDevices( FFTDeviceEnum, this );
 
         return true;
       } break;
@@ -109,10 +146,13 @@ public:
         {
         case IDOK: 
           {
-            setup->nWidth  = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nWidth;
-            setup->nHeight = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nHeight;
-            setup->windowMode = SendDlgItemMessage(hWnd, IDC_FULLSCREEN, BM_GETCHECK , 0, 0) ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
-            setup->bVsync = SendDlgItemMessage(hWnd, IDC_VSYNC, BM_GETCHECK , 0, 0) > 0;
+            setup->sRenderer.nWidth  = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nWidth;
+            setup->sRenderer.nHeight = gaResolutions[ SendDlgItemMessage(hWnd, IDC_RESOLUTION, CB_GETCURSEL, 0, 0) ].nHeight;
+            setup->sRenderer.windowMode = SendDlgItemMessage(hWnd, IDC_FULLSCREEN, BM_GETCHECK , 0, 0) ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+            setup->sRenderer.bVsync = SendDlgItemMessage(hWnd, IDC_VSYNC, BM_GETCHECK , 0, 0) > 0;
+
+            setup->sFFT.bUseRecordingDevice = gaAudioDevices[ SendDlgItemMessage(hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0) ].bIsCapture;
+            setup->sFFT.pDeviceID = gaAudioDevices[ SendDlgItemMessage(hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0) ].pDeviceID;
             EndDialog (hWnd, TRUE);
           } break;
         case IDCANCEL: 
@@ -138,9 +178,11 @@ INT_PTR CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return pGlobal->DialogProcedure(hWnd,uMsg,wParam,lParam);
 }
 
-bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
+bool Open( SetupDialog::SETTINGS * settings )
 {
   CSetupDialog dlg;
   dlg.setup = settings;
   return dlg.Open( GetModuleHandle(NULL), NULL );
+}
+
 }

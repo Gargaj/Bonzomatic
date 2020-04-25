@@ -1,8 +1,13 @@
 #include <iostream>
 #include "../Renderer.h"
+#include "../FFT.h"
+#include "../SetupDialog.h"
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreGraphics/CoreGraphics.h>
 #include <set>
+
+namespace SetupDialog
+{
 
 struct Resolution
 {
@@ -26,7 +31,7 @@ void BuildListOfMainDisplayResolutions(std::set<Resolution> &resolutions)
   CFRelease(modes);
 }
 
-bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
+bool Open( SetupDialog::SETTINGS * settings )
 {
   std::set<Resolution> resolutions;
   
@@ -34,7 +39,7 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   resolutions.insert(Resolution(1280, 720));
   resolutions.insert(Resolution(1920, 1080));
   // Also add the resolution found in the settings
-  resolutions.insert(Resolution(settings->nWidth, settings->nHeight));
+  resolutions.insert(Resolution(settings->sRenderer.nWidth, settings->sRenderer.nHeight));
   
   BuildListOfMainDisplayResolutions(resolutions);
   
@@ -70,12 +75,12 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   
   // Setup defaults according to the settings
   CFOptionFlags settingsFlags = 0;
-  if (settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN) {
+  if (settings->sRenderer.windowMode == RENDERER_WINDOWMODE_FULLSCREEN) {
     settingsFlags |= CFUserNotificationCheckBoxChecked(0);
   }
   int idx=0;
   for (const auto &r: resolutions) {
-    if ((settings->nWidth == r.w) && (settings->nHeight == r.h)) {
+    if ((settings->sRenderer.nWidth == r.w) && (settings->sRenderer.nHeight == r.h)) {
       settingsFlags |= CFUserNotificationPopUpSelection(idx);
       break;
     }
@@ -90,15 +95,15 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   
   // Collect the user selection and feed the settings
   if (responseFlags & CFUserNotificationCheckBoxChecked(0)) {
-    settings->windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+    settings->sRenderer.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
   } else {
-    settings->windowMode = RENDERER_WINDOWMODE_WINDOWED;
+    settings->sRenderer.windowMode = RENDERER_WINDOWMODE_WINDOWED;
   }
   idx = (int)responseFlags >> 24;
   if ((idx >= 0) && (idx < resolutions.size())) {
     const auto &r = *std::next(resolutions.cbegin(), idx);
-    settings->nWidth = r.w;
-    settings->nHeight = r.h;
+    settings->sRenderer.nWidth = r.w;
+    settings->sRenderer.nHeight = r.h;
   }
   
   CFRelease(dialog);
@@ -109,3 +114,4 @@ bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
   return true;
 }
 
+}

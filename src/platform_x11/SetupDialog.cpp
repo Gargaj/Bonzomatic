@@ -1,8 +1,15 @@
 #include <iostream>
 #include "../Renderer.h"
+#include "../FFT.h"
+#include "../SetupDialog.h"
 
-bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
+namespace SetupDialog
+{
+
+bool Open( SetupDialog::SETTINGS * settings )
 {
   std::cerr << __FUNCTION__ << " STUB" << std::endl;
   return true;
+}
+
 }
