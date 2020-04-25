@@ -1,21 +1,55 @@
-![miniaudio](http://dred.io/img/miniaudio_wide.png)
+![miniaudio](https://miniaud.io/img/miniaudio_wide.png)
 
-miniaudio (formerly mini_al) is a single file library for audio playback and capture. It's written
-in C (compilable as C++) and released into the public domain.
+miniaudio is a single file library for audio playback and capture. It's written in C (compilable as C++) and
+released into the public domain.
 
 
 Features
 ========
-- A simple build system.
-  - It should Just Work out of the box, without the need to download and install any dependencies.
-- A simple API.
-- Supports playback, capture and full-duplex.
-- Data conversion.
-  - Sample format conversion, with optional dithering.
-  - Sample rate conversion.
-  - Channel mapping and channel conversion (stereo to 5.1, etc.)
-- MP3, Vorbis, FLAC and WAV decoding.
-  - This depends on external single file libraries which can be found in the "extras" folder.
+- Liberally licensed, with your choice of either public domain or MIT No Attribution for those regions who don't
+  recognize public domain.
+- Everything is implemented in a single file for easy integration into your source tree.
+- No external dependencies except for the C standard library and backend APIs.
+- Written in C89 and compilable as C++ which should enable miniaudio to work with almost all compilers.
+- Supports all major desktop and mobile platforms, with multiple backends for maximum compatibility.
+- Supports playback, capture, full-duplex and loopback (WASAPI only).
+- Device enumeration for connecting to specific devices, not just defaults.
+- Connect to multiple devices at once.
+- Shared and exclusive mode on supported backends.
+- Backend-specific configuration options.
+- Device capability querying.
+- Automatic data conversion between your application and the internal device.
+- Sample format conversion with optional dithering.
+- Channel conversion and channel mapping.
+- Resampling with support for multiple algorithms.
+  - Simple linear resampling with anti-aliasing.
+  - Optional Speex resampling (must opt-in).
+- Filters.
+  - Biquad
+  - Low-pass (first, second and high order)
+  - High-pass (first, second and high order)
+  - Second order band-pass
+  - Second order notch
+  - Second order peaking
+  - Second order low shelf
+  - Second order high shelf
+- Waveform generation.
+  - Sine
+  - Square
+  - Triangle
+  - Sawtooth
+- Noise generation.
+  - White
+  - Pink
+  - Brownian
+- Decoding (requires external single-file libraries).
+  - WAV via dr_wav
+  - FLAC via dr_flac
+  - MP3 via dr_mp3
+  - Vorbis via stb_vorbis
+- Encoding (requires external single-file libraries).
+  - WAV via dr_wav
+- Lock free ring buffer (single producer, single consumer).
 
 
 Supported Platforms
@@ -50,12 +84,13 @@ Backends
 Building
 ======
 Do the following in one source file:
-```
+```c
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 ```
 Then just compile. There's no need to install any dependencies. On Windows and macOS there's no need to link
-to anything. On Linux and BSD, just link to -lpthread, -lm and -ldl.
+to anything. On Linux just link to -lpthread, -lm and -ldl. On BSD just link to -lpthread and -lm. On iOS you
+need to compile as Objective-C.
 
 
 Simple Playback Example
@@ -63,11 +98,11 @@ Simple Playback Example
 
 ```c
 #define DR_FLAC_IMPLEMENTATION
-#include "../extras/dr_flac.h"  // Enables FLAC decoding.
+#include "../extras/dr_flac.h"  /* Enables FLAC decoding. */
 #define DR_MP3_IMPLEMENTATION
-#include "../extras/dr_mp3.h"   // Enables MP3 decoding.
+#include "../extras/dr_mp3.h"   /* Enables MP3 decoding. */
 #define DR_WAV_IMPLEMENTATION
-#include "../extras/dr_wav.h"   // Enables WAV decoding.
+#include "../extras/dr_wav.h"   /* Enables WAV decoding. */
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "../miniaudio.h"
@@ -88,26 +123,29 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
 
 int main(int argc, char** argv)
 {
+    ma_result result;
+    ma_decoder decoder;
+    ma_device_config deviceConfig;
+    ma_device device;
+
     if (argc < 2) {
         printf("No input file.\n");
         return -1;
     }
 
-    ma_decoder decoder;
-    ma_result result = ma_decoder_init_file(argv[1], NULL, &decoder);
+    result = ma_decoder_init_file(argv[1], NULL, &decoder);
     if (result != MA_SUCCESS) {
         return -2;
     }
 
-    ma_device_config config = ma_device_config_init(ma_device_type_playback);
-    config.playback.format   = decoder.outputFormat;
-    config.playback.channels = decoder.outputChannels;
-    config.sampleRate        = decoder.outputSampleRate;
-    config.dataCallback      = data_callback;
-    config.pUserData         = &decoder;
+    deviceConfig = ma_device_config_init(ma_device_type_playback);
+    deviceConfig.playback.format   = decoder.outputFormat;
+    deviceConfig.playback.channels = decoder.outputChannels;
+    deviceConfig.sampleRate        = decoder.outputSampleRate;
+    deviceConfig.dataCallback      = data_callback;
+    deviceConfig.pUserData         = &decoder;
 
-    ma_device device;
-    if (ma_device_init(NULL, &config, &device) != MA_SUCCESS) {
+    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
         printf("Failed to open playback device.\n");
         ma_decoder_uninit(&decoder);
         return -3;
@@ -139,17 +177,12 @@ miniaudio includes a decoding API which supports the following backends:
 - WAV via [dr_wav](https://github.com/mackron/dr_libs/blob/master/dr_wav.h)
 - Vorbis via [stb_vorbis](https://github.com/nothings/stb/blob/master/stb_vorbis.c)
 
-Copies of these libraries can be found in the "extras" folder. You may also want to look at the
-libraries below, but they are not supported by the miniaudio decoder API. If you know of any other
-single file libraries I can add to this list, let me know. Preferably public domain or MIT.
-- [minimp3](https://github.com/lieff/minimp3)
-- [jar_mod](https://github.com/kd7tck/jar/blob/master/jar_mod.h)
-- [jar_xm](https://github.com/kd7tck/jar/blob/master/jar_xm.h)
+Copies of these libraries can be found in the "extras" folder.
 
 To enable support for a decoding backend, all you need to do is #include the header section of the
 relevant backend library before the implementation of miniaudio, like so:
 
-```
+```c
 #include "dr_flac.h"    // Enables FLAC decoding.
 #include "dr_mp3.h"     // Enables MP3 decoding.
 #include "dr_wav.h"     // Enables WAV decoding.
@@ -162,7 +195,7 @@ A decoder can be initialized from a file with `ma_decoder_init_file()`, a block 
 `ma_decoder_init_memory()`, or from data delivered via callbacks with `ma_decoder_init()`. Here
 is an example for loading a decoder from a file:
 
-```
+```c
 ma_decoder decoder;
 ma_result result = ma_decoder_init_file("MySong.mp3", NULL, &decoder);
 if (result != MA_SUCCESS) {
@@ -178,7 +211,7 @@ When initializing a decoder, you can optionally pass in a pointer to a `ma_decod
 (the `NULL` argument in the example above) which allows you to configure the output format, channel
 count, sample rate and channel map:
 
-```
+```c
 ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, 48000);
 ```
 
@@ -187,13 +220,13 @@ decoding backend.
 
 Data is read from the decoder as PCM frames:
 
-```
+```c
 ma_uint64 framesRead = ma_decoder_read_pcm_frames(pDecoder, pFrames, framesToRead);
 ```
 
 You can also seek to a specific frame like so:
 
-```
+```c
 ma_result result = ma_decoder_seek_to_pcm_frame(pDecoder, targetFrame);
 if (result != MA_SUCCESS) {
     return false;   // An error occurred.
@@ -216,3 +249,17 @@ etc.
 
 The `ma_decoder_init_file()` API will try using the file extension to determine which decoding
 backend to prefer.
+
+
+Unofficial Bindings
+===================
+The projects below offer bindings for other languages which you may be interested in. Note that these
+are unofficial and are not maintained as part of this repository. If you encounter a binding-specific
+bug, please post a bug report to the specific project. If you've written your own bindings let me know
+and I'll consider adding it to this list.
+
+Language | Project
+---------|--------
+Python   | [pyminiaudio](https://github.com/irmen/pyminiaudio)
+Go       | [malgo](https://github.com/gen2brain/malgo)
+

@@ -29,10 +29,13 @@ You can configure Bonzomatic by creating a `config.json` and placing it next to 
 The file can have the following contents: (all fields are optional)
 ``` javascript
 {
-  "window":{ // default window size / state, if there's a setup dialog, it will override it
+  "window":{ // default window size / state; if there's a setup dialog, it will override it
     "width":1920,
     "height":1080,
     "fullscreen":true,
+  },
+  "audio":{ // default audio device settings; if there's a setup dialog, it will override it
+    "useInput":false, // if true, use line-in/mic/...; if false, attempt to create a loopback device and use stereo out
   },
   "font":{ // all paths in the file are also relative to the binary, but again, can be absolute paths if that's more convenient
     "file":"Input-Regular_(InputMono-Medium).ttf",
@@ -80,7 +83,7 @@ The file can have the following contents: (all fields are optional)
     "builtin": "44FF88",
     "preprocessor": "C0C0C0",
     "selection": "C06699CC", // background color when selecting text
-    "charBackground":   "C0000000", // if set, this value will be used (instead of gui opacity) behind characters
+    "charBackground": "C0000000", // if set, this value will be used (instead of gui opacity) behind characters
   },
   "postExitCmd":"copy_to_dropbox.bat" // this command gets ran when you quit Bonzomatic, and the shader filename gets passed to it as first parameter. Use this to take regular backups.
 }

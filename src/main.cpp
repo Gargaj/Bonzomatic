@@ -18,6 +18,7 @@
 #include "UniConversion.h"
 #include "jsonxx.h"
 #include "Capture.h"
+#include "SetupDialog.h"
 
 unsigned int ParseColor(const std::string& color) {
   if (color.size() < 6 || color.size() > 8) return 0xFFFFFFFF;
@@ -97,36 +98,48 @@ int main(int argc, const char *argv[])
     options.parse( szConfig );
   }
 
-  RENDERER_SETTINGS settings;
-  settings.bVsync = false;
+  FFT::Create();
+
+  SetupDialog::SETTINGS settings;
+  settings.sFFT.bUseRecordingDevice = true;
+  settings.sFFT.pDeviceID = NULL;
+  if (options.has<jsonxx::Object>("audio"))
+  {
+    if (options.get<jsonxx::Object>("audio").has<jsonxx::Number>("useInput"))
+      settings.sFFT.bUseRecordingDevice = options.get<jsonxx::Object>("audio").get<jsonxx::Boolean>("useInput");
+  }
+
+  settings.sRenderer.bVsync = false;
 #ifdef _DEBUG
-  settings.nWidth = 1280;
-  settings.nHeight = 720;
-  settings.windowMode = RENDERER_WINDOWMODE_WINDOWED;
+  settings.sRenderer.nWidth = 1280;
+  settings.sRenderer.nHeight = 720;
+  settings.sRenderer.windowMode = RENDERER_WINDOWMODE_WINDOWED;
 #else
-  settings.nWidth = 1920;
-  settings.nHeight = 1080;
-  settings.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
+  settings.sRenderer.nWidth = 1920;
+  settings.sRenderer.nHeight = 1080;
+  settings.sRenderer.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
   if (options.has<jsonxx::Object>("window"))
   {
     if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))
-      settings.nWidth = options.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
+      settings.sRenderer.nWidth = options.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
     if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("height"))
-      settings.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
+      settings.sRenderer.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
     if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
-      settings.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+      settings.sRenderer.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
   }
-  if (!Renderer::OpenSetupDialog( &settings ))
+  if (!SetupDialog::Open( &settings ))
+  {
     return -1;
+  }
 #endif
 
-  if (!Renderer::Open( &settings ))
+  if (!Renderer::Open( &settings.sRenderer ))
   {
     printf("Renderer::Open failed\n");
     return -1;
   }
 
-  if (!FFT::Open())
+  if (!FFT::Open( &settings.sFFT ))
   {
     printf("FFT::Open() failed, continuing anyway...\n");
     //return -1;
@@ -285,7 +298,7 @@ int main(int argc, const char *argv[])
     printf("Couldn't find any of the default fonts. Please specify one in config.json\n");
     return -1;
   }
-  if (!Capture::Open(settings))
+  if (!Capture::Open(settings.sRenderer))
   {
     printf("Initializing capture system failed!\n");
     return 0;
@@ -352,12 +365,12 @@ int main(int argc, const char *argv[])
 
   bool bTexPreviewVisible = true;
 
-  editorOptions.rect = Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight );
+  editorOptions.rect = Scintilla::PRectangle( nMargin, nMargin, settings.sRenderer.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.sRenderer.nHeight - nMargin * 2 - nDebugOutputHeight );
   ShaderEditor mShaderEditor( surface );
   mShaderEditor.Initialise( editorOptions );
   mShaderEditor.SetText( szShader );
 
-  editorOptions.rect = Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin );
+  editorOptions.rect = Scintilla::PRectangle( nMargin, settings.sRenderer.nHeight - nMargin - nDebugOutputHeight, settings.sRenderer.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.sRenderer.nHeight - nMargin );
   ShaderEditor mDebugOutput( surface );
   mDebugOutput.Initialise( editorOptions );
   mDebugOutput.SetText( "" );
@@ -412,14 +425,14 @@ int main(int argc, const char *argv[])
       {
         if (bTexPreviewVisible)
         {
-          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
-          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin, settings.nHeight - nMargin ) );
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.sRenderer.nWidth - nMargin, settings.sRenderer.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.sRenderer.nHeight - nMargin - nDebugOutputHeight, settings.sRenderer.nWidth - nMargin, settings.sRenderer.nHeight - nMargin ) );
           bTexPreviewVisible = false;
         }
         else
         {
-          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin * 2 - nDebugOutputHeight ) );
-          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.nHeight - nMargin - nDebugOutputHeight, settings.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.nHeight - nMargin ) );
+          mShaderEditor.SetPosition( Scintilla::PRectangle( nMargin, nMargin, settings.sRenderer.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.sRenderer.nHeight - nMargin * 2 - nDebugOutputHeight ) );
+          mDebugOutput .SetPosition( Scintilla::PRectangle( nMargin, settings.sRenderer.nHeight - nMargin - nDebugOutputHeight, settings.sRenderer.nWidth - nMargin - nTexPreviewWidth - nMargin, settings.sRenderer.nHeight - nMargin ) );
           bTexPreviewVisible = true;
         }
       }
@@ -466,7 +479,7 @@ int main(int argc, const char *argv[])
     Renderer::keyEventBufferCount = 0;
 
     Renderer::SetShaderConstant( "fGlobalTime", time );
-    Renderer::SetShaderConstant( "v2Resolution", settings.nWidth, settings.nHeight );
+    Renderer::SetShaderConstant( "v2Resolution", settings.sRenderer.nWidth, settings.sRenderer.nHeight );
 
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
@@ -524,8 +537,8 @@ int main(int argc, const char *argv[])
       if (bTexPreviewVisible)
       {
         int y1 = nMargin;
-        int x1 = settings.nWidth - nMargin - nTexPreviewWidth;
-        int x2 = settings.nWidth - nMargin;
+        int x1 = settings.sRenderer.nWidth - nMargin - nTexPreviewWidth;
+        int x2 = settings.sRenderer.nWidth - nMargin;
         for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
         {
           int y2 = y1 + nTexPreviewWidth * (it->second->height / (float)it->second->width);
@@ -591,6 +604,8 @@ int main(int argc, const char *argv[])
   {
     Misc::ExecuteCommand( sPostExitCmd.c_str(), Renderer::defaultShaderFilename );
   }
+
+  FFT::Destroy();
 
   Misc::PlatformShutdown();
 
