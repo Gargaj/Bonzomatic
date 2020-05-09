@@ -1,4 +1,4 @@
-name: Testing build for push
+name: build-on-push
 on: [push]
 jobs:
   build_w32:

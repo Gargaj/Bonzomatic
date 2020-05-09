@@ -1,6 +1,6 @@
 # Bonzomatic
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Gargaj/Bonzomatic/Testing%20build%20for%20push?logo=github)](https://github.com/Gargaj/Bonzomatic/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Gargaj/Bonzomatic/build-on-push?logo=github)](https://github.com/Gargaj/Bonzomatic/actions)
 [![Appveyor build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
 [![Travis build status](https://img.shields.io/travis/Gargaj/Bonzomatic?logo=travis)](https://travis-ci.org/Gargaj/Bonzomatic)
 [![Gitter chat](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
