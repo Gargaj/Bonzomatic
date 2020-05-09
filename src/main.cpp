@@ -105,7 +105,7 @@ int main(int argc, const char *argv[])
   settings.sFFT.pDeviceID = NULL;
   if (options.has<jsonxx::Object>("audio"))
   {
-    if (options.get<jsonxx::Object>("audio").has<jsonxx::Number>("useInput"))
+    if (options.get<jsonxx::Object>("audio").has<jsonxx::Boolean>("useInput"))
       settings.sFFT.bUseRecordingDevice = options.get<jsonxx::Object>("audio").get<jsonxx::Boolean>("useInput");
   }
 
