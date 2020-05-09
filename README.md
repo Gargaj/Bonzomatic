@@ -1,7 +1,9 @@
 # Bonzomatic
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
-[![Build Status](https://travis-ci.org/Gargaj/Bonzomatic.svg)](https://travis-ci.org/Gargaj/Bonzomatic)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Gargaj/Bonzomatic/Testing%20build%20for%20push?logo=github)](https://github.com/Gargaj/Bonzomatic/actions)
+[![Appveyor build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
+[![Travis build status](https://img.shields.io/travis/Gargaj/Bonzomatic?logo=travis)](https://travis-ci.org/Gargaj/Bonzomatic)
+[![Gitter chat](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
