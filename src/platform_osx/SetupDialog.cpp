@@ -66,7 +66,7 @@ bool Open( SetupDialog::SETTINGS * settings )
   const void* values[] = {
     urlRef,
     CFSTR("Bonzomatic"),
-    CFSTR("Choose your resolution, it's a REVOLUTION!\n\nNote: The list is polled from your main display, but 1920x1080 and 1280x720 are force inserted and NOT garanteed to work on your device.\nWe also add whatever was found in the \"config.json\"\n"),
+    CFSTR("Choose your resolution, it's a REVOLUTION!\n\nNote: The list is polled from your main display, but 1920x1080 and 1280x720 are force-inserted and NOT guaranteed to work on your device.\nWe also add whatever was found in the \"config.json\", regardless of whether it will actually work.\n"),
     CFSTR("Ignition"),
     popupVals,
     checkboxVals
