@@ -212,7 +212,7 @@ typedef enum
 
 // HACK: Define macros that some dinput.h variants don't
 #ifndef DIDFT_OPTIONAL
- #define DIDFT_OPTIONAL	0x80000000
+ #define DIDFT_OPTIONAL 0x80000000
 #endif
 
 // winmm.dll function pointer typedefs
@@ -318,6 +318,8 @@ typedef struct _GLFWwindowWin32
 
     // The last received cursor position, regardless of source
     int                 lastCursorPosX, lastCursorPosY;
+    // The last recevied high surrogate when decoding pairs of UTF-16 messages
+    WCHAR               highSurrogate;
 
 } _GLFWwindowWin32;
 
