@@ -1,6 +1,10 @@
-project(Bonzomatic)
-
 cmake_minimum_required(VERSION 3.0)
+
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "0")
+string(TIMESTAMP VERSION_PATCH "%Y%m%d")
+
+project(Bonzomatic VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 set(CMAKE_OSX_ARCHITECTURES x86_64)
 
@@ -9,10 +13,6 @@ if (APPLE OR WIN32)
 else ()
 	set(BZC_EXE_NAME "bonzomatic")
 endif ()
-
-set(VERSION_MAJOR "1")
-set(VERSION_MINOR "0")
-string(TIMESTAMP VERSION_PATCH "%Y%m%d")
 
 if (WIN32)
   option(BONZOMATIC_64BIT "Compile for 64 bit target?" ON)
@@ -422,11 +422,11 @@ if (APPLE)
   set(MACOSX_BUNDLE_BUNDLE_NAME ${BZC_EXE_NAME})
   set(MACOSX_BUNDLE_GUI_IDENTIFIER "${BZC_EXE_NAME}")
   set(MACOSX_BUNDLE_ICON_FILE icon.icns)
-  set(MACOSX_BUNDLE_INFO_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH},Copyright © 2019 The Bonzomatic Contributors")
+  set(MACOSX_BUNDLE_INFO_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH},Copyright © 2020 The Bonzomatic Contributors")
   set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set(MACOSX_BUNDLE_LONG_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set(MACOSX_BUNDLE_BUNDLE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-  set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2014-2019 The Bonzomatic Contributors. All rights reserved.")
+  set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2014-2020 The Bonzomatic Contributors. All rights reserved.")
 
   set_source_files_properties(${BZC_RESOURCES_DATA} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 

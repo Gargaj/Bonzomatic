@@ -31,7 +31,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>NSHighResolutionCapable</key>
-	<true/>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Bonzomatic requires microphone access for the FFT textures to work.</string>
 </dict>
