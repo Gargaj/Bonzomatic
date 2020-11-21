@@ -70,7 +70,7 @@ The file can have the following contents: (all fields are optional)
   "ndi":{
     "enabled": true,
     "connectionString": "<ndi_product something=\"123\"/>", // metadata sent to the receiver; completely optional
-    "identifier": "hello!", // additional string to the device name; helps source discovery/identification in the receiver if there are multiple sources on the network
+    "identifier": "hello!", // device identifier; must be unique, also helps source discovery/identification in the receiver if there are multiple sources on the network
     "frameRate": 60.0, // frames per second
     "progressive": true, // progressive or interleaved?
   },
