@@ -20,7 +20,7 @@ void Misc::PlatformShutdown()
 
 void Misc::InitKeymaps()
 {
-  return;
+  setlocale(LC_ALL, "C");
 }
 
 void Misc::GetKeymapName(char* sz)
