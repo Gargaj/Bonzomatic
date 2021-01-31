@@ -123,10 +123,12 @@ namespace Renderer
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
+    "uniform float fFrameTime; // duration of the last frame, in seconds\n"
     "\n"
     "uniform sampler1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "uniform sampler1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
     "uniform sampler1D texFFTIntegrated; // this is continually increasing\n"
+    "uniform sampler2D texPreviousFrame; // screenshot of the previous frame\n"
     "{%textures:begin%}" // leave off \n here
     "uniform sampler2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
@@ -690,6 +692,32 @@ namespace Renderer
   };
 
   int textureUnit = 0;
+
+  Texture * CreateRGBA8Texture()
+  {
+    void * data = NULL;
+    GLenum internalFormat = GL_SRGB8_ALPHA8;
+    GLenum srcFormat = GL_FLOAT;
+    GLenum format = GL_UNSIGNED_BYTE;
+
+    GLuint glTexId = 0;
+    glGenTextures( 1, &glTexId );
+    glBindTexture( GL_TEXTURE_2D, glTexId );
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    GLTexture * tex = new GLTexture();
+    tex->width = nWidth;
+    tex->height = nHeight;
+    tex->ID = glTexId;
+    tex->type = TEXTURETYPE_2D;
+    tex->unit = textureUnit++;
+    return tex;
+  }
+
   Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
@@ -813,6 +841,13 @@ namespace Renderer
   void ReleaseTexture( Texture * tex )
   {
     glDeleteTextures(1, &((GLTexture*)tex)->ID );
+  }
+
+  void CopyBackbufferToTexture( Texture * tex )
+  {
+    glActiveTexture( GL_TEXTURE0 + ( (GLTexture *) tex )->unit );
+    glBindTexture( GL_TEXTURE_2D, ( (GLTexture *) tex )->ID );
+    glCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, 0, 0, nWidth, nHeight, 0 );
   }
 
   //////////////////////////////////////////////////////////////////////////

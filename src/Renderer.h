@@ -56,6 +56,7 @@ namespace Renderer
     TEXTURETYPE type;
   };
 
+  Texture * CreateRGBA8Texture();
   Texture * CreateRGBA8TextureFromFile( const char * szFilename );
   Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data );
   Texture * Create1DR32Texture( int w );
@@ -63,6 +64,9 @@ namespace Renderer
   void SetShaderTexture( const char * szTextureName, Texture * tex );
   void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
   void ReleaseTexture( Texture * tex );
+
+  void CopyBackbufferToTexture( Texture * tex );
+
   struct Vertex
   {
     Vertex( float _x, float _y, unsigned int _c = 0xFFFFFFFF, float _u = 0.0, float _v = 0.0) : 

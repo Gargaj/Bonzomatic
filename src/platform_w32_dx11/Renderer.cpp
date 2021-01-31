@@ -112,12 +112,14 @@ namespace Renderer
     "Texture1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "Texture1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
     "Texture1D texFFTIntegrated; // this is continually increasing\n"
+    "Texture2D texPreviousFrame; // screenshot of the previous frame\n"
     "SamplerState smp;\n"
     "\n"
     "cbuffer constants\n"
     "{\n"
     "\tfloat fGlobalTime; // in seconds\n"
     "\tfloat2 v2Resolution; // viewport resolution (in pixels)\n"
+    "\tfloat fFrameTime; // duration of the last frame, in seconds\n"
     "{%midi:begin%}"
     "\tfloat {%midi:name%};\n"
     "{%midi:end%}"
@@ -912,6 +914,35 @@ namespace Renderer
   }
 
   int textureUnit = 0;
+
+  Renderer::Texture * CreateRGBA8Texture()
+  {
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory( &desc, sizeof( D3D11_TEXTURE2D_DESC ) );
+    desc.Width = nWidth;
+    desc.Height = nHeight;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    ID3D11Texture2D * pTex = NULL;
+
+    if ( pDevice->CreateTexture2D( &desc, NULL, &pTex ) != S_OK )
+      return NULL;
+
+    DX11Texture * tex = new DX11Texture();
+    tex->width = nWidth;
+    tex->height = nHeight;
+    tex->pTexture = pTex;
+    tex->type = TEXTURETYPE_2D;
+    tex->format = desc.Format;
+    CreateResourceView( tex );
+    return tex;
+
+  }
+
   Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
@@ -1055,6 +1086,13 @@ namespace Renderer
     ((DX11Texture *)tex)->pResourceView->Release();
     ((DX11Texture *)tex)->pTexture->Release();
     delete tex;
+  }
+
+  void CopyBackbufferToTexture( Texture * tex )
+  {
+    ID3D11Resource * pTex = ( (DX11Texture *) tex )->pTexture;
+
+    pContext->CopySubresourceRegion( pTex, 0, 0, 0, 0, pBackBuffer, 0, NULL );
   }
 
   //////////////////////////////////////////////////////////////////////////

@@ -42,10 +42,10 @@ REM --------------------- BUILD TIME -------------------------------
 
 :build
 
-set BNZ_COMPILER=Visual Studio 10 2010
-if not "%BNZ_X64%"=="ON" goto skipme
-set BNZ_COMPILER=Visual Studio 10 2010 Win64
-:skipme
+set BNZ_COMPILER=Visual Studio 14 2015
+if not "%BNZ_X64%"=="ON" goto skipvs
+set BNZ_COMPILER=Visual Studio 14 2015 Win64
+:skipvs
 
 set BNZ_OUT_DIR=x86
 set BNZ_PLATFORM=W32

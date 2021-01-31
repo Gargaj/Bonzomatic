@@ -2,5 +2,6 @@ Bonzomatic
 .obj
 tmp
 build
+build.*
 .vs
 .DS_Store

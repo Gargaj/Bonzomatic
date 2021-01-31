@@ -304,6 +304,7 @@ int main(int argc, const char *argv[])
     return 0;
   }
 
+  Renderer::Texture * texPreviousFrame = Renderer::CreateRGBA8Texture();
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -390,6 +391,7 @@ int main(int argc, const char *argv[])
   bool bShowGui = true;
   Timer::Start();
   float fNextTick = 0.1f;
+  float fLastTimeMS = Timer::GetTime();
   while (!Renderer::WantsToQuit())
   {
     bool newShader = false;
@@ -481,6 +483,10 @@ int main(int argc, const char *argv[])
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.sRenderer.nWidth, settings.sRenderer.nHeight );
 
+    float fTime = Timer::GetTime();
+    Renderer::SetShaderConstant( "fFrameTime", ( fTime - fLastTimeMS ) / 1000.0f );
+    fLastTimeMS = fTime;
+
     for (std::map<int,std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++)
     {
       Renderer::SetShaderConstant( it->second.c_str(), MIDI::GetCCValue( it->first ) );
@@ -510,6 +516,7 @@ int main(int argc, const char *argv[])
     Renderer::SetShaderTexture( "texFFT", texFFT );
     Renderer::SetShaderTexture( "texFFTSmoothed", texFFTSmoothed );
     Renderer::SetShaderTexture( "texFFTIntegrated", texFFTIntegrated );
+    Renderer::SetShaderTexture( "texPreviousFrame", texPreviousFrame );
 
     for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
     {
@@ -517,6 +524,8 @@ int main(int argc, const char *argv[])
     }
 
     Renderer::RenderFullscreenQuad();
+
+    Renderer::CopyBackbufferToTexture( texPreviousFrame );
 
     Renderer::StartTextRendering();
 
@@ -591,6 +600,7 @@ int main(int argc, const char *argv[])
   MIDI::Close();
   FFT::Close();
 
+  Renderer::ReleaseTexture( texPreviousFrame );
   Renderer::ReleaseTexture( texFFT );
   Renderer::ReleaseTexture( texFFTSmoothed );
   for (std::map<std::string, Renderer::Texture*>::iterator it = textures.begin(); it != textures.end(); it++)
