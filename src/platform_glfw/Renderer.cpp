@@ -168,6 +168,8 @@ namespace Renderer
   bool run = true;
 
   GLuint theShader = 0;
+  GLuint glhShaderFB = 0;
+  GLuint glhShaderTex = 0;
   GLuint glhVertexShader = 0;
   GLuint glhFullscreenQuadVB = 0;
   GLuint glhFullscreenQuadVA = 0;
@@ -177,6 +179,8 @@ namespace Renderer
 
   int nWidth = 0;
   int nHeight = 0;
+  float fScale = 1.0f;
+  bool bLinearFilter = false;
 
   void MatrixOrthoOffCenterLH(float * pout, float l, float r, float b, float t, float zn, float zf)
   {
@@ -229,6 +233,8 @@ namespace Renderer
 
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
+    fScale = settings->fScale;
+    bLinearFilter = settings->bLinearFilter;
 
     glfwWindowHint(GLFW_RED_BITS, 8);
     glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -308,6 +314,20 @@ namespace Renderer
     nWidth = settings->nWidth = fbWidth;
     nHeight = settings->nHeight = fbHeight;
     printf("[GLFW] Obtained framebuffer size: %d x %d\n", fbWidth, fbHeight);
+
+    if (fScale != 1.0f) {
+      glGenTextures( 1, &glhShaderTex );
+      glBindTexture( GL_TEXTURE_2D, glhShaderTex );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+      glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, nWidth*fScale, nHeight*fScale, 0, GL_RGBA, GL_FLOAT, NULL );
+      glBindTexture( GL_TEXTURE_2D, 0 );
+
+      glGenFramebuffers( 1, &glhShaderFB );
+      glBindFramebuffer( GL_FRAMEBUFFER, glhShaderFB );
+      glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, glhShaderTex, 0 );
+      glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+    }
     
     static float pFullscreenQuadVertices[] =
     {
@@ -599,6 +619,10 @@ namespace Renderer
   {
     glBindVertexArray(glhFullscreenQuadVA);
 
+    if (fScale != 1.0f) {
+      glBindFramebuffer(GL_FRAMEBUFFER, glhShaderFB);
+    }
+
     glUseProgram(theShader);
 
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
@@ -627,6 +651,13 @@ namespace Renderer
       glDisableVertexAttribArray( position );
 
     glUseProgram(0);
+
+    if (fScale != 1.0f) {
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, glhShaderFB);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      glBlitFramebuffer(0, 0, nWidth*fScale, nHeight*fScale, 0, 0, nWidth, nHeight, GL_COLOR_BUFFER_BIT, bLinearFilter ? GL_LINEAR : GL_NEAREST);
+    }
   }
 
   bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )

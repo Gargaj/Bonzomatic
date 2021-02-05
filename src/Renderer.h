@@ -10,6 +10,8 @@ typedef struct
 {
   int nWidth;
   int nHeight;
+  float fScale;
+  bool bLinearFilter;
   RENDERER_WINDOWMODE windowMode;
   bool bVsync;
 } RENDERER_SETTINGS;
