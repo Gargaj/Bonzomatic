@@ -24,10 +24,10 @@ if (WIN32)
   endif ()
 endif ()
 
-option(BONZOMATIC_PREFER_SYSTEM_GLFW "Prefer system glfw over bundled one?" ON)
-option(BONZOMATIC_PREFER_SYSTEM_GLEW "Prefer system GLEW over bundled one?" ON)
+option(BONZOMATIC_PREFER_SYSTEM_GLFW "Prefer system glfw over bundled one?" OFF)
+option(BONZOMATIC_PREFER_SYSTEM_GLEW "Prefer system GLEW over bundled one?" OFF)
 option(BONZOMATIC_PREFER_SYSTEM_SCINTILLA "Prefer system scintilla over bundled one?" OFF) # broken as bonzomatic uses internal headers
-option(BONZOMATIC_PREFER_SYSTEM_STB "Prefer system stb over bundled one?" ON)
+option(BONZOMATIC_PREFER_SYSTEM_STB "Prefer system stb over bundled one?" OFF)
 
 if (APPLE)
   option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
