@@ -24,6 +24,11 @@ if (WIN32)
   endif ()
 endif ()
 
+option(BONZOMATIC_PREFER_SYSTEM_GLFW "Prefer system glfw over bundled one?" ON)
+option(BONZOMATIC_PREFER_SYSTEM_GLEW "Prefer system GLEW over bundled one?" ON)
+option(BONZOMATIC_PREFER_SYSTEM_SCINTILLA "Prefer system scintilla over bundled one?" OFF) # broken as bonzomatic uses internal headers
+option(BONZOMATIC_PREFER_SYSTEM_STB "Prefer system stb over bundled one?" ON)
+
 if (APPLE)
   option(BONZOMATIC_TOUCHBAR "Compile with macOS TouchBar support (Xcode 9 or newer required)?" ON)
 endif ()
@@ -70,41 +75,55 @@ endif ()
 
 # Dont compile glfw and glew for windows dx targets
 if (APPLE OR UNIX OR (WIN32 AND (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "GLFW")))
+  find_package(Threads REQUIRED)
+  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} Threads::Threads)
   ##############################################################################
   # GLFW
   # GLFW settings and project inclusion
-  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-  set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-  set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-  set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-  set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-  set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
-  mark_as_advanced(BUILD_SHARED_LIBS GLFW_BUILD_EXAMPLES GLFW_BUILD_TESTS GLFW_BUILD_DOCS GLFW_INSTALL GLFW_VULKAN_STATIC)
-  if (UNIX)
-    set(GLFW_USE_OSMESA OFF CACHE BOOL "" FORCE)
-    mark_as_advanced(GLFW_USE_OSMESA)
+  if (BONZOMATIC_PREFER_SYSTEM_GLFW)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PC_GLFW glfw3 REQUIRED)
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${PC_GLFW_INCLUDE_DIRS})
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${PC_GLFW_LINK_LIBRARIES})
+  else()
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(BUILD_SHARED_LIBS GLFW_BUILD_EXAMPLES GLFW_BUILD_TESTS GLFW_BUILD_DOCS GLFW_INSTALL GLFW_VULKAN_STATIC)
+    if (UNIX)
+      set(GLFW_USE_OSMESA OFF CACHE BOOL "" FORCE)
+      mark_as_advanced(GLFW_USE_OSMESA)
+    endif()
+    if (WIN32)
+      set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+      mark_as_advanced(USE_MSVC_RUNTIME_LIBRARY_DLL)
+    endif()
+    add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw/)
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glfw/include)
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} glfw ${GLFW_LIBRARIES})
   endif()
-  if (WIN32)
-    set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
-    mark_as_advanced(USE_MSVC_RUNTIME_LIBRARY_DLL)
-  endif()
-  add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw/)
-  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glfw/include)
-  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} glfw ${GLFW_LIBRARIES})
 
   ##############################################################################
   # GLEW
-  set(GLEW_SRCS
-  ${CMAKE_SOURCE_DIR}/external/glew/glew.c
-  )
-  add_library(bzc_glew STATIC ${GLEW_SRCS})
-  target_include_directories(bzc_glew PUBLIC ${CMAKE_SOURCE_DIR}/external/glew)
-  target_compile_definitions(bzc_glew PUBLIC -DGLEW_STATIC)
-  if (MSVC)
-    target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
+  if (BONZOMATIC_PREFER_SYSTEM_GLEW)
+    find_package(GLEW REQUIRED)
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} GLEW::glew) #${GLEW_LIBRARIES})
+  else()
+    set(GLEW_SRCS
+    ${CMAKE_SOURCE_DIR}/external/glew/glew.c
+    )
+    add_library(bzc_glew STATIC ${GLEW_SRCS})
+    target_include_directories(bzc_glew PUBLIC ${CMAKE_SOURCE_DIR}/external/glew)
+    target_compile_definitions(bzc_glew PUBLIC -DGLEW_STATIC)
+    if (MSVC)
+      target_compile_options(bzc_glew PUBLIC "$<$<CONFIG:Release>:/MT>")
+    endif ()
+    set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glew)
+    set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_glew)
   endif ()
-  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${CMAKE_SOURCE_DIR}/external/glew)
-  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_glew)
 else ()
   # for windows, use DirectX
   set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} $ENV{DXSDK_DIR}/Include)
@@ -112,9 +131,14 @@ endif ()
 
 ##############################################################################
 # STB
-set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
-  ${CMAKE_SOURCE_DIR}/external/stb
-)
+if (BONZOMATIC_PREFER_SYSTEM_STB)
+  find_path(STB_INCLUDE_DIR NAMES stb_image.h PATH_SUFFIXES stb REQUIRED)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${STB_INCLUDE_DIR})
+else()
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
+    ${CMAKE_SOURCE_DIR}/external/stb
+  )
+endif()
 
 ##############################################################################
 # miniaudio
@@ -167,157 +191,164 @@ endif ()
 
 ##############################################################################
 # SCINTILLA
-set(SCINTILLA_SRCS
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexA68k.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAbaqus.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAda.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAPDL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAsm.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAsn1.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexASY.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAU3.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAVE.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAVS.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBaan.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBash.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBasic.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBibTeX.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBullant.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCaml.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCLW.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCmake.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCOBOL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCoffeeScript.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexConf.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCPP.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCrontab.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCsound.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCSS.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexD.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexDMAP.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexDMIS.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexECL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexEiffel.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexErlang.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexEScript.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexFlagship.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexForth.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexFortran.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexGAP.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexGui4Cli.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexHaskell.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexHTML.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexInno.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexKix.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexKVIrc.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLaTeX.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLisp.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLout.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLua.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMagik.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMarkdown.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMatlab.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMetapost.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMMIXAL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexModula.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMPT.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMSSQL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMySQL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexNimrod.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexNsis.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOpal.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOScript.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOthers.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPascal.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPB.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPerl.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPLM.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPO.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPOV.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPowerPro.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPowerShell.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexProgress.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPS.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPython.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexR.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRebol.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRegistry.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRuby.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRust.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexScriptol.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSmalltalk.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSML.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSorcus.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSpecman.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSpice.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSQL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSTTXT.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTACL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTADS3.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTAL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTCL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTCMD.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTeX.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTxt2tags.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVB.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVerilog.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVHDL.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVisualProlog.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexYAML.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/Accessor.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/CharacterCategory.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/CharacterSet.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerBase.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerModule.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerNoExceptions.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerSimple.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/PropSetSimple.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/StyleContext.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/WordList.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/AutoComplete.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/CallTip.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/CaseConvert.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/CaseFolder.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Catalogue.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/CellBuffer.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/CharClassify.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/ContractionState.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Decoration.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Document.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/EditModel.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Editor.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/EditView.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/ExternalLexer.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Indicator.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/KeyMap.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/LineMarker.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/MarginView.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/PerLine.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/PositionCache.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/RESearch.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/RunStyles.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/ScintillaBase.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Selection.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/Style.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/UniConversion.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/ViewStyle.cxx
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src/XPM.cxx
-)
-add_library(bzc_scintilla STATIC ${SCINTILLA_SRCS})
-target_include_directories(bzc_scintilla PUBLIC
-  ${CMAKE_SOURCE_DIR}/external/scintilla/include
-  ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib
-  ${CMAKE_SOURCE_DIR}/external/scintilla/src
-)
-if (MSVC)
-  target_compile_options(bzc_scintilla PUBLIC "$<$<CONFIG:Release>:/MT>")
-endif ()
-set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
+if (BONZOMATIC_PREFER_SYSTEM_SCINTILLA)
+  find_path(SCINTILLA_INCLUDE_DIR NAMES SciLexer.h PATH_SUFFIXES scintilla REQUIRED)
+  find_library(SCINTILLA_LIBRARY NAMES scintilla REQUIRED)
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES} ${SCINTILLA_INCLUDE_DIR})
+  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} ${SCINTILLA_LIBRARY})
+else()
+  set(SCINTILLA_SRCS
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexA68k.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAbaqus.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAda.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAPDL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAsm.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAsn1.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexASY.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAU3.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAVE.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexAVS.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBaan.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBash.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBasic.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBibTeX.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexBullant.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCaml.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCLW.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCmake.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCOBOL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCoffeeScript.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexConf.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCPP.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCrontab.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCsound.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexCSS.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexD.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexDMAP.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexDMIS.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexECL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexEiffel.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexErlang.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexEScript.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexFlagship.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexForth.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexFortran.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexGAP.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexGui4Cli.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexHaskell.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexHTML.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexInno.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexKix.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexKVIrc.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLaTeX.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLisp.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLout.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexLua.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMagik.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMarkdown.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMatlab.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMetapost.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMMIXAL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexModula.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMPT.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMSSQL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexMySQL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexNimrod.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexNsis.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOpal.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOScript.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexOthers.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPascal.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPB.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPerl.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPLM.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPO.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPOV.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPowerPro.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPowerShell.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexProgress.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPS.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexPython.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexR.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRebol.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRegistry.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRuby.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexRust.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexScriptol.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSmalltalk.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSML.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSorcus.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSpecman.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSpice.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSQL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexSTTXT.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTACL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTADS3.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTAL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTCL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTCMD.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTeX.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexTxt2tags.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVB.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVerilog.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVHDL.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexVisualProlog.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexers/LexYAML.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/Accessor.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/CharacterCategory.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/CharacterSet.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerBase.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerModule.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerNoExceptions.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/LexerSimple.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/PropSetSimple.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/StyleContext.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib/WordList.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/AutoComplete.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/CallTip.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/CaseConvert.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/CaseFolder.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Catalogue.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/CellBuffer.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/CharClassify.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/ContractionState.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Decoration.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Document.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/EditModel.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Editor.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/EditView.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/ExternalLexer.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Indicator.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/KeyMap.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/LineMarker.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/MarginView.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/PerLine.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/PositionCache.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/RESearch.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/RunStyles.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/ScintillaBase.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Selection.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/Style.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/UniConversion.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/ViewStyle.cxx
+    ${CMAKE_SOURCE_DIR}/external/scintilla/src/XPM.cxx
+  )
+  add_library(bzc_scintilla STATIC ${SCINTILLA_SRCS})
+  target_include_directories(bzc_scintilla PUBLIC
     ${CMAKE_SOURCE_DIR}/external/scintilla/include
     ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib
     ${CMAKE_SOURCE_DIR}/external/scintilla/src
-)
-set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_scintilla)
+  )
+  if (MSVC)
+    target_compile_options(bzc_scintilla PUBLIC "$<$<CONFIG:Release>:/MT>")
+  endif ()
+  set(BZC_PROJECT_INCLUDES ${BZC_PROJECT_INCLUDES}
+      ${CMAKE_SOURCE_DIR}/external/scintilla/include
+      ${CMAKE_SOURCE_DIR}/external/scintilla/lexlib
+      ${CMAKE_SOURCE_DIR}/external/scintilla/src
+  )
+  set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} bzc_scintilla)
+endif()
 
 ##############################################################################
 # BONZOMATIC
