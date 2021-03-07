@@ -65,7 +65,7 @@ void ReplaceTokens( std::string &sDefShader, const char * sTokenBegin, const cha
   }
 }
 
-int main(int argc, const char *argv[])
+int main( int argc, const char *argv[] )
 {
   Misc::PlatformStartup();
 
@@ -86,14 +86,14 @@ int main(int argc, const char *argv[])
 
   jsonxx::Object options;
   FILE * fConf = fopen( configFile, "rb" );
-  if (fConf)
+  if ( fConf )
   {
-    printf("Config file found, parsing...\n");
+    printf( "Config file found, parsing...\n" );
 
-    char szConfig[65535];
+    char szConfig[ 65535 ];
     memset( szConfig, 0, 65535 );
     fread( szConfig, 1, 65535, fConf );
-    fclose(fConf);
+    fclose( fConf );
 
     options.parse( szConfig );
   }
@@ -103,10 +103,10 @@ int main(int argc, const char *argv[])
   SetupDialog::SETTINGS settings;
   settings.sFFT.bUseRecordingDevice = true;
   settings.sFFT.pDeviceID = NULL;
-  if (options.has<jsonxx::Object>("audio"))
+  if ( options.has<jsonxx::Object>( "audio" ) )
   {
-    if (options.get<jsonxx::Object>("audio").has<jsonxx::Boolean>("useInput"))
-      settings.sFFT.bUseRecordingDevice = options.get<jsonxx::Object>("audio").get<jsonxx::Boolean>("useInput");
+    if ( options.get<jsonxx::Object>( "audio" ).has<jsonxx::Boolean>( "useInput" ) )
+      settings.sFFT.bUseRecordingDevice = options.get<jsonxx::Object>( "audio" ).get<jsonxx::Boolean>( "useInput" );
   }
 
   settings.sRenderer.bVsync = false;
@@ -118,18 +118,25 @@ int main(int argc, const char *argv[])
   settings.sRenderer.nWidth = 1920;
   settings.sRenderer.nHeight = 1080;
   settings.sRenderer.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
-  if (options.has<jsonxx::Object>("window"))
+
+  bool skipSetupDialog = false;
+  if ( options.has<jsonxx::Object>( "window" ) )
   {
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("width"))
-      settings.sRenderer.nWidth = options.get<jsonxx::Object>("window").get<jsonxx::Number>("width");
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Number>("height"))
-      settings.sRenderer.nHeight = options.get<jsonxx::Object>("window").get<jsonxx::Number>("height");
-    if (options.get<jsonxx::Object>("window").has<jsonxx::Boolean>("fullscreen"))
-      settings.sRenderer.windowMode = options.get<jsonxx::Object>("window").get<jsonxx::Boolean>("fullscreen") ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+    if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Number>( "width" ) )
+      settings.sRenderer.nWidth = options.get<jsonxx::Object>( "window" ).get<jsonxx::Number>( "width" );
+    if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Number>( "height" ) )
+      settings.sRenderer.nHeight = options.get<jsonxx::Object>( "window" ).get<jsonxx::Number>( "height" );
+    if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Boolean>( "fullscreen" ) )
+      settings.sRenderer.windowMode = options.get<jsonxx::Object>( "window" ).get<jsonxx::Boolean>( "fullscreen" ) ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
+    if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Boolean>( "skipSetupDialog" ) )
+      skipSetupDialog = options.get<jsonxx::Object>( "window" ).get<jsonxx::Boolean>( "skipSetupDialog" );
   }
-  if (!SetupDialog::Open( &settings ))
+  if ( !skipSetupDialog )
   {
-    return -1;
+    if ( !SetupDialog::Open( &settings ) )
+    {
+      return -1;
+    }
   }
 #endif
 
