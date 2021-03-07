@@ -100,6 +100,10 @@ int main( int argc, const char *argv[] )
 
   FFT::Create();
 
+  bool skipSetupDialog = false;
+  if ( options.has<jsonxx::Boolean>( "skipSetupDialog" ) )
+    skipSetupDialog = options.get<jsonxx::Boolean>( "skipSetupDialog" );
+
   SetupDialog::SETTINGS settings;
   settings.sFFT.bUseRecordingDevice = true;
   settings.sFFT.pDeviceID = NULL;
@@ -119,7 +123,6 @@ int main( int argc, const char *argv[] )
   settings.sRenderer.nHeight = 1080;
   settings.sRenderer.windowMode = RENDERER_WINDOWMODE_FULLSCREEN;
 
-  bool skipSetupDialog = false;
   if ( options.has<jsonxx::Object>( "window" ) )
   {
     if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Number>( "width" ) )
@@ -128,8 +131,6 @@ int main( int argc, const char *argv[] )
       settings.sRenderer.nHeight = options.get<jsonxx::Object>( "window" ).get<jsonxx::Number>( "height" );
     if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Boolean>( "fullscreen" ) )
       settings.sRenderer.windowMode = options.get<jsonxx::Object>( "window" ).get<jsonxx::Boolean>( "fullscreen" ) ? RENDERER_WINDOWMODE_FULLSCREEN : RENDERER_WINDOWMODE_WINDOWED;
-    if ( options.get<jsonxx::Object>( "window" ).has<jsonxx::Boolean>( "skipSetupDialog" ) )
-      skipSetupDialog = options.get<jsonxx::Object>( "window" ).get<jsonxx::Boolean>( "skipSetupDialog" );
   }
   if ( !skipSetupDialog )
   {

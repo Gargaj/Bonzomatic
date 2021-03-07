@@ -31,6 +31,7 @@ You can configure Bonzomatic by creating a `config.json` and placing it next to 
 The file can have the following contents: (all fields are optional)
 ``` javascript
 {
+  "skipSetupDialog": true, // If true, setup dialog will be suppressed - all values you provide below will be used without validation (at your own risk!)
   "window":{ // default window size / state; if there's a setup dialog, it will override it
     "width":1920,
     "height":1080,
