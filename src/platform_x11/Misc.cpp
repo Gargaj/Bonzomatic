@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <locale.h>
 
 #include <fontconfig/fontconfig.h>
 
