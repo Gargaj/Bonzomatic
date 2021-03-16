@@ -31,6 +31,13 @@ void Misc::GetKeymapName(char* sz)
 
 bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
+  if (cmd && *cmd)
+  {
+      std::string command = cmd;
+      command = command + " " + param;
+      system(command.c_str());
+      return true;
+  }
   return false;
 }
 
