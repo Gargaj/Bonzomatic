@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <locale.h>
+#include <sys/wait.h>
 
 #include <fontconfig/fontconfig.h>
 
@@ -33,9 +34,20 @@ bool Misc::ExecuteCommand( const char * cmd, const char * param )
 {
   if (cmd && *cmd)
   {
-      std::string command = cmd;
-      command = command + " " + param;
-      system(command.c_str());
+      char *const params[] = {(char *)cmd, (char *)param, NULL};
+      pid_t  pid;
+      int    status;
+
+      if ((pid = fork()) < 0) {
+          return false;
+      }
+      if (pid == 0) {
+          execvp(cmd, params);
+      }
+      else {
+          while(wait(&status) != pid)
+              ;
+      }
       return true;
   }
   return false;
