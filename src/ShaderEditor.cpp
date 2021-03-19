@@ -248,7 +248,7 @@ void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
       char ch = static_cast<char>(scn.ch);
       if(eAutoIndent == aitPreserve) {
         PreserveIndentation(ch);
-      } else if (aitSmart) {
+      } else if (eAutoIndent == aitSmart) {
         AutomaticIndentation(ch);
       }
       break;
