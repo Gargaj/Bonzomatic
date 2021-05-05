@@ -622,8 +622,32 @@ void ShaderEditor::AutomaticIndentation(char ch) {
     if (GetIndentState(curLine - 1) == isKeyWordStart) {
       if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
         SetLineIndentation(curLine, indentBlock - indentSize);
+        indentBlock -= indentSize;
       }
     }
+
+    char buf[256] = { '\0' };
+    char* p = buf;
+
+    *p++ = '\n';
+
+    for(int i = 0; i < indentBlock + indentSize; ++i)
+    {
+      *p++ = ' ';
+    }
+
+    *p++ = '\n';
+
+    for(int i = 0; i < indentBlock; ++i)
+    {
+      *p++ = ' ';
+    }
+
+    *p++ = '}';
+
+    WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
+    int pos = CurrentPosition() - indentBlock - 2;
+    SetSelection(pos, pos);
   } else if ((ch == '\r' || ch == '\n') && (selStart == thisLineStart)) {
     SetLineIndentation(curLine, indentBlock);
   }
