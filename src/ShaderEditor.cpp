@@ -20,6 +20,7 @@ ShaderEditor::ShaderEditor( Scintilla::Surface *s )
   nFontSize = 16;
   bHasMouseCapture = false;
   nOpacity = 0xC0;
+  bAutoCloseBlock = false;
 }
 
 void ShaderEditor::SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back, int size, const char *face)
@@ -186,6 +187,7 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
   nTabSize = options.nTabSize;
   bVisibleWhitespace = options.bVisibleWhitespace;
   eAutoIndent = options.eAutoIndent;
+  bAutoCloseBlock = options.bAutoCloseBlock;
   theme = options.theme;
 
   Initialise();
@@ -622,32 +624,34 @@ void ShaderEditor::AutomaticIndentation(char ch) {
     if (GetIndentState(curLine - 1) == isKeyWordStart) {
       if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
         SetLineIndentation(curLine, indentBlock - indentSize);
-        indentBlock -= indentSize;
+        if(bAutoCloseBlock)
+          indentBlock -= indentSize;
       }
     }
 
-    char buf[256] = { '\0' };
-    char* p = buf;
+    if(bAutoCloseBlock) {
+      char tabChar = bUseSpacesForTabs? ' ' : '\t';
+      int charSize = bUseSpacesForTabs? 1 : nTabSize;
 
-    *p++ = '\n';
+      char buf[256] = { '\0' }, *ptr = buf;
 
-    for(int i = 0; i < indentBlock + indentSize; ++i)
-    {
-      *p++ = ' ';
+      *ptr++ = '\n';
+
+      for(int i = 0; i < (indentBlock + indentSize) / charSize; ++i)
+        *ptr++ = tabChar;
+
+      *ptr++ = '\n';
+
+      for(int i = 0; i < indentBlock / charSize; ++i)
+        *ptr++ = tabChar;
+
+      *ptr = blockEnd;
+
+      WndProc(SCI_ADDTEXT, strlen(buf), (sptr_t)buf);
+
+      int pos = CurrentPosition() - indentBlock / charSize - 2;
+      SetSelection(pos, pos);
     }
-
-    *p++ = '\n';
-
-    for(int i = 0; i < indentBlock; ++i)
-    {
-      *p++ = ' ';
-    }
-
-    *p++ = '}';
-
-    WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
-    int pos = CurrentPosition() - indentBlock - 2;
-    SetSelection(pos, pos);
   } else if ((ch == '\r' || ch == '\n') && (selStart == thisLineStart)) {
     SetLineIndentation(curLine, indentBlock);
   }
