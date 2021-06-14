@@ -103,6 +103,14 @@ copy %1 X:\MyShaderBackups\%YYYY%%MM%%DD%-%HH%%Min%%Sec%.glsl
 ```
 This will copy the shader timestamped into a specified folder.
 
+A similar script for Linux and OSX would be:
+```
+cp "$1" "~/MyShaderBackups/shader-$(date +%s).glsl"
+```
+
+To have this script run on exit, make sure your `postExitCmd` has a `./` before the script name.
+
+
 ## Building
 As you can see you're gonna need [CMAKE](https://cmake.org/) for this, but don't worry, a lot of it is automated at this point.
 
