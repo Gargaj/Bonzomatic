@@ -54,6 +54,12 @@ enum AutoIndentationType {
   aitSmart
 };
 
+enum CommentType {
+  ctLinesSelectedOnly,
+  ctLinesAll,
+  ctBlock
+};
+
 struct SHADEREDITOR_THEME {
   unsigned int text;
   unsigned int comment;
@@ -152,6 +158,7 @@ public:
 
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
+  bool CommentSelection(CommentType);
     
 private:
   enum IndentationStatus {
@@ -159,6 +166,11 @@ private:
     isBlockStart,  // indentation block begin such as "{" or VB "function"
     isBlockEnd,    // indentation end indicator such as "}" or VB "end"
     isKeyWordStart // Keywords that cause indentation
+  };
+
+  enum CommentMode {
+    cmComment,
+    cmUncomment
   };
   
   int GetLineLength(int line);
