@@ -621,6 +621,11 @@ namespace Renderer
     pConstantTable->SetVector( pDevice, szConstName, &SetShaderConstant_VEC4 );
   }
 
+  void SetTextureFlipY(bool flipY)
+  {
+    stbi_set_flip_vertically_on_load(flipY);
+  }
+
   struct DX9Texture : public Texture
   {
     LPDIRECT3DTEXTURE9 pTexture;

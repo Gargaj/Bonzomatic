@@ -197,10 +197,14 @@ int main( int argc, const char *argv[] )
         fFFTSmoothingFactor = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftSmoothFactor");
       if (options.get<jsonxx::Object>("rendering").has<jsonxx::Number>("fftAmplification"))
         FFT::fAmplification = options.get<jsonxx::Object>("rendering").get<jsonxx::Number>("fftAmplification");
+      if (options.get<jsonxx::Object>("rendering").has<jsonxx::Boolean>("textureFlipY"))
+        bTextureFlipY = options.get<jsonxx::Object>("rendering").get<jsonxx::Boolean>("textureFlipY");
     }
 
     if (options.has<jsonxx::Object>("textures"))
     {
+      Renderer::SetTextureFlipY(bTextureFlipY);
+
       printf("Loading textures...\n");
       std::map<std::string, jsonxx::Value*> tex = options.get<jsonxx::Object>("textures").kv_map();
       for (std::map<std::string, jsonxx::Value*>::iterator it = tex.begin(); it != tex.end(); it++)

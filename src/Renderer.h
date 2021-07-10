@@ -43,6 +43,8 @@ namespace Renderer
 
   void Close();
 
+  void SetTextureFlipY(bool flipY);
+
   enum TEXTURETYPE
   {
     TEXTURETYPE_1D = 1,
