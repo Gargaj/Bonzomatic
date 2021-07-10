@@ -685,6 +685,11 @@ namespace Renderer
     }
   }
 
+  void SetTextureFlipY(bool flipY)
+  {
+    stbi_set_flip_vertically_on_load(flipY);
+  }
+
   struct GLTexture : public Texture
   {
     GLuint ID;

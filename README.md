@@ -47,6 +47,7 @@ The file can have the following contents: (all fields are optional)
   "rendering":{
     "fftSmoothFactor": 0.9, // 0.0 means there's no smoothing at all, 1.0 means the FFT is completely smoothed flat
     "fftAmplification": 1.0, // 1.0 means no change, larger values will result in brighter/stronger bands, smaller values in darker/weaker ones
+    "textureFlipY": true, // whether textures are vertically flipped after loading (default: false)
   },
   "textures":{ // the keys below will become the shader variable names
     "texChecker":"textures/checker.png",
