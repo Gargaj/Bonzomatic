@@ -93,6 +93,7 @@ struct SHADEREDITOR_OPTIONS {
   bool bVisibleWhitespace;
   AutoIndentationType eAutoIndent;
   SHADEREDITOR_THEME theme;
+  bool bShowEditorAtStart;
 };
 
 class ShaderEditor : public Scintilla::Editor
