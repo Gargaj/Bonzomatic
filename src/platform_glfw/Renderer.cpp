@@ -136,6 +136,7 @@ namespace Renderer
     "uniform float {%midi:name%};\n"
     "{%midi:end%}" // leave off \n here
     "\n"
+    "in vec2 out_texcoord;\n"
     "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
     "\n"
     "vec4 plas( vec2 v, float time )\n"
@@ -146,7 +147,7 @@ namespace Renderer
     "\n"
     "void main(void)\n"
     "{\n"
-    "\tvec2 uv = vec2(gl_FragCoord.x / v2Resolution.x, gl_FragCoord.y / v2Resolution.y);\n"
+    "\tvec2 uv = out_texcoord;\n"
     "\tuv -= 0.5;\n"
     "\tuv /= vec2(v2Resolution.y / v2Resolution.x, 1);\n"
     "\n"
