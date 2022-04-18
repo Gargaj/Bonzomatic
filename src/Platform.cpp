@@ -61,7 +61,7 @@ int Platform::DefaultFontSize()
 
 unsigned int Platform::DoubleClickTime()
 {
-  return 500; 	// Half a second
+  return 500;     // Half a second
 }
 
 bool Platform::MouseButtonBounce()
@@ -296,8 +296,8 @@ void SurfaceImpl::MoveTo(float x, float y)
 void SurfaceImpl::LineTo(float targetX, float targetY) 
 {
   Renderer::RenderLine(
-    Renderer::Vertex( currentX+0.5f, currentY+0.5f, penColour.AsLong() ),
-    Renderer::Vertex(  targetX+0.5f,  targetY+0.5f, penColour.AsLong() )
+    Renderer::Vertex( currentX+0.5f, currentY+0.5f, (unsigned int)penColour.AsLong() ),
+    Renderer::Vertex(  targetX+0.5f,  targetY+0.5f, (unsigned int)penColour.AsLong() )
   );
   currentX = targetX;
   currentY = targetY;
@@ -334,10 +334,10 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back)
   Renderer::BindTexture(NULL);
   
   Renderer::RenderQuad(
-    Renderer::Vertex( rc.left , rc.top, back.AsLong() ),
-    Renderer::Vertex( rc.right, rc.top, back.AsLong() ),
-    Renderer::Vertex( rc.right, rc.bottom, back.AsLong() ),
-    Renderer::Vertex( rc.left , rc.bottom, back.AsLong() )
+    Renderer::Vertex( rc.left , rc.top, (unsigned int)back.AsLong() ),
+    Renderer::Vertex( rc.right, rc.top, (unsigned int)back.AsLong() ),
+    Renderer::Vertex( rc.right, rc.bottom, (unsigned int)back.AsLong() ),
+    Renderer::Vertex( rc.left , rc.bottom, (unsigned int)back.AsLong() )
     );
 }
 
@@ -354,7 +354,7 @@ void SurfaceImpl::RoundedRectangle(PRectangle rc, ColourDesired fore, ColourDesi
 void SurfaceImpl::AlphaRectangle(PRectangle rc, int /*cornerSize*/, ColourDesired fill, int alphaFill,
     ColourDesired /*outline*/, int /*alphaOutline*/, int /*flags*/) 
 {
-  unsigned int back = fill.AsLong() & 0xFFFFFF | ((alphaFill & 0xFF) << 24);
+  unsigned int back = (fill.AsLong() & 0xFFFFFF) | ((alphaFill & 0xFF) << 24);
   FillRectangle(rc, back);
 }
 
@@ -395,10 +395,10 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font, float ybase, const cha
     stbtt_GetBakedQuad( realFont->cdata, realFont->texture->width, realFont->texture->height, c, &x, &y, &quad, 1 );
     
     Renderer::RenderQuad(
-      Renderer::Vertex( quad.x0, quad.y0, fore.AsLong(), quad.s0, quad.t0 ),
-      Renderer::Vertex( quad.x1, quad.y0, fore.AsLong(), quad.s1, quad.t0 ),
-      Renderer::Vertex( quad.x1, quad.y1, fore.AsLong(), quad.s1, quad.t1 ),
-      Renderer::Vertex( quad.x0, quad.y1, fore.AsLong(), quad.s0, quad.t1 )
+      Renderer::Vertex( quad.x0, quad.y0, (unsigned int)fore.AsLong(), quad.s0, quad.t0 ),
+      Renderer::Vertex( quad.x1, quad.y0, (unsigned int)fore.AsLong(), quad.s1, quad.t0 ),
+      Renderer::Vertex( quad.x1, quad.y1, (unsigned int)fore.AsLong(), quad.s1, quad.t1 ),
+      Renderer::Vertex( quad.x0, quad.y1, (unsigned int)fore.AsLong(), quad.s0, quad.t1 )
     );
     str += charLength;
     len -= charLength - 1;
@@ -428,7 +428,7 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
   stbtt_Font* realFont = (stbtt_Font*)font.GetID();
   
   float position = 0;
-  char * p = (char*)str;
+  const char * p = str;
   while (len-- > 0) 
   {
     unsigned int c = *p;
@@ -446,7 +446,7 @@ void SurfaceImpl::MeasureWidths(Font & font, const char *str, int len, float *po
     stbtt_GetCodepointHMetrics(&realFont->fontinfo, c, &advance, &leftBearing);
     
     position     += advance;
-    for (int i=0; i<charLength; i++) // we need to loop here because UTF8 characters count as multiple unless their position is the same
+    for (unsigned int i=0; i<charLength; i++) // we need to loop here because UTF8 characters count as multiple unless their position is the same
       *positions++  = position*realFont->scale;
 
     p += charLength;

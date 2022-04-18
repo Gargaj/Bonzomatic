@@ -1,22 +1,16 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(GLFW VERSION 3.3.3 LANGUAGES C)
+
 set(CMAKE_LEGACY_CYGWIN_WIN32 OFF)
 
-project(GLFW C)
-
-cmake_minimum_required(VERSION 2.8.12)
-
-if (NOT CMAKE_VERSION VERSION_LESS "3.0")
-    # Until all major package systems have moved to CMake 3,
-    # we stick with the older INSTALL_NAME_DIR mechanism
-    cmake_policy(SET CMP0042 OLD)
+if (POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
 endif()
 
-set(GLFW_VERSION_MAJOR "3")
-set(GLFW_VERSION_MINOR "2")
-set(GLFW_VERSION_PATCH "0")
-set(GLFW_VERSION_EXTRA "")
-set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
-set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
-set(LIB_SUFFIX "" CACHE STRING "Takes an empty string or 64. Directory where lib will be installed: lib or lib64")
+if (POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -25,26 +19,19 @@ option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" ON)
 option(GLFW_BUILD_TESTS "Build the GLFW test programs" ON)
 option(GLFW_BUILD_DOCS "Build the GLFW documentation" ON)
 option(GLFW_INSTALL "Generate installation target" ON)
-option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
+option(GLFW_VULKAN_STATIC "Assume the Vulkan loader is linked with the application" OFF)
 
-if (WIN32)
-    option(GLFW_USE_HYBRID_HPG "Force use of high-performance GPU on hybrid systems" OFF)
-endif()
+include(GNUInstallDirs)
+include(CMakeDependentOption)
 
-if (APPLE)
-    option(GLFW_USE_CHDIR "Make glfwInit chdir to Contents/Resources" ON)
-    option(GLFW_USE_MENUBAR "Populate the menu bar on first window creation" ON)
-    option(GLFW_USE_RETINA "Use the full resolution of Retina displays" ON)
-endif()
-
-if (UNIX AND NOT APPLE)
-    option(GLFW_USE_WAYLAND "Use Wayland for window creation" OFF)
-    option(GLFW_USE_MIR     "Use Mir for window creation" OFF)
-endif()
-
-if (MSVC)
-    option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
-endif()
+cmake_dependent_option(GLFW_USE_OSMESA "Use OSMesa for offscreen context creation" OFF
+                       "UNIX" OFF)
+cmake_dependent_option(GLFW_USE_HYBRID_HPG "Force use of high-performance GPU on hybrid systems" OFF
+                       "WIN32" OFF)
+cmake_dependent_option(GLFW_USE_WAYLAND "Use Wayland for window creation" OFF
+                       "UNIX;NOT APPLE" OFF)
+cmake_dependent_option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON
+                       "MSVC" OFF)
 
 if (BUILD_SHARED_LIBS)
     set(_GLFW_BUILD_DLL 1)
@@ -57,10 +44,18 @@ else()
     set(GLFW_LIB_NAME glfw3)
 endif()
 
-set(CMAKE_MODULE_PATH "${GLFW_SOURCE_DIR}/CMake/modules")
+if (GLFW_VULKAN_STATIC)
+    if (BUILD_SHARED_LIBS)
+        # If you absolutely must do this, remove this line and add the Vulkan
+        # loader static library via the CMAKE_SHARED_LINKER_FLAGS
+        message(FATAL_ERROR "You are trying to link the Vulkan loader static library into the GLFW shared library")
+    endif()
+    set(_GLFW_VULKAN_STATIC 1)
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${GLFW_SOURCE_DIR}/CMake/modules")
 
 find_package(Threads REQUIRED)
-find_package(Vulkan)
 
 if (GLFW_BUILD_DOCS)
     set(DOXYGEN_SKIP_DOT TRUE)
@@ -71,6 +66,17 @@ endif()
 # Set compiler specific flags
 #--------------------------------------------------------------------
 if (MSVC)
+    if (MSVC90)
+        # Workaround for VS 2008 not shipping with the DirectX 9 SDK
+        include(CheckIncludeFile)
+        check_include_file(dinput.h DINPUT_H_FOUND)
+        if (NOT DINPUT_H_FOUND)
+            message(FATAL_ERROR "DirectX 9 headers not found; install DirectX 9 SDK")
+        endif()
+        # Workaround for VS 2008 not shipping with stdint.h
+        list(APPEND glfw_INCLUDE_DIRS "${GLFW_SOURCE_DIR}/deps/vs2008")
+    endif()
+
     if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
         foreach (flag CMAKE_C_FLAGS
                       CMAKE_C_FLAGS_DEBUG
@@ -122,28 +128,29 @@ if (MINGW)
     if (_GLFW_HAS_64ASLR)
         set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--high-entropy-va ${CMAKE_SHARED_LINKER_FLAGS}")
     endif()
+
+    # Clear flags again to avoid breaking later tests
+    set(CMAKE_REQUIRED_FLAGS)
 endif()
 
 #--------------------------------------------------------------------
 # Detect and select backend APIs
 #--------------------------------------------------------------------
-if (WIN32)
+if (GLFW_USE_WAYLAND)
+    set(_GLFW_WAYLAND 1)
+    message(STATUS "Using Wayland for window creation")
+elseif (GLFW_USE_OSMESA)
+    set(_GLFW_OSMESA 1)
+    message(STATUS "Using OSMesa for headless context creation")
+elseif (WIN32)
     set(_GLFW_WIN32 1)
     message(STATUS "Using Win32 for window creation")
 elseif (APPLE)
     set(_GLFW_COCOA 1)
     message(STATUS "Using Cocoa for window creation")
 elseif (UNIX)
-    if (GLFW_USE_WAYLAND)
-        set(_GLFW_WAYLAND 1)
-        message(STATUS "Using Wayland for window creation")
-    elseif (GLFW_USE_MIR)
-        set(_GLFW_MIR 1)
-        message(STATUS "Using Mir for window creation")
-    else()
-        set(_GLFW_X11 1)
-        message(STATUS "Using X11 for window creation")
-    endif()
+    set(_GLFW_X11 1)
+    message(STATUS "Using X11 for window creation")
 else()
     message(FATAL_ERROR "No supported platform was detected")
 endif()
@@ -198,54 +205,35 @@ if (_GLFW_X11)
     list(APPEND glfw_LIBRARIES "${X11_X11_LIB}" "${CMAKE_THREAD_LIBS_INIT}")
 
     # Check for XRandR (modern resolution switching and gamma control)
-    if (NOT X11_Xrandr_FOUND)
-        message(FATAL_ERROR "The RandR library and headers were not found")
+    if (NOT X11_Xrandr_INCLUDE_PATH)
+        message(FATAL_ERROR "RandR headers not found; install libxrandr development package")
     endif()
-
-    list(APPEND glfw_INCLUDE_DIRS "${X11_Xrandr_INCLUDE_PATH}")
-    list(APPEND glfw_LIBRARIES "${X11_Xrandr_LIB}")
-    list(APPEND glfw_PKG_DEPS "xrandr")
 
     # Check for Xinerama (legacy multi-monitor support)
-    if (NOT X11_Xinerama_FOUND)
-        message(FATAL_ERROR "The Xinerama library and headers were not found")
-    endif()
-
-    list(APPEND glfw_INCLUDE_DIRS "${X11_Xinerama_INCLUDE_PATH}")
-    list(APPEND glfw_LIBRARIES "${X11_Xinerama_LIB}")
-    list(APPEND glfw_PKG_DEPS "xinerama")
-
-    # Check for Xf86VidMode (fallback gamma control)
-    if (X11_xf86vmode_FOUND)
-        list(APPEND glfw_INCLUDE_DIRS "${X11_xf86vmode_INCLUDE_PATH}")
-        list(APPEND glfw_PKG_DEPS "xxf86vm")
-
-        if (X11_Xxf86vm_LIB)
-            list(APPEND glfw_LIBRARIES "${X11_Xxf86vm_LIB}")
-        else()
-            # Backwards compatibility (see CMake bug 0006976)
-            list(APPEND glfw_LIBRARIES Xxf86vm)
-        endif()
-
-        set(_GLFW_HAS_XF86VM TRUE)
+    if (NOT X11_Xinerama_INCLUDE_PATH)
+        message(FATAL_ERROR "Xinerama headers not found; install libxinerama development package")
     endif()
 
     # Check for Xkb (X keyboard extension)
-    if (NOT X11_Xkb_FOUND)
-        message(FATAL_ERROR "The X keyboard extension headers were not found")
+    if (NOT X11_Xkb_INCLUDE_PATH)
+        message(FATAL_ERROR "XKB headers not found; install X11 development package")
     endif()
 
-    list(APPEND glfw_INCLUDE_DIR "${X11_Xkb_INCLUDE_PATH}")
-
-    # Check for Xcursor
-    if (NOT X11_Xcursor_FOUND)
-        message(FATAL_ERROR "The Xcursor libraries and headers were not found")
+    # Check for Xcursor (cursor creation from RGBA images)
+    if (NOT X11_Xcursor_INCLUDE_PATH)
+        message(FATAL_ERROR "Xcursor headers not found; install libxcursor development package")
     endif()
 
-    list(APPEND glfw_INCLUDE_DIR "${X11_Xcursor_INCLUDE_PATH}")
-    list(APPEND glfw_LIBRARIES "${X11_Xcursor_LIB}")
-    list(APPEND glfw_PKG_DEPS "xcursor")
+    # Check for XInput (modern HID input)
+    if (NOT X11_Xi_INCLUDE_PATH)
+        message(FATAL_ERROR "XInput headers not found; install libxi development package")
+    endif()
 
+    list(APPEND glfw_INCLUDE_DIRS "${X11_Xrandr_INCLUDE_PATH}"
+                                  "${X11_Xinerama_INCLUDE_PATH}"
+                                  "${X11_Xkb_INCLUDE_PATH}"
+                                  "${X11_Xcursor_INCLUDE_PATH}"
+                                  "${X11_Xi_INCLUDE_PATH}")
 endif()
 
 #--------------------------------------------------------------------
@@ -253,37 +241,40 @@ endif()
 #--------------------------------------------------------------------
 if (_GLFW_WAYLAND)
     find_package(ECM REQUIRED NO_MODULE)
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+    list(APPEND CMAKE_MODULE_PATH "${ECM_MODULE_PATH}")
 
-    find_package(Wayland REQUIRED)
+    find_package(Wayland REQUIRED Client Cursor Egl)
     find_package(WaylandScanner REQUIRED)
-    find_package(WaylandProtocols 1.1 REQUIRED)
+    find_package(WaylandProtocols 1.15 REQUIRED)
 
-    list(APPEND glfw_PKG_DEPS "wayland-egl")
+    list(APPEND glfw_PKG_DEPS "wayland-client")
 
-    list(APPEND glfw_INCLUDE_DIRS "${Wayland_INCLUDE_DIR}")
+    list(APPEND glfw_INCLUDE_DIRS "${Wayland_INCLUDE_DIRS}")
     list(APPEND glfw_LIBRARIES "${Wayland_LIBRARIES}" "${CMAKE_THREAD_LIBS_INIT}")
 
     find_package(XKBCommon REQUIRED)
-    list(APPEND glfw_PKG_DEPS "xkbcommon")
     list(APPEND glfw_INCLUDE_DIRS "${XKBCOMMON_INCLUDE_DIRS}")
-    list(APPEND glfw_LIBRARIES "${XKBCOMMON_LIBRARY}")
+
+    include(CheckIncludeFiles)
+    include(CheckFunctionExists)
+    check_include_files(xkbcommon/xkbcommon-compose.h HAVE_XKBCOMMON_COMPOSE_H)
+    check_function_exists(memfd_create HAVE_MEMFD_CREATE)
+
+    if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux"))
+        find_package(EpollShim)
+        if (EPOLLSHIM_FOUND)
+            list(APPEND glfw_INCLUDE_DIRS "${EPOLLSHIM_INCLUDE_DIRS}")
+            list(APPEND glfw_LIBRARIES "${EPOLLSHIM_LIBRARIES}")
+        endif()
+    endif()
 endif()
 
 #--------------------------------------------------------------------
-# Use Mir for window creation
+# Use OSMesa for offscreen context creation
 #--------------------------------------------------------------------
-if (_GLFW_MIR)
-    find_package(Mir REQUIRED)
-    list(APPEND glfw_PKG_DEPS "mirclient")
-
-    list(APPEND glfw_INCLUDE_DIRS "${MIR_INCLUDE_DIR}")
-    list(APPEND glfw_LIBRARIES "${MIR_LIBRARIES}" "${CMAKE_THREAD_LIBS_INIT}")
-
-    find_package(XKBCommon REQUIRED)
-    list(APPEND glfw_PKG_DEPS "xkbcommon")
-    list(APPEND glfw_INCLUDE_DIRS "${XKBCOMMON_INCLUDE_DIRS}")
-    list(APPEND glfw_LIBRARIES "${XKBCOMMON_LIBRARY}")
+if (_GLFW_OSMESA)
+    find_package(OSMesa REQUIRED)
+    list(APPEND glfw_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
 #--------------------------------------------------------------------
@@ -291,34 +282,20 @@ endif()
 #--------------------------------------------------------------------
 if (_GLFW_COCOA)
 
-    if (GLFW_USE_MENUBAR)
-        set(_GLFW_USE_MENUBAR 1)
-    endif()
-
-    if (GLFW_USE_CHDIR)
-        set(_GLFW_USE_CHDIR 1)
-    endif()
-
-    if (GLFW_USE_RETINA)
-        set(_GLFW_USE_RETINA 1)
-    endif()
-
-    # Set up library and include paths
-    find_library(COCOA_FRAMEWORK Cocoa)
-    find_library(IOKIT_FRAMEWORK IOKit)
-    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
-    find_library(CORE_VIDEO_FRAMEWORK CoreVideo)
-    mark_as_advanced(COCOA_FRAMEWORK
-                     IOKIT_FRAMEWORK
-                     CORE_FOUNDATION_FRAMEWORK
-                     CORE_VIDEO_FRAMEWORK)
-    list(APPEND glfw_LIBRARIES "${COCOA_FRAMEWORK}"
-                               "${IOKIT_FRAMEWORK}"
-                               "${CORE_FOUNDATION_FRAMEWORK}"
-                               "${CORE_VIDEO_FRAMEWORK}")
+    list(APPEND glfw_LIBRARIES
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreFoundation")
 
     set(glfw_PKG_DEPS "")
-    set(glfw_PKG_LIBS "-framework Cocoa -framework IOKit -framework CoreFoundation -framework CoreVideo")
+    set(glfw_PKG_LIBS "-framework Cocoa -framework IOKit -framework CoreFoundation")
+endif()
+
+#--------------------------------------------------------------------
+# Add the Vulkan loader as a dependency if necessary
+#--------------------------------------------------------------------
+if (GLFW_VULKAN_STATIC)
+    list(APPEND glfw_PKG_DEPS "vulkan")
 endif()
 
 #--------------------------------------------------------------------
@@ -336,7 +313,7 @@ endforeach()
 #--------------------------------------------------------------------
 include(CMakePackageConfigHelpers)
 
-set(GLFW_CONFIG_PATH "lib${LIB_SUFFIX}/cmake/glfw3")
+set(GLFW_CONFIG_PATH "${CMAKE_INSTALL_LIBDIR}/cmake/glfw3")
 
 configure_package_config_file(src/glfw3Config.cmake.in
                               src/glfw3Config.cmake
@@ -344,7 +321,7 @@ configure_package_config_file(src/glfw3Config.cmake.in
                               NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 write_basic_package_version_file(src/glfw3ConfigVersion.cmake
-                                 VERSION ${GLFW_VERSION_FULL}
+                                 VERSION ${GLFW_VERSION}
                                  COMPATIBILITY SameMajorVersion)
 
 configure_file(src/glfw_config.h.in src/glfw_config.h @ONLY)
@@ -373,7 +350,7 @@ endif()
 # The library is installed by src/CMakeLists.txt
 #--------------------------------------------------------------------
 if (GLFW_INSTALL)
-    install(DIRECTORY include/GLFW DESTINATION include
+    install(DIRECTORY include/GLFW DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             FILES_MATCHING PATTERN glfw3.h PATTERN glfw3native.h)
 
     install(FILES "${GLFW_BINARY_DIR}/src/glfw3Config.cmake"
@@ -384,7 +361,7 @@ if (GLFW_INSTALL)
             EXPORT_LINK_INTERFACE_LIBRARIES
             DESTINATION "${GLFW_CONFIG_PATH}")
     install(FILES "${GLFW_BINARY_DIR}/src/glfw3.pc"
-            DESTINATION "lib${LIB_SUFFIX}/pkgconfig")
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
     # Only generate this target if no higher-level project already has
     if (NOT TARGET uninstall)
@@ -394,6 +371,7 @@ if (GLFW_INSTALL)
         add_custom_target(uninstall
                           "${CMAKE_COMMAND}" -P
                           "${GLFW_BINARY_DIR}/cmake_uninstall.cmake")
+        set_target_properties(uninstall PROPERTIES FOLDER "GLFW3")
     endif()
 endif()
 

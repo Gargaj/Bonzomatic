@@ -1,7 +1,7 @@
 //========================================================================
-// GLFW 3.2 OS X - www.glfw.org
+// GLFW 3.3 macOS - www.glfw.org
 //------------------------------------------------------------------------
-// Copyright (c) 2009-2016 Camilla Berglund <elmindreda@glfw.org>
+// Copyright (c) 2009-2016 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -23,6 +23,8 @@
 //    distribution.
 //
 //========================================================================
+// It is fine to use C99 in this file because it will not be built with VS
+//========================================================================
 
 #include "internal.h"
 
@@ -40,7 +42,7 @@ void _glfwInitTimerNS(void)
     mach_timebase_info_data_t info;
     mach_timebase_info(&info);
 
-    _glfw.ns_time.frequency = (info.denom * 1e9) / info.numer;
+    _glfw.timer.ns.frequency = (info.denom * 1e9) / info.numer;
 }
 
 
@@ -55,6 +57,6 @@ uint64_t _glfwPlatformGetTimerValue(void)
 
 uint64_t _glfwPlatformGetTimerFrequency(void)
 {
-    return _glfw.ns_time.frequency;
+    return _glfw.timer.ns.frequency;
 }
 

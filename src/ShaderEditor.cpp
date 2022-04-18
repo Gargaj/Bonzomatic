@@ -4,6 +4,14 @@
 #include "PropSetSimple.h"
 #include "Clipboard.h"
 
+const int statementLookback = 20;
+const int statementIndentStyleNumber = 5;
+const int blockAndStatementEndStyleNumber = 10;
+std::string statementIndent[] = { "case", "default", "do", "else", "for", "if", "while" };
+const char statementEnd = ';';
+const char blockStart = '{';
+const char blockEnd = '}';
+
 ShaderEditor::ShaderEditor( Scintilla::Surface *s )
 {
   bReadOnly = false;
@@ -80,19 +88,19 @@ public:
 static unsigned int wndID = 1;
 void ShaderEditor::Initialise()
 {
-  wMain = (Scintilla::WindowID)(wndID++);
+  wMain = (Scintilla::WindowID)(unsigned long)(wndID++);
 
   lexState = new Scintilla::LexState( pdoc );
 
-  WndProc( SCI_SETBUFFEREDDRAW, NULL, NULL );
-  WndProc( SCI_SETCODEPAGE, SC_CP_UTF8, NULL );
+  WndProc( SCI_SETBUFFEREDDRAW, 0, 0 );
+  WndProc( SCI_SETCODEPAGE, SC_CP_UTF8, 0 );
 
-  WndProc( SCI_SETWRAPMODE, SC_WRAP_WORD, NULL );
+  WndProc( SCI_SETWRAPMODE, SC_WRAP_WORD, 0 );
 
-  //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, NULL );
+  //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, 0 );
 
   SetAStyle( STYLE_DEFAULT,     0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  WndProc( SCI_STYLECLEARALL, NULL, NULL );
+  WndProc( SCI_STYLECLEARALL, 0, 0 );
   SetAStyle( STYLE_LINENUMBER,  0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
   SetAStyle( STYLE_BRACELIGHT,  0xFF00FF00, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
   SetAStyle( STYLE_BRACEBAD,    0xFF0000FF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
@@ -100,7 +108,7 @@ void ShaderEditor::Initialise()
 
   WndProc(SCI_SETFOLDMARGINCOLOUR,   1, BACKGROUND( 0x1A1A1A ));
   WndProc(SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ));
-  WndProc(SCI_SETSELBACK,            1, BACKGROUND( 0xCC9966 ));
+  WndProc(SCI_SETSELBACK,            1, theme.selection);
 
   SetReadOnly(false);
 
@@ -110,35 +118,61 @@ void ShaderEditor::Initialise()
     WndProc(SCI_MARKERSETBACK, markersArray[FOLDER_TYPE][i], 0xFF6A6A6A);
     WndProc(SCI_MARKERSETFORE, markersArray[FOLDER_TYPE][i], 0xFF333333);
   }
-  WndProc(SCI_SETUSETABS, bUseSpacesForTabs ? 0 : 1, NULL);
-  WndProc(SCI_SETTABWIDTH, nTabSize, NULL);
-  WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, NULL);
+  WndProc(SCI_SETUSETABS, bUseSpacesForTabs ? 0 : 1, 0);
+  WndProc(SCI_SETTABWIDTH, nTabSize, 0);
+  WndProc(SCI_SETINDENT, nTabSize, 0);
+  WndProc(SCI_SETINDENTATIONGUIDES, SC_IV_REAL, 0);
 
   if (bVisibleWhitespace)
   {
-    WndProc(SCI_SETVIEWWS, SCWS_VISIBLEALWAYS, NULL);
+    WndProc(SCI_SETVIEWWS, SCWS_VISIBLEALWAYS, 0);
     WndProc(SCI_SETWHITESPACEFORE, 1, 0x30FFFFFF);
-    WndProc(SCI_SETWHITESPACESIZE, 2, NULL );
+    WndProc(SCI_SETWHITESPACESIZE, 2, 0 );
   }
   
   lexState->SetLexer( SCLEX_CPP );
   lexState->SetWordList(0, shaderKeyword);
   lexState->SetWordList(1, shaderType);
   lexState->SetWordList(3, shaderBuiltin);
+  // Do not grey out code inside #if #else #endif (when set to 1 it causes problems with fully transparent background)
+  lexState->PropSet("lexer.cpp.track.preprocessor", "0");
+  // Colorize the content of the #defines (thx @blackle for finding it)
+  lexState->PropSet("styling.within.preprocessor", "1");
 
-  SetAStyle(SCE_C_DEFAULT,      0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  SetAStyle(SCE_C_WORD,         0xFF0066FF, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_WORD2,        0xFFFFFF00, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_GLOBALCLASS,  0xFF88FF44, BACKGROUND( 0x000000 ));  
-  SetAStyle(SCE_C_PREPROCESSOR, 0xFFC0C0C0, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_NUMBER,       0xFF0080FF, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_OPERATOR,     0xFF00CCFF, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_COMMENT,      0xFF00FF00, BACKGROUND( 0x000000 ));
-  SetAStyle(SCE_C_COMMENTLINE,  0xFF00FF00, BACKGROUND( 0x000000 ));
+  SetAStyle(SCE_C_DEFAULT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000), nFontSize, sFontFile.c_str() );
+  SetAStyle(SCE_C_WORD, theme.keyword, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_WORD2, theme.type, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_GLOBALCLASS, theme.builtin, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_PREPROCESSOR, theme.preprocessor, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_NUMBER, theme.number, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_OPERATOR, theme.op, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_COMMENT, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_COMMENTLINE, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
   
+  // Misc chars to cover for standard text
+  SetAStyle(SCE_C_COMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_STRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_CHARACTER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_UUID, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_IDENTIFIER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_STRINGEOL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_VERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_REGEX, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_COMMENTLINEDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_COMMENTDOCKEYWORD, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_COMMENTDOCKEYWORDERROR, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_STRINGRAW, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_TRIPLEVERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_HASHQUOTEDSTRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_PREPROCESSORCOMMENT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_PREPROCESSORCOMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_USERLITERAL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_TASKMARKER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+  SetAStyle(SCE_C_ESCAPESEQUENCE, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND(0x000000));
+
   lexState->Colourise( 0, -1 );
 
-  //WndProc( SCI_COLOURISE, NULL, NULL );
+  //WndProc( SCI_COLOURISE, 0, 0 );
 
   vs.Refresh( *surfaceWindow, 4 );
 }
@@ -151,6 +185,8 @@ void ShaderEditor::Initialise( SHADEREDITOR_OPTIONS &options )
   bUseSpacesForTabs = options.bUseSpacesForTabs;
   nTabSize = options.nTabSize;
   bVisibleWhitespace = options.bVisibleWhitespace;
+  eAutoIndent = options.eAutoIndent;
+  theme = options.theme;
 
   Initialise();
   SetPosition( options.rect );
@@ -183,6 +219,8 @@ void ShaderEditor::Copy()
 void ShaderEditor::Paste()
 {
   int n = Clipboard::GetContentsLength();
+  if (n == 0) return;
+
   char * p = new char[n + 1];
   memset(p,0,n+1);
   Clipboard::GetContents( p, n );
@@ -205,12 +243,21 @@ void ShaderEditor::NotifyChange()
 
 void ShaderEditor::NotifyParent( Scintilla::SCNotification scn )
 {
-
+  switch (scn.nmhdr.code) {
+    case SCN_CHARADDED:
+      char ch = static_cast<char>(scn.ch);
+      if(eAutoIndent == aitPreserve) {
+        PreserveIndentation(ch);
+      } else if (eAutoIndent == aitSmart) {
+        AutomaticIndentation(ch);
+      }
+      break;
+    }
 }
 
 void ShaderEditor::CopyToClipboard( const Scintilla::SelectionText &selectedText )
 {
-  Clipboard::Copy( selectedText.Data(), selectedText.Length() );
+  Clipboard::Copy( selectedText.Data(), (int)selectedText.Length() );
 }
 
 void ShaderEditor::SetMouseCapture( bool on )
@@ -234,15 +281,15 @@ void ShaderEditor::Paint()
   Scintilla::Editor::Paint( surfaceWindow, GetClientRectangle() );
 }
 
-void ShaderEditor::SetText( char * buf )
+void ShaderEditor::SetText( const char * buf )
 {
-  WndProc( SCI_SETREADONLY, false, NULL );
-  WndProc( SCI_CLEARALL, false, NULL );
-  WndProc( SCI_SETUNDOCOLLECTION, 0, NULL);
+  WndProc( SCI_SETREADONLY, false, 0 );
+  WndProc( SCI_CLEARALL, false, 0 );
+  WndProc( SCI_SETUNDOCOLLECTION, 0, 0);
   WndProc( SCI_ADDTEXT, strlen(buf), (sptr_t)buf );
-  WndProc( SCI_SETUNDOCOLLECTION, 1, NULL);
-  WndProc( SCI_SETREADONLY, bReadOnly, NULL );
-  WndProc( SCI_GOTOPOS, 0, NULL );
+  WndProc( SCI_SETUNDOCOLLECTION, 1, 0);
+  WndProc( SCI_SETREADONLY, bReadOnly, 0 );
+  WndProc( SCI_GOTOPOS, 0, 0 );
   if (!bReadOnly)
     SetFocusState( true );
 }
@@ -271,7 +318,7 @@ void ShaderEditor::GetText( char * buf, int len )
 {
   memset( buf, 0, len );
 
-  int lengthDoc = WndProc( SCI_GETLENGTH, NULL, NULL );
+  int lengthDoc = (int)WndProc( SCI_GETLENGTH, 0, 0 );
 
   Scintilla::TextRange tr;
   tr.chrg.cpMin = 0;
@@ -296,13 +343,13 @@ void ShaderEditor::NotifyStyleToNeeded(int endStyleNeeded) {
 void ShaderEditor::SetReadOnly( bool b )
 {
   bReadOnly = b;
-  WndProc( SCI_SETREADONLY, bReadOnly, NULL );
+  WndProc( SCI_SETREADONLY, bReadOnly, 0 );
   if (bReadOnly)
   {
-    WndProc(SCI_SETVIEWWS, SCWS_INVISIBLE, NULL);
+    WndProc(SCI_SETVIEWWS, SCWS_INVISIBLE, 0);
     WndProc(SCI_SETMARGINWIDTHN, 0, 0);
     WndProc(SCI_SETMARGINWIDTHN, 1, 0);
-    WndProc( SCI_SETCARETLINEVISIBLE,   0, NULL);
+    WndProc( SCI_SETCARETLINEVISIBLE,   0, 0);
     WndProc( SCI_SETCARETFORE,          0, 0);
   }
   else
@@ -312,9 +359,9 @@ void ShaderEditor::SetReadOnly( bool b )
     WndProc(SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS);//Calculate correct width
 
     WndProc( SCI_SETCARETFORE,          0xFFFFFFFF, 0);
-    WndProc( SCI_SETCARETLINEVISIBLE,   1, NULL);
-    WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, NULL);
-    WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, NULL);
+    WndProc( SCI_SETCARETLINEVISIBLE,   1, 0);
+    WndProc( SCI_SETCARETLINEBACK,      0xFFFFFFFF, 0);
+    WndProc( SCI_SETCARETLINEBACKALPHA, 0x20, 0);
   }
 }
 
@@ -365,4 +412,219 @@ void ShaderEditor::FineTickerStart( TickReason, int, int )
 void ShaderEditor::FineTickerCancel( TickReason )
 {
 
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Indentation handling
+
+int ShaderEditor::GetLineLength(int line) {
+  return WndProc(SCI_GETLINEENDPOSITION, line, 0) - WndProc(SCI_POSITIONFROMLINE, line, 0);
+}
+
+int ShaderEditor::GetCurrentLineNumber() {
+  return WndProc(SCI_LINEFROMPOSITION, WndProc(SCI_GETCURRENTPOS, 0, 0), 0);
+}
+
+Sci_CharacterRange ShaderEditor::GetSelection() {
+  Sci_CharacterRange chrange;
+  chrange.cpMin = WndProc(SCI_GETSELECTIONSTART, 0, 0);
+  chrange.cpMax = WndProc(SCI_GETSELECTIONEND, 0, 0);
+  return chrange;
+}
+
+int ShaderEditor::GetLineIndentation(int line) {
+  return WndProc(SCI_GETLINEINDENTATION, line, 0);
+}
+
+int ShaderEditor::GetLineIndentPosition(int line) {
+  return WndProc(SCI_GETLINEINDENTPOSITION, line, 0);
+}
+
+void ShaderEditor::SetLineIndentation(int line, int indent) {
+  if (indent < 0)
+    return;
+  Sci_CharacterRange crange = GetSelection();
+  int posBefore = GetLineIndentPosition(line);
+  WndProc(SCI_SETLINEINDENTATION, line, indent);
+  int posAfter = GetLineIndentPosition(line);
+  int posDifference = posAfter - posBefore;
+  if (posAfter > posBefore) {
+    // Move selection on
+    if (crange.cpMin >= posBefore) {
+      crange.cpMin += posDifference;
+    }
+    if (crange.cpMax >= posBefore) {
+      crange.cpMax += posDifference;
+    }
+  } else if (posAfter < posBefore) {
+    // Move selection back
+    if (crange.cpMin >= posAfter) {
+      if (crange.cpMin >= posBefore) {
+        crange.cpMin += posDifference;
+      } else {
+        crange.cpMin = posAfter;
+      }
+    }
+    if (crange.cpMax >= posAfter) {
+      if (crange.cpMax >= posBefore) {
+        crange.cpMax += posDifference;
+      } else {
+        crange.cpMax = posAfter;
+      }
+    }
+  }
+  SetSelection(static_cast<int>(crange.cpMin), static_cast<int>(crange.cpMax));
+}
+
+void ShaderEditor::PreserveIndentation(char ch) {
+  int eolMode = WndProc(SCI_GETEOLMODE, 0, 0);
+  int curLine = GetCurrentLineNumber();
+  int lastLine = curLine - 1;
+
+  if (((eolMode == SC_EOL_CRLF || eolMode == SC_EOL_LF) && ch == '\n') || (eolMode == SC_EOL_CR && ch == '\r')) {
+    while (lastLine >= 0 && GetLineLength(lastLine) == 0) {
+      lastLine--;
+    }
+    int indentAmount = 0;
+    if (lastLine >= 0) {
+      indentAmount = GetLineIndentation(lastLine);
+    }
+    if (indentAmount > 0) {
+      SetLineIndentation(curLine, indentAmount);
+    }
+  }
+}
+
+std::vector<std::string> ShaderEditor::GetLinePartsInStyle(int line, int style) {
+  std::vector<std::string> out;
+  std::string s;
+  int thisLineStart = WndProc(SCI_POSITIONFROMLINE, line, 0);
+  int nextLineStart = WndProc(SCI_POSITIONFROMLINE, line + 1, 0);
+  for (int pos = thisLineStart; pos < nextLineStart; pos++) {
+    if (static_cast<char>(WndProc(SCI_GETSTYLEAT, pos, 0)) == style) {
+      char c = WndProc(SCI_GETCHARAT, pos, 0);
+      // special handling for statements and blocks characters as they should be dissociated to other strings
+      if (c == statementEnd || c == blockStart || c == blockEnd) {
+        out.push_back(std::string(1, c));
+        s = "";
+      } else {
+        s += c;
+      }
+    } else if (s.size() > 0) {
+      out.push_back(s);
+      s = "";
+    }
+  }
+  if (s.size() > 0) {
+    out.push_back(s);
+  }
+  
+  return out;
+}
+
+bool ShaderEditor::isAStatementIndent(std::string &word) {
+  for (size_t i=0; i<(sizeof(statementIndent)/sizeof(statementIndent[0])); i++) {
+    std::string &statementElem = statementIndent[i];
+    if (statementElem == word) {
+      return true;
+    }
+  }
+  return false;
+}
+
+ShaderEditor::IndentationStatus ShaderEditor::GetIndentState(int line) {
+  size_t i;
+  IndentationStatus indentState = isNone;
+  std::vector<std::string> controlWords = GetLinePartsInStyle(line, statementIndentStyleNumber);
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
+    if (isAStatementIndent(controlWord)) {
+      indentState = isKeyWordStart;
+    }
+  }
+  
+  controlWords = GetLinePartsInStyle(line, blockAndStatementEndStyleNumber);
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
+    if (controlWord.size() < 1) continue;
+    if (statementEnd == controlWord[0]) {
+      indentState = isNone;
+    }
+  }
+  
+  for (i=0; i<controlWords.size(); i++) {
+    std::string &controlWord = controlWords[i];
+    if (controlWord.size() < 1) continue;
+    if (blockEnd == controlWord[0]) {
+      indentState = isBlockEnd;
+    }
+    if (blockStart == controlWord[0]) {
+      indentState = isBlockStart;
+    }
+  }
+  
+  return indentState;
+}
+
+int ShaderEditor::IndentOfBlock(int line) {
+  if (line < 0)
+    return 0;
+  int indentSize = WndProc(SCI_GETINDENT, 0, 0);
+  int indentBlock = GetLineIndentation(line);
+  int backLine = line;
+  IndentationStatus indentState = isNone;
+
+  int lineLimit = line - statementLookback;
+  if (lineLimit < 0) lineLimit = 0;
+
+  while ((backLine >= lineLimit) && (indentState == isNone)) {
+    indentState = GetIndentState(backLine);
+    if (indentState != isNone) {
+      indentBlock = GetLineIndentation(backLine);
+      if (indentState == isBlockStart) {
+          indentBlock += indentSize;
+      }
+      if (indentState == isBlockEnd) {
+        if (indentBlock < 0)
+          indentBlock = 0;
+      }
+      if ((indentState == isKeyWordStart) && (backLine == line))
+        indentBlock += indentSize;
+    }
+    backLine--;
+  }
+  
+  return indentBlock;
+}
+
+bool ShaderEditor::RangeIsAllWhitespace(int start, int end) {
+  for (int i = start; i < end; i++) {
+    if ((WndProc(SCI_GETCHARAT, i, 0) != ' ') && (WndProc(SCI_GETCHARAT, i, 0) != '\t'))
+      return false;
+  }
+  return true;
+}
+
+void ShaderEditor::AutomaticIndentation(char ch) {
+  Sci_CharacterRange crange = GetSelection();
+  int selStart = static_cast<int>(crange.cpMin);
+  int curLine = GetCurrentLineNumber();
+  int thisLineStart = WndProc(SCI_POSITIONFROMLINE, curLine, 0);
+  int indentSize = WndProc(SCI_GETINDENT, 0, 0);
+  int indentBlock = IndentOfBlock(curLine - 1);
+ 
+  if (ch == blockEnd) {
+    if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
+      SetLineIndentation(curLine, indentBlock - indentSize);
+    }
+  } else if (ch == blockStart) {
+    if (GetIndentState(curLine - 1) == isKeyWordStart) {
+      if (RangeIsAllWhitespace(thisLineStart, selStart - 1)) {
+        SetLineIndentation(curLine, indentBlock - indentSize);
+      }
+    }
+  } else if ((ch == '\r' || ch == '\n') && (selStart == thisLineStart)) {
+    SetLineIndentation(curLine, indentBlock);
+  }
 }

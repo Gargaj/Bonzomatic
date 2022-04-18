@@ -1,8 +1,8 @@
 //========================================================================
-// GLFW 3.2 GLX - www.glfw.org
+// GLFW 3.3 GLX - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Berglund <elmindreda@glfw.org>
+// Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -25,18 +25,15 @@
 //
 //========================================================================
 
-#ifndef _glfw3_glx_context_h_
-#define _glfw3_glx_context_h_
-
 #define GLX_VENDOR 1
 #define GLX_RGBA_BIT 0x00000001
 #define GLX_WINDOW_BIT 0x00000001
 #define GLX_DRAWABLE_TYPE 0x8010
-#define GLX_RENDER_TYPE	0x8011
+#define GLX_RENDER_TYPE 0x8011
 #define GLX_RGBA_TYPE 0x8014
 #define GLX_DOUBLEBUFFER 5
 #define GLX_STEREO 6
-#define GLX_AUX_BUFFERS	7
+#define GLX_AUX_BUFFERS 7
 #define GLX_RED_SIZE 8
 #define GLX_GREEN_SIZE 9
 #define GLX_BLUE_SIZE 10
@@ -45,7 +42,7 @@
 #define GLX_STENCIL_SIZE 13
 #define GLX_ACCUM_RED_SIZE 14
 #define GLX_ACCUM_GREEN_SIZE 15
-#define GLX_ACCUM_BLUE_SIZE	16
+#define GLX_ACCUM_BLUE_SIZE 16
 #define GLX_ACCUM_ALPHA_SIZE 17
 #define GLX_SAMPLES 0x186a1
 #define GLX_VISUAL_ID 0x800b
@@ -67,6 +64,7 @@
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_ARB 0x2097
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB 0
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB 0x2098
+#define GLX_CONTEXT_OPENGL_NO_ERROR_ARB 0x31b3
 
 typedef XID GLXWindow;
 typedef XID GLXDrawable;
@@ -84,14 +82,15 @@ typedef void (*PFNGLXSWAPBUFFERSPROC)(Display*,GLXDrawable);
 typedef const char* (*PFNGLXQUERYEXTENSIONSSTRINGPROC)(Display*,int);
 typedef GLXFBConfig* (*PFNGLXGETFBCONFIGSPROC)(Display*,int,int*);
 typedef GLXContext (*PFNGLXCREATENEWCONTEXTPROC)(Display*,GLXFBConfig,int,GLXContext,Bool);
-typedef __GLXextproc (* PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
-typedef int (*PFNGLXSWAPINTERVALMESAPROC)(int);
-typedef int (*PFNGLXSWAPINTERVALSGIPROC)(int);
+typedef __GLXextproc (* PFNGLXGETPROCADDRESSPROC)(const GLubyte *procName);
 typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*,GLXDrawable,int);
-typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC)(Display*,GLXFBConfig,GLXContext,Bool,const int*);
 typedef XVisualInfo* (*PFNGLXGETVISUALFROMFBCONFIGPROC)(Display*,GLXFBConfig);
 typedef GLXWindow (*PFNGLXCREATEWINDOWPROC)(Display*,GLXFBConfig,Window,const int*);
 typedef void (*PFNGLXDESTROYWINDOWPROC)(Display*,GLXWindow);
+
+typedef int (*PFNGLXSWAPINTERVALMESAPROC)(int);
+typedef int (*PFNGLXSWAPINTERVALSGIPROC)(int);
+typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC)(Display*,GLXFBConfig,GLXContext,Bool,const int*);
 
 // libGL.so function pointer typedefs
 #define glXGetFBConfigs _glfw.glx.GetFBConfigs
@@ -120,7 +119,6 @@ typedef struct _GLFWcontextGLX
     GLXWindow       window;
 
 } _GLFWcontextGLX;
-
 
 // GLX-specific global data
 //
@@ -165,10 +163,10 @@ typedef struct _GLFWlibraryGLX
     GLFWbool        ARB_create_context_profile;
     GLFWbool        ARB_create_context_robustness;
     GLFWbool        EXT_create_context_es2_profile;
+    GLFWbool        ARB_create_context_no_error;
     GLFWbool        ARB_context_flush_control;
 
 } _GLFWlibraryGLX;
-
 
 GLFWbool _glfwInitGLX(void);
 void _glfwTerminateGLX(void);
@@ -176,8 +174,8 @@ GLFWbool _glfwCreateContextGLX(_GLFWwindow* window,
                                const _GLFWctxconfig* ctxconfig,
                                const _GLFWfbconfig* fbconfig);
 void _glfwDestroyContextGLX(_GLFWwindow* window);
-GLFWbool _glfwChooseVisualGLX(const _GLFWctxconfig* ctxconfig,
+GLFWbool _glfwChooseVisualGLX(const _GLFWwndconfig* wndconfig,
+                              const _GLFWctxconfig* ctxconfig,
                               const _GLFWfbconfig* fbconfig,
                               Visual** visual, int* depth);
 
-#endif // _glfw3_glx_context_h_

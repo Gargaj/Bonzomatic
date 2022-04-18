@@ -8,6 +8,10 @@
 
 #include "../Renderer.h"
 
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL (0x020E)
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "Scintilla.h"
@@ -100,47 +104,51 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.dx11.hlsl";
-  char defaultShader[65536] = 
+  const char * defaultShaderFilename = "shader.dx11.hlsl";
+  const char defaultShader[65536] =
     "{%textures:begin%}" // leave off \n here
     "Texture2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
     "Texture1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "Texture1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
+    "Texture1D texFFTIntegrated; // this is continually increasing\n"
+    "Texture2D texPreviousFrame; // screenshot of the previous frame\n"
     "SamplerState smp;\n"
     "\n"
     "cbuffer constants\n"
     "{\n"
-    "  float fGlobalTime; // in seconds\n"
-    "  float2 v2Resolution; // viewport resolution (in pixels)\n"
+    "\tfloat fGlobalTime; // in seconds\n"
+    "\tfloat2 v2Resolution; // viewport resolution (in pixels)\n"
+    "\tfloat fFrameTime; // duration of the last frame, in seconds\n"
     "{%midi:begin%}"
-    "  float {%midi:name%};\n"
+    "\tfloat {%midi:name%};\n"
     "{%midi:end%}"
     "}\n"
     "\n"
     "float4 plas( float2 v, float time )\n"
     "{\n"
-    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
-    "  return float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "\tfloat c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "\treturn float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
     "}\n"
+    "\n"
     "float4 main( float4 position : SV_POSITION, float2 TexCoord : TEXCOORD ) : SV_TARGET\n"
     "{\n"
-    "  float2 uv = TexCoord;\n"
-    "  uv -= 0.5;\n"
-    "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
+    "\tfloat2 uv = TexCoord;\n"
+    "\tuv -= 0.5;\n"
+    "\tuv /= float2(v2Resolution.y / v2Resolution.x, 1);"
     "\n"
-    "  float2 m;\n"
-    "  m.x = atan(uv.x / uv.y) / 3.14;\n"
-    "  m.y = 1 / length(uv) * .2;\n"
-    "  float d = m.y;\n"
+    "\tfloat2 m;\n"
+    "\tm.x = atan(uv.x / uv.y) / 3.14;\n"
+    "\tm.y = 1 / length(uv) * .2;\n"
+    "\tfloat d = m.y;\n"
     "\n"
-    "  float f = texFFT.Sample( smp, d ).r * 100;\n"
-    "  m.x += sin( fGlobalTime ) * 0.1;\n"
-    "  m.y += fGlobalTime * 0.25;\n"
+    "\tfloat f = texFFT.Sample( smp, d ).r * 100;\n"
+    "\tm.x += sin( fGlobalTime ) * 0.1;\n"
+    "\tm.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  float4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
-    "  t = saturate( t );\n"
-    "  return f + t;\n"
+    "\tfloat4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "\tt = saturate( t );\n"
+    "\treturn f + t;\n"
     "}";
 
   char defaultVertexShader[65536] = 
@@ -149,10 +157,10 @@ namespace Renderer
     "\n"
     "VS_OUTPUT_PP main( VS_INPUT_PP In )\n"
     "{\n"
-    "  VS_OUTPUT_PP Out;\n"
-    "  Out.Pos = float4( In.Pos, 1.0 );\n"
-    "  Out.TexCoord = In.TexCoord;\n"
-    "  return Out;\n"
+    "\tVS_OUTPUT_PP Out;\n"
+    "\tOut.Pos = float4( In.Pos, 1.0 );\n"
+    "\tOut.TexCoord = In.TexCoord;\n"
+    "\treturn Out;\n"
     "}\n";
 
   bool run = true;
@@ -391,7 +399,7 @@ namespace Renderer
             DXGI_MODE_DESC * pModes = new DXGI_MODE_DESC[ nModeCount ];
             pOutput->GetDisplayModeList( format, DXGI_ENUM_MODES_INTERLACED | DXGI_ENUM_MODES_SCALING, &nModeCount, pModes);
 
-            for (int i=0; i<nModeCount; i++)
+            for (unsigned int i=0; i<nModeCount; i++)
             {
               if (pModes[i].Width == pSetup->nWidth && pModes[i].Height == pSetup->nHeight)
               {
@@ -417,7 +425,7 @@ namespace Renderer
 
     DWORD deviceCreationFlags = 0;
 #ifdef _DEBUG
-    //deviceCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+    deviceCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
     if (D3D11CreateDeviceAndSwapChain(
@@ -539,7 +547,7 @@ namespace Renderer
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
     if (pDevice->CreateSamplerState( &sampDesc, &pFullscreenQuadSamplerState ) != S_OK)
       return false;
 
@@ -789,7 +797,7 @@ namespace Renderer
     if (pContext) pContext->Release();
     if (pSwapChain) pSwapChain->Release();
     if (pDevice) pDevice->Release();
-    if (!hWnd) 
+    if (hWnd) 
     {
       DestroyWindow(hWnd);
       UnregisterClass(_T("fwzwnd"),GetModuleHandle(NULL));
@@ -818,14 +826,14 @@ namespace Renderer
   }
 
   ID3D11ShaderReflectionConstantBuffer * pCBuf = NULL;
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     ID3DBlob * pCode = NULL;
     ID3DBlob * pErrors = NULL;
     if (D3DCompile( szShaderCode, nShaderCodeSize, NULL, NULL, NULL, "main", "ps_4_0", NULL, NULL, &pCode, &pErrors ) != S_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
-      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      strncpy( szErrorBuffer, (const char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
       return false;
     }
 
@@ -853,7 +861,7 @@ namespace Renderer
     pContext->Unmap( pFullscreenQuadConstantBuffer, NULL );
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName( szConstName );
     D3D11_SHADER_VARIABLE_DESC pDesc;
@@ -865,7 +873,7 @@ namespace Renderer
     __UpdateConstants();
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     ID3D11ShaderReflectionVariable * pCVar = pCBuf->GetVariableByName(szConstName);
     D3D11_SHADER_VARIABLE_DESC pDesc;
@@ -906,19 +914,61 @@ namespace Renderer
   }
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+
+  Renderer::Texture * CreateRGBA8Texture()
+  {
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory( &desc, sizeof( D3D11_TEXTURE2D_DESC ) );
+    desc.Width = nWidth;
+    desc.Height = nHeight;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    ID3D11Texture2D * pTex = NULL;
+
+    if ( pDevice->CreateTexture2D( &desc, NULL, &pTex ) != S_OK )
+      return NULL;
+
+    DX11Texture * tex = new DX11Texture();
+    tex->width = nWidth;
+    tex->height = nHeight;
+    tex->pTexture = pTex;
+    tex->type = TEXTURETYPE_2D;
+    tex->format = desc.Format;
+    CreateResourceView( tex );
+    return tex;
+
+  }
+
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     int comp = 0;
     int width = 0;
     int height = 0;
-    unsigned char * c = stbi_load( szFilename, (int*)&width, (int*)&height, &comp, STBI_rgb_alpha );
-    if (!c) return NULL;
+
+    DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    void * data = NULL;
+    unsigned int pitch = 0;
+    if ( stbi_is_hdr( szFilename ) )
+    {
+      data = stbi_loadf( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+      format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+      pitch = width * sizeof( float ) * 4;
+    }
+    else
+    {
+      data = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+      pitch = width * sizeof( unsigned char ) * 4;
+    }
 
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
     desc.Width = width;
     desc.Height = height;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    desc.Format = format;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.SampleDesc.Count = 1;
@@ -926,15 +976,15 @@ namespace Renderer
     
     D3D11_SUBRESOURCE_DATA subData;
     ZeroMemory(&subData,sizeof(D3D11_SUBRESOURCE_DATA));
-    subData.pSysMem = c;
-    subData.SysMemPitch = width * sizeof(unsigned char) * 4;
+    subData.pSysMem = data;
+    subData.SysMemPitch = pitch;
 
     ID3D11Texture2D * pTex = NULL;
 
     if (pDevice->CreateTexture2D( &desc, &subData, &pTex ) != S_OK)
       return NULL;
 
-    stbi_image_free(c);
+    stbi_image_free(data);
 
     DX11Texture * tex = new DX11Texture();
     tex->width = width;
@@ -973,7 +1023,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     D3D11_SHADER_INPUT_BIND_DESC desc;
     if (pShaderReflection->GetResourceBindingDescByName( szTextureName, &desc ) == S_OK)
@@ -994,7 +1044,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc,sizeof(D3D11_TEXTURE2D_DESC));
@@ -1038,6 +1088,13 @@ namespace Renderer
     delete tex;
   }
 
+  void CopyBackbufferToTexture( Texture * tex )
+  {
+    ID3D11Resource * pTex = ( (DX11Texture *) tex )->pTexture;
+
+    pContext->CopySubresourceRegion( pTex, 0, 0, 0, 0, pBackBuffer, 0, NULL );
+  }
+
   //////////////////////////////////////////////////////////////////////////
   // text rendering
 
@@ -1052,6 +1109,10 @@ namespace Renderer
     pContext->VSSetConstantBuffers( 0, 1, &pGUIConstantBuffer );
     pContext->OMSetBlendState( pGUIBlendState, factor, 0xFFFFFFFF );
     pContext->RSSetState( pGUIRasterizerState );
+
+    // Disable previous texture
+    ID3D11ShaderResourceView * dummy[1] = { NULL };
+    pContext->PSSetShaderResources( 0, 1, dummy );
 
     ID3D11Buffer * buffers[] = { pGUIQuadVB };
     UINT stride[] = { sizeof(float) * 7 };
@@ -1102,7 +1163,7 @@ namespace Renderer
     *(unsigned int *)(f++) = v.c;
     *(f++) = v.u;
     *(f++) = v.v;
-    *(f++) = lastTexture ? 0.0 : 1.0;
+    *(f++) = lastTexture ? 0.0f : 1.0f;
     bufferPointer++;
   }
   void BindTexture( Texture * tex )

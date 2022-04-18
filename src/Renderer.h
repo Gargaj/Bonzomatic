@@ -16,8 +16,8 @@ typedef struct
 
 namespace Renderer
 {
-  extern char * defaultShaderFilename;
-  extern char defaultShader[65536];
+  extern const char * defaultShaderFilename;
+  extern const char defaultShader[65536];
 
   extern int nWidth;
   extern int nHeight;
@@ -31,9 +31,9 @@ namespace Renderer
 
   void RenderFullscreenQuad();
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
-  void SetShaderConstant( char * szConstName, float x );
-  void SetShaderConstant( char * szConstName, float x, float y );
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
+  void SetShaderConstant( const char * szConstName, float x );
+  void SetShaderConstant( const char * szConstName, float x, float y );
 
   void StartTextRendering();
   void SetTextRenderingViewport( Scintilla::PRectangle rect );
@@ -56,20 +56,24 @@ namespace Renderer
     TEXTURETYPE type;
   };
 
-  Texture * CreateRGBA8TextureFromFile( char * szFilename );
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data );
+  Texture * CreateRGBA8Texture();
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename );
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data );
   Texture * Create1DR32Texture( int w );
   bool UpdateR32Texture( Texture * tex, float * data );
-  void SetShaderTexture( char * szTextureName, Texture * tex );
+  void SetShaderTexture( const char * szTextureName, Texture * tex );
   void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
   void ReleaseTexture( Texture * tex );
+
+  void CopyBackbufferToTexture( Texture * tex );
+
   struct Vertex
   {
     Vertex( float _x, float _y, unsigned int _c = 0xFFFFFFFF, float _u = 0.0, float _v = 0.0) : 
       x(_x), y(_y), c(_c), u(_u), v(_v) {}
     float x, y;
-    float u, v;
     unsigned int c;
+    float u, v;
   };
   void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d );
   void RenderLine( const Vertex & a, const Vertex & b );
@@ -101,8 +105,8 @@ namespace Renderer
   struct MouseEvent
   {
     MOUSEEVENTTYPE eventType;
-    int x;
-    int y;
+    float x;
+    float y;
     MOUSEBUTTON button;
   };
   extern MouseEvent mouseEventBuffer[512];

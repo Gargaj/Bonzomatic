@@ -1,4 +1,7 @@
-﻿#ifdef _WIN32
+
+#include <cstdio>
+
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -20,6 +23,10 @@
 #include "stb_image.h"
 #include "Scintilla.h"
 
+#ifdef __APPLE__
+#include "../TouchBar.h"
+#endif
+
 const char * shaderKeyword =
   "discard struct if else switch case default break goto return for while do continue";
 
@@ -28,6 +35,7 @@ const char * shaderType =
   "centroid flat smooth noperspective layout patch sample "
   "subroutine lowp mediump highp precision "
   "void float vec2 vec3 vec4 bvec2 bvec3 bvec4 ivec2 ivec3 ivec4 "
+  "mat2 mat3 mat4 int bool "
   "uvec2 uvec3 uvec4 dvec2 dvec3 dvec4 "
   "sampler1D sampler2D sampler3D isampler2D isampler1D isampler3D "
   "usampler1D usampler2D usampler3D "
@@ -109,47 +117,52 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.glsl";
-  char defaultShader[65536] =
+  const char * defaultShaderFilename = "shader.glsl";
+  const char defaultShader[65536] =
     "#version 410 core\n"
     "\n"
     "uniform float fGlobalTime; // in seconds\n"
     "uniform vec2 v2Resolution; // viewport resolution (in pixels)\n"
+    "uniform float fFrameTime; // duration of the last frame, in seconds\n"
     "\n"
     "uniform sampler1D texFFT; // towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "uniform sampler1D texFFTSmoothed; // this one has longer falloff and less harsh transients\n"
+    "uniform sampler1D texFFTIntegrated; // this is continually increasing\n"
+    "uniform sampler2D texPreviousFrame; // screenshot of the previous frame\n"
     "{%textures:begin%}" // leave off \n here
     "uniform sampler2D {%textures:name%};\n"
     "{%textures:end%}" // leave off \n here
     "{%midi:begin%}" // leave off \n here
-    "float {%midi:name%};\n"
+    "uniform float {%midi:name%};\n"
     "{%midi:end%}" // leave off \n here
     "\n"
+    "in vec2 out_texcoord;\n"
     "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
     "\n"
     "vec4 plas( vec2 v, float time )\n"
     "{\n"
-    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
-    "  return vec4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "\tfloat c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "\treturn vec4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
     "}\n"
+    "\n"
     "void main(void)\n"
     "{\n"
-    "  vec2 uv = vec2(gl_FragCoord.x / v2Resolution.x, gl_FragCoord.y / v2Resolution.y);\n"
-    "  uv -= 0.5;\n"
-    "  uv /= vec2(v2Resolution.y / v2Resolution.x, 1);\n"
+    "\tvec2 uv = out_texcoord;\n"
+    "\tuv -= 0.5;\n"
+    "\tuv /= vec2(v2Resolution.y / v2Resolution.x, 1);\n"
     "\n"
-    "  vec2 m;\n"
-    "  m.x = atan(uv.x / uv.y) / 3.14;\n"
-    "  m.y = 1 / length(uv) * .2;\n"
-    "  float d = m.y;\n"
+    "\tvec2 m;\n"
+    "\tm.x = atan(uv.x / uv.y) / 3.14;\n"
+    "\tm.y = 1 / length(uv) * .2;\n"
+    "\tfloat d = m.y;\n"
     "\n"
-    "  float f = texture( texFFT, d ).r * 100;\n"
-    "  m.x += sin( fGlobalTime ) * 0.1;\n"
-    "  m.y += fGlobalTime * 0.25;\n"
+    "\tfloat f = texture( texFFT, d ).r * 100;\n"
+    "\tm.x += sin( fGlobalTime ) * 0.1;\n"
+    "\tm.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  vec4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
-    "  t = clamp( t, 0.0, 1.0 );\n"
-    "  out_color = f + t;\n"
+    "\tvec4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "\tt = clamp( t, 0.0, 1.0 );\n"
+    "\tout_color = f + t;\n"
     "}";
 
   GLFWwindow * mWindow = NULL;
@@ -183,6 +196,14 @@ namespace Renderer
   GLuint pbo[2];
 
   static void error_callback(int error, const char *description) {
+    switch (error) {
+    case GLFW_API_UNAVAILABLE:
+      printf("OpenGL is unavailable: ");
+      break;
+    case GLFW_VERSION_UNAVAILABLE:
+      printf("OpenGL 4.1 (the minimum requirement) is not available: ");
+      break;
+    }
     printf("%s\n", description);
   }
   void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -195,11 +216,17 @@ namespace Renderer
   {
     glfwSetErrorCallback(error_callback);
     theShader = 0;
+    
+#ifdef __APPLE__
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+#endif
+
     if(!glfwInit())
     {
       printf("[Renderer] GLFW init failed\n");
       return false;
     }
+    printf("[GLFW] Version String: %s\n", glfwGetVersionString());
 
     nWidth = settings->nWidth;
     nHeight = settings->nHeight;
@@ -211,15 +238,23 @@ namespace Renderer
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GLFW_FALSE);
+#endif
+
     // TODO: change in case of resize support
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    // Prevent fullscreen window minimize on focus loss
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 
     GLFWmonitor *monitor = settings->windowMode == RENDERER_WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
 
@@ -231,6 +266,12 @@ namespace Renderer
       return false;
     }
 
+#ifdef __APPLE__
+#ifdef BONZOMATIC_ENABLE_TOUCHBAR
+    ShowTouchBar(mWindow);
+#endif
+#endif
+      
     glfwMakeContextCurrent(mWindow);
 
     // TODO: here add text callbacks
@@ -249,7 +290,7 @@ namespace Renderer
         return false;
     }
     printf("[GLFW] Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    GLenum i = glGetError(); // reset glew error
+    glGetError(); // reset glew error
 
     glfwSwapInterval(1);
 
@@ -258,6 +299,17 @@ namespace Renderer
       wglSwapIntervalEXT(1);
 #endif
 
+    printf("[GLFW] OpenGL Version %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+    
+    // Now, since OpenGL is behaving a lot in fullscreen modes, lets collect the real obtained size!
+    printf("[GLFW] Requested framebuffer size: %d x %d\n", nWidth, nHeight);
+    int fbWidth = 1;
+    int fbHeight = 1;
+    glfwGetFramebufferSize(mWindow, &fbWidth, &fbHeight);
+    nWidth = settings->nWidth = fbWidth;
+    nHeight = settings->nHeight = fbHeight;
+    printf("[GLFW] Obtained framebuffer size: %d x %d\n", fbWidth, fbHeight);
+    
     static float pFullscreenQuadVertices[] =
     {
       -1.0, -1.0,  0.5, 0.0, 0.0,
@@ -269,13 +321,13 @@ namespace Renderer
     glGenBuffers( 1, &glhFullscreenQuadVB );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glBufferData( GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, pFullscreenQuadVertices, GL_STATIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, NULL );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     glGenVertexArrays(1, &glhFullscreenQuadVA);
 
     glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
 
-    char * szVertexShader =
+    const char * szVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec2 in_texcoord;\n"
@@ -285,7 +337,7 @@ namespace Renderer
       "  gl_Position = vec4( in_pos.x, in_pos.y, in_pos.z, 1.0 );\n"
       "  out_texcoord = in_texcoord;\n"
       "}";
-    GLint nShaderSize = strlen(szVertexShader);
+    GLint nShaderSize = (GLint)strlen(szVertexShader);
 
     glShaderSource(glhVertexShader, 1, (const GLchar**)&szVertexShader, &nShaderSize);
     glCompileShader(glhVertexShader);
@@ -297,13 +349,13 @@ namespace Renderer
     glGetShaderiv(glhVertexShader, GL_COMPILE_STATUS, &result);
     if (!result)
     {
-      printf("[Renderer] Vertex shader compilation failed\n");
+      printf("[Renderer] Vertex shader compilation failed\n%s\n", szErrorBuffer);
       return false;
     }
 
 #define GUIQUADVB_SIZE (1024 * 6)
 
-    char * defaultGUIVertexShader =
+    const char * defaultGUIVertexShader =
       "#version 410 core\n"
       "in vec3 in_pos;\n"
       "in vec4 in_color;\n"
@@ -322,7 +374,7 @@ namespace Renderer
       "  out_texcoord = in_texcoord;\n"
       "  out_factor = in_factor;\n"
       "}\n";
-    char * defaultGUIPixelShader =
+    const char * defaultGUIPixelShader =
       "#version 410 core\n"
       "uniform sampler2D tex;\n"
       "in vec4 out_color;\n"
@@ -339,7 +391,7 @@ namespace Renderer
     glhGUIProgram = glCreateProgram();
 
     GLuint vshd = glCreateShader(GL_VERTEX_SHADER);
-    nShaderSize = strlen(defaultGUIVertexShader);
+    nShaderSize = (GLint)strlen(defaultGUIVertexShader);
 
     glShaderSource(vshd, 1, (const GLchar**)&defaultGUIVertexShader, &nShaderSize);
     glCompileShader(vshd);
@@ -352,7 +404,7 @@ namespace Renderer
     }
 
     GLuint fshd = glCreateShader(GL_FRAGMENT_SHADER);
-    nShaderSize = strlen(defaultGUIPixelShader);
+    nShaderSize = (GLint)strlen(defaultGUIPixelShader);
 
     glShaderSource(fshd, 1, (const GLchar**)&defaultGUIPixelShader, &nShaderSize);
     glCompileShader(fshd);
@@ -381,12 +433,14 @@ namespace Renderer
     //create PBOs to hold the data. this allocates memory for them too
     glGenBuffers(2, pbo);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, settings->nWidth * settings->nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, nWidth * nHeight * sizeof(unsigned int), NULL, GL_STREAM_READ);
     //unbind buffers for now
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
+    glViewport(0, 0, nWidth, nHeight);
+    
     run = true;
 
     return true;
@@ -399,7 +453,7 @@ namespace Renderer
   void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-      if ((key==GLFW_KEY_F4) && (mods&GLFW_MOD_ALT)) {
+      if ((key==GLFW_KEY_F4 && (mods&GLFW_MOD_ALT)) || (key==GLFW_KEY_ESCAPE&&(mods&GLFW_MOD_SHIFT))) {
         run = false;
       }
       int sciKey = 0;
@@ -550,23 +604,33 @@ namespace Renderer
 
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
 
-    GLuint position = glGetAttribLocation( theShader, "in_pos" );
-    glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+    const GLint position = glGetAttribLocation( theShader, "in_pos" );
+    if (position >= 0)
+    {
+      glVertexAttribPointer( position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(0 * sizeof(GLfloat)) );
+      glEnableVertexAttribArray( position );
+    }
 
-    GLuint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
-    glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+    const GLint texcoord = glGetAttribLocation( theShader, "in_texcoord" );
+    if (texcoord >= 0)
+    {
+      glVertexAttribPointer( texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)) );
+      glEnableVertexAttribArray( texcoord );
+    }
 
-    glEnableVertexAttribArray( position );
-    glEnableVertexAttribArray( texcoord );
     glBindBuffer( GL_ARRAY_BUFFER, glhFullscreenQuadVB );
     glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-    glDisableVertexAttribArray( texcoord );
-    glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    if (texcoord >= 0)
+      glDisableVertexAttribArray( texcoord );
+
+    if (position >= 0)
+      glDisableVertexAttribArray( position );
+
+    glUseProgram(0);
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     GLuint prg = glCreateProgram();
     GLuint shd = glCreateShader(GL_FRAGMENT_SHADER);
@@ -604,7 +668,7 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -613,7 +677,7 @@ namespace Renderer
     }
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
     GLint location = glGetUniformLocation( theShader, szConstName );
     if ( location != -1 )
@@ -629,13 +693,13 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+
+  Texture * CreateRGBA8Texture()
   {
-    int comp = 0;
-    int width = 0;
-    int height = 0;
-    unsigned char * c = stbi_load( szFilename, (int*)&width, (int*)&height, &comp, STBI_rgb_alpha );
-    if (!c) return NULL;
+    void * data = NULL;
+    GLenum internalFormat = GL_SRGB8_ALPHA8;
+    GLenum srcFormat = GL_FLOAT;
+    GLenum format = GL_UNSIGNED_BYTE;
 
     GLuint glTexId = 0;
     glGenTextures( 1, &glTexId );
@@ -646,12 +710,48 @@ namespace Renderer
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
+    GLTexture * tex = new GLTexture();
+    tex->width = nWidth;
+    tex->height = nHeight;
+    tex->ID = glTexId;
+    tex->type = TEXTURETYPE_2D;
+    tex->unit = textureUnit++;
+    return tex;
+  }
+
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
+  {
+    int comp = 0;
+    int width = 0;
+    int height = 0;
+    void * data = NULL;
     GLenum internalFormat = GL_SRGB8_ALPHA8;
     GLenum srcFormat = GL_RGBA;
+    GLenum format = GL_UNSIGNED_BYTE;
+    if ( stbi_is_hdr( szFilename ) )
+    {
+      internalFormat = GL_RGBA32F;
+      format = GL_FLOAT;
+      data = stbi_loadf( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    else
+    {
+      data = stbi_load( szFilename, &width, &height, &comp, STBI_rgb_alpha );
+    }
+    if (!data) return NULL;
 
-    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, GL_UNSIGNED_BYTE, c );
+    GLuint glTexId = 0;
+    glGenTextures( 1, &glTexId );
+    glBindTexture( GL_TEXTURE_2D, glTexId );
 
-    stbi_image_free(c);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, width, height, 0, srcFormat, format, data );
+
+    stbi_image_free(data);
 
     GLTexture * tex = new GLTexture();
     tex->width = width;
@@ -674,7 +774,7 @@ namespace Renderer
 
     float * data = new float[w];
     for ( int i = 0; i < w; ++i )
-      data[i] = 1.0f;
+      data[i] = 0.0f;
 
     glTexImage1D( GL_TEXTURE_1D, 0, GL_R32F, w, 0, GL_RED, GL_FLOAT, data );
 
@@ -691,7 +791,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     if (!tex)
       return;
@@ -718,7 +818,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     GLuint glTexId = 0;
     glGenTextures(1, &glTexId);
@@ -742,6 +842,13 @@ namespace Renderer
   void ReleaseTexture( Texture * tex )
   {
     glDeleteTextures(1, &((GLTexture*)tex)->ID );
+  }
+
+  void CopyBackbufferToTexture( Texture * tex )
+  {
+    glActiveTexture( GL_TEXTURE0 + ( (GLTexture *) tex )->unit );
+    glBindTexture( GL_TEXTURE_2D, ( (GLTexture *) tex )->ID );
+    glCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, 0, 0, nWidth, nHeight, 0 );
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -902,7 +1009,7 @@ namespace Renderer
     glDisableVertexAttribArray( color );
     glDisableVertexAttribArray( position );
 
-    glUseProgram(NULL);
+    glUseProgram(0);
 
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
@@ -931,7 +1038,7 @@ namespace Renderer
       }
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, NULL);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     return true;
   }

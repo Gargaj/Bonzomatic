@@ -2,27 +2,24 @@ language: cpp
 
 compiler: gcc
 
-matrix:
+jobs:
   include:
     - os: linux
       dist: trusty
       sudo: required
-      env: BONZOMATIC_X64=ON
     - os: osx
-      env: BONZOMATIC_X64=OFF
-  exclude:
-    - compiler: gcc    # travis bug: https://github.com/travis-ci/travis-ci/issues/4681
+      osx_image: xcode10.2
 
 before_install:
   # travis bug: https://github.com/travis-ci/travis-ci/issues/6048
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5;
       sudo apt-get update;
-      sudo apt-get install -q -y xorg-dev;
+      sudo apt-get install -q -y xorg-dev libasound2-dev libfontconfig1-dev;
     fi
 
 script:
-  - cmake -DBONZOMATIC_64BIT=$BONZOMATIC_X64 . && cmake --build .
+  - cmake . && cmake --build .
   
 notifications:
-  email: false  
+  email: false

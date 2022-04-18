@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Icon=bonzomatic
+Exec=bonzomatic
+Terminal=false
+Type=Application
+Categories=Graphics;
+Name=Bonzomatic
+GenericName=Live shader editor
+Comment=Live-coding tool where you write a 2D fragment shader while it is running in the background
