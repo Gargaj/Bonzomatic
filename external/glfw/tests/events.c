@@ -1,6 +1,6 @@
 //========================================================================
 // Event linter (event spewer)
-// Copyright (c) Camilla Berglund <elmindreda@glfw.org>
+// Copyright (c) Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -31,7 +31,8 @@
 //
 //========================================================================
 
-#include <glad/glad.h>
+#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <stdio.h>
@@ -174,7 +175,7 @@ static const char* get_key_name(int key)
         case GLFW_KEY_KP_8:         return "KEYPAD 8";
         case GLFW_KEY_KP_9:         return "KEYPAD 9";
         case GLFW_KEY_KP_DIVIDE:    return "KEYPAD DIVIDE";
-        case GLFW_KEY_KP_MULTIPLY:  return "KEYPAD MULTPLY";
+        case GLFW_KEY_KP_MULTIPLY:  return "KEYPAD MULTIPLY";
         case GLFW_KEY_KP_SUBTRACT:  return "KEYPAD SUBTRACT";
         case GLFW_KEY_KP_ADD:       return "KEYPAD ADD";
         case GLFW_KEY_KP_DECIMAL:   return "KEYPAD DECIMAL";
@@ -221,7 +222,7 @@ static const char* get_button_name(int button)
         default:
         {
             static char name[16];
-            sprintf(name, "%i", button);
+            snprintf(name, sizeof(name), "%i", button);
             return name;
         }
     }
@@ -244,21 +245,40 @@ static const char* get_mods_name(int mods)
         strcat(name, " alt");
     if (mods & GLFW_MOD_SUPER)
         strcat(name, " super");
+    if (mods & GLFW_MOD_CAPS_LOCK)
+        strcat(name, " capslock-on");
+    if (mods & GLFW_MOD_NUM_LOCK)
+        strcat(name, " numlock-on");
 
     return name;
 }
 
-static const char* get_character_string(int codepoint)
+static size_t encode_utf8(char* s, unsigned int ch)
 {
-    // This assumes UTF-8, which is stupid
-    static char result[6 + 1];
+    size_t count = 0;
 
-    int length = wctomb(result, codepoint);
-    if (length == -1)
-        length = 0;
+    if (ch < 0x80)
+        s[count++] = (char) ch;
+    else if (ch < 0x800)
+    {
+        s[count++] = (ch >> 6) | 0xc0;
+        s[count++] = (ch & 0x3f) | 0x80;
+    }
+    else if (ch < 0x10000)
+    {
+        s[count++] = (ch >> 12) | 0xe0;
+        s[count++] = ((ch >> 6) & 0x3f) | 0x80;
+        s[count++] = (ch & 0x3f) | 0x80;
+    }
+    else if (ch < 0x110000)
+    {
+        s[count++] = (ch >> 18) | 0xf0;
+        s[count++] = ((ch >> 12) & 0x3f) | 0x80;
+        s[count++] = ((ch >> 6) & 0x3f) | 0x80;
+        s[count++] = (ch & 0x3f) | 0x80;
+    }
 
-    result[length] = '\0';
-    return result;
+    return count;
 }
 
 static void error_callback(int error, const char* description)
@@ -285,8 +305,13 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     Slot* slot = glfwGetWindowUserPointer(window);
     printf("%08x to %i at %0.3f: Framebuffer size: %i %i\n",
            counter++, slot->number, glfwGetTime(), width, height);
+}
 
-    glViewport(0, 0, width, height);
+static void window_content_scale_callback(GLFWwindow* window, float xscale, float yscale)
+{
+    Slot* slot = glfwGetWindowUserPointer(window);
+    printf("%08x to %i at %0.3f: Window content scale: %0.3f %0.3f\n",
+           counter++, slot->number, glfwGetTime(), xscale, yscale);
 }
 
 static void window_close_callback(GLFWwindow* window)
@@ -322,7 +347,15 @@ static void window_iconify_callback(GLFWwindow* window, int iconified)
     Slot* slot = glfwGetWindowUserPointer(window);
     printf("%08x to %i at %0.3f: Window was %s\n",
            counter++, slot->number, glfwGetTime(),
-           iconified ? "iconified" : "restored");
+           iconified ? "iconified" : "uniconified");
+}
+
+static void window_maximize_callback(GLFWwindow* window, int maximized)
+{
+    Slot* slot = glfwGetWindowUserPointer(window);
+    printf("%08x to %i at %0.3f: Window was %s\n",
+           counter++, slot->number, glfwGetTime(),
+           maximized ? "maximized" : "unmaximized");
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -392,27 +425,29 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             printf("(( closing %s ))\n", slot->closeable ? "enabled" : "disabled");
             break;
         }
+
+        case GLFW_KEY_L:
+        {
+            const int state = glfwGetInputMode(window, GLFW_LOCK_KEY_MODS);
+            glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, !state);
+
+            printf("(( lock key mods %s ))\n", !state ? "enabled" : "disabled");
+            break;
+        }
     }
 }
 
 static void char_callback(GLFWwindow* window, unsigned int codepoint)
 {
     Slot* slot = glfwGetWindowUserPointer(window);
+    char string[5] = "";
+
+    encode_utf8(string, codepoint);
     printf("%08x to %i at %0.3f: Character 0x%08x (%s) input\n",
-           counter++, slot->number, glfwGetTime(), codepoint,
-           get_character_string(codepoint));
+           counter++, slot->number, glfwGetTime(), codepoint, string);
 }
 
-static void char_mods_callback(GLFWwindow* window, unsigned int codepoint, int mods)
-{
-    Slot* slot = glfwGetWindowUserPointer(window);
-    printf("%08x to %i at %0.3f: Character 0x%08x (%s) with modifiers (with%s) input\n",
-            counter++, slot->number, glfwGetTime(), codepoint,
-            get_character_string(codepoint),
-            get_mods_name(mods));
-}
-
-static void drop_callback(GLFWwindow* window, int count, const char** paths)
+static void drop_callback(GLFWwindow* window, int count, const char* paths[])
 {
     int i;
     Slot* slot = glfwGetWindowUserPointer(window);
@@ -451,26 +486,28 @@ static void monitor_callback(GLFWmonitor* monitor, int event)
     }
 }
 
-static void joystick_callback(int joy, int event)
+static void joystick_callback(int jid, int event)
 {
     if (event == GLFW_CONNECTED)
     {
-        int axisCount, buttonCount;
+        int axisCount, buttonCount, hatCount;
 
-        glfwGetJoystickAxes(joy, &axisCount);
-        glfwGetJoystickButtons(joy, &buttonCount);
+        glfwGetJoystickAxes(jid, &axisCount);
+        glfwGetJoystickButtons(jid, &buttonCount);
+        glfwGetJoystickHats(jid, &hatCount);
 
-        printf("%08x at %0.3f: Joystick %i (%s) was connected with %i axes and %i buttons\n",
+        printf("%08x at %0.3f: Joystick %i (%s) was connected with %i axes, %i buttons, and %i hats\n",
                counter++, glfwGetTime(),
-               joy,
-               glfwGetJoystickName(joy),
+               jid,
+               glfwGetJoystickName(jid),
                axisCount,
-               buttonCount);
+               buttonCount,
+               hatCount);
     }
     else
     {
         printf("%08x at %0.3f: Joystick %i was disconnected\n",
-               counter++, glfwGetTime(), joy);
+               counter++, glfwGetTime(), jid);
     }
 }
 
@@ -479,8 +516,6 @@ int main(int argc, char** argv)
     Slot* slots;
     GLFWmonitor* monitor = NULL;
     int ch, i, width, height, count = 1;
-
-    setlocale(LC_ALL, "");
 
     glfwSetErrorCallback(error_callback);
 
@@ -505,7 +540,7 @@ int main(int argc, char** argv)
                 break;
 
             case 'n':
-                count = (int) strtol(optarg, NULL, 10);
+                count = (int) strtoul(optarg, NULL, 10);
                 break;
 
             default:
@@ -532,12 +567,6 @@ int main(int argc, char** argv)
         height = 480;
     }
 
-    if (!count)
-    {
-        fprintf(stderr, "Invalid user\n");
-        exit(EXIT_FAILURE);
-    }
-
     slots = calloc(count, sizeof(Slot));
 
     for (i = 0;  i < count;  i++)
@@ -547,7 +576,7 @@ int main(int argc, char** argv)
         slots[i].closeable = GLFW_TRUE;
         slots[i].number = i + 1;
 
-        sprintf(title, "Event Linter (Window %i)", slots[i].number);
+        snprintf(title, sizeof(title), "Event Linter (Window %i)", slots[i].number);
 
         if (monitor)
         {
@@ -576,21 +605,22 @@ int main(int argc, char** argv)
         glfwSetWindowPosCallback(slots[i].window, window_pos_callback);
         glfwSetWindowSizeCallback(slots[i].window, window_size_callback);
         glfwSetFramebufferSizeCallback(slots[i].window, framebuffer_size_callback);
+        glfwSetWindowContentScaleCallback(slots[i].window, window_content_scale_callback);
         glfwSetWindowCloseCallback(slots[i].window, window_close_callback);
         glfwSetWindowRefreshCallback(slots[i].window, window_refresh_callback);
         glfwSetWindowFocusCallback(slots[i].window, window_focus_callback);
         glfwSetWindowIconifyCallback(slots[i].window, window_iconify_callback);
+        glfwSetWindowMaximizeCallback(slots[i].window, window_maximize_callback);
         glfwSetMouseButtonCallback(slots[i].window, mouse_button_callback);
         glfwSetCursorPosCallback(slots[i].window, cursor_position_callback);
         glfwSetCursorEnterCallback(slots[i].window, cursor_enter_callback);
         glfwSetScrollCallback(slots[i].window, scroll_callback);
         glfwSetKeyCallback(slots[i].window, key_callback);
         glfwSetCharCallback(slots[i].window, char_callback);
-        glfwSetCharModsCallback(slots[i].window, char_mods_callback);
         glfwSetDropCallback(slots[i].window, drop_callback);
 
         glfwMakeContextCurrent(slots[i].window);
-        gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+        gladLoadGL(glfwGetProcAddress);
         glfwSwapInterval(1);
     }
 

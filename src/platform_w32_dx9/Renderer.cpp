@@ -11,6 +11,15 @@
 
 #define DEVTYPE D3DDEVTYPE_HAL
 
+#if defined(__MINGW32__) && !defined(D3D9b_SDK_VERSION)
+#define D3D9b_SDK_VERSION 31
+  // From https://docs.rs/winapi/0.2.8/i686-pc-windows-gnu/winapi/d3d9/constant.D3D9b_SDK_VERSION.html
+#endif
+
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL (0x020E)
+#endif
+
 const char * shaderKeyword =
   " register packoffset static const"
   " break continue discard do for if else switch while case default return true false"
@@ -99,12 +108,16 @@ const char * shaderBuiltin =
 
 namespace Renderer
 {
-  char * defaultShaderFilename = "shader.dx9.hlsl";
-  char defaultShader[65536] = 
+  const char * defaultShaderFilename = "shader.dx9.hlsl";
+  const char defaultShader[65536] = 
     "texture texTFFT; sampler1D texFFT = sampler_state { Texture = <texTFFT>; }; \n"
     "// towards 0.0 is bass / lower freq, towards 1.0 is higher / treble freq\n"
     "texture texFFTSmoothedT; sampler1D texFFTSmoothed = sampler_state { Texture = <texFFTSmoothedT>; }; \n"
     "// this one has longer falloff and less harsh transients\n"
+    "texture texFFTIntegratedT; sampler1D texFFTIntegrated = sampler_state { Texture = <texFFTIntegratedT>; }; \n"
+    "// this is continually increasing\n"
+    "texture texPreviousFrameT; sampler2D texPreviousFrame = sampler_state { Texture = <texPreviousFrameT>; }; \n"
+    "// screenshot of the previous frame\n"
     "\n"
     "{%textures:begin%}" // leave off \n here
     "texture raw{%textures:name%}; sampler2D {%textures:name%} = sampler_state { Texture = <raw{%textures:name%}>; };\n"
@@ -114,31 +127,33 @@ namespace Renderer
     "float {%midi:name%};\n"
     "{%midi:end%}"
     "float fGlobalTime; // in seconds\n"
+    "float fFrameTime; // duration of the last frame, in seconds\n"
     "float2 v2Resolution; // viewport resolution (in pixels)\n"
     "\n"
     "float4 plas( float2 v, float time )\n"
     "{\n"
-    "  float c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
-    "  return float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
+    "\tfloat c = 0.5 + sin( v.x * 10.0 ) + cos( sin( time + v.y ) * 20.0 );\n"
+    "\treturn float4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );\n"
     "}\n"
+    "\n"
     "float4 main( float2 TexCoord : TEXCOORD0 ) : COLOR0\n"
     "{\n"
-    "  float2 uv = TexCoord;\n"
-    "  uv -= 0.5;\n"
-    "  uv /= float2(v2Resolution.y / v2Resolution.x, 1);"
+    "\tfloat2 uv = TexCoord;\n"
+    "\tuv -= 0.5;\n"
+    "\tuv /= float2(v2Resolution.y / v2Resolution.x, 1);"
     "\n"
-    "  float2 m;\n"
-    "  m.x = atan(uv.x / uv.y) / 3.14;\n"
-    "  m.y = 1 / length(uv) * .2;\n"
-    "  float d = m.y;\n"
+    "\tfloat2 m;\n"
+    "\tm.x = atan(uv.x / uv.y) / 3.14;\n"
+    "\tm.y = 1 / length(uv) * .2;\n"
+    "\tfloat d = m.y;\n"
     "\n"
-    "  float f = tex1D( texFFT, d ).r * 100;\n"
-    "  m.x += sin( fGlobalTime ) * 0.1;\n"
-    "  m.y += fGlobalTime * 0.25;\n"
+    "\tfloat f = tex1D( texFFT, d ).r * 100;\n"
+    "\tm.x += sin( fGlobalTime ) * 0.1;\n"
+    "\tm.y += fGlobalTime * 0.25;\n"
     "\n"
-    "  float4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
-    "  t = saturate( t );\n"
-    "  return f + t;\n"
+    "\tfloat4 t = plas( m * 3.14, fGlobalTime ) / d;\n"
+    "\tt = saturate( t );\n"
+    "\treturn f + t;\n"
     "}";
   char defaultVertexShader[65536] = 
     "struct VS_INPUT_PP { float3 Pos : POSITION0; float2 TexCoord : TEXCOORD0; };\n"
@@ -146,10 +161,10 @@ namespace Renderer
     "\n"
     "VS_OUTPUT_PP main( VS_INPUT_PP In )\n"
     "{\n"
-    "  VS_OUTPUT_PP Out;\n"
-    "  Out.Pos = float4( In.Pos, 1.0 );\n"
-    "  Out.TexCoord = In.TexCoord;\n"
-    "  return Out;\n"
+    "\tVS_OUTPUT_PP Out;\n"
+    "\tOut.Pos = float4( In.Pos, 1.0 );\n"
+    "\tOut.TexCoord = In.TexCoord;\n"
+    "\treturn Out;\n"
     "}\n";
 
   bool run = true;
@@ -468,11 +483,12 @@ namespace Renderer
       D3DDECL_END()
     };
 
-    static float pQuad[] = {
-      -1.0, -1.0,  0.0, 0.0, 0.0,
-      -1.0,  1.0,  0.0, 0.0, 1.0,
-       1.0, -1.0,  0.0, 1.0, 0.0,
-       1.0,  1.0,  0.0, 1.0, 1.0,
+    static float pQuad[] = 
+    {
+      -1.0, -1.0,  0.0, 0.0 + 0.5 / (float)nWidth, 0.0 + 0.5 / (float)nHeight,
+      -1.0,  1.0,  0.0, 0.0 + 0.5 / (float)nWidth, 1.0 + 0.5 / (float)nHeight,
+       1.0, -1.0,  0.0, 1.0 + 0.5 / (float)nWidth, 0.0 + 0.5 / (float)nHeight,
+       1.0,  1.0,  0.0, 1.0 + 0.5 / (float)nWidth, 1.0 + 0.5 / (float)nHeight,
     };
 
     pDevice->CreateVertexBuffer( 4 * 5 * sizeof(float), D3DUSAGE_WRITEONLY, D3DFVF_XYZ | D3DFVF_TEX1, D3DPOOL_DEFAULT, &pFullscreenQuadVB, NULL);
@@ -545,7 +561,7 @@ namespace Renderer
     if (theShader) theShader->Release();
     if (pDevice) pDevice->Release();
     if (pD3D) pD3D->Release();
-    if (!hWnd) 
+    if (hWnd) 
     {
       DestroyWindow(hWnd);
       UnregisterClass(_T("fwzwnd"),GetModuleHandle(NULL));
@@ -564,7 +580,7 @@ namespace Renderer
     pDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
   }
 
-  bool ReloadShader( char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
+  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
   {
     LPD3DXBUFFER pShader = NULL;
     LPD3DXBUFFER pErrors = NULL;
@@ -572,7 +588,7 @@ namespace Renderer
     if (D3DXCompileShader( szShaderCode, nShaderCodeSize, NULL, NULL, "main", "ps_3_0", NULL, &pShader, &pErrors, &pConstantTable ) != D3D_OK)
     {
       memset( szErrorBuffer, 0, nErrorBufferSize );
-      strncpy( szErrorBuffer, (char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
+      strncpy( szErrorBuffer, (const char*)pErrors->GetBufferPointer(), nErrorBufferSize - 1 );
       return false;
     }
 
@@ -590,14 +606,19 @@ namespace Renderer
     return true;
   }
 
-  void SetShaderConstant( char * szConstName, float x )
+  void SetShaderConstant( const char * szConstName, float x )
   {
     pConstantTable->SetFloat( pDevice, szConstName, x );
   }
 
-  void SetShaderConstant( char * szConstName, float x, float y )
+  static D3DXVECTOR4 SetShaderConstant_VEC4;
+  void SetShaderConstant( const char * szConstName, float x, float y )
   {
-    pConstantTable->SetVector( pDevice, szConstName, &D3DXVECTOR4(x, y, 0, 0) );
+    SetShaderConstant_VEC4.x = x;
+    SetShaderConstant_VEC4.y = y;
+    SetShaderConstant_VEC4.z = 0;
+    SetShaderConstant_VEC4.w = 0;
+    pConstantTable->SetVector( pDevice, szConstName, &SetShaderConstant_VEC4 );
   }
 
   struct DX9Texture : public Texture
@@ -606,15 +627,33 @@ namespace Renderer
   };
 
   int textureUnit = 0;
-  Texture * CreateRGBA8TextureFromFile( char * szFilename )
+
+  Renderer::Texture * CreateRGBA8Texture()
+  {
+    LPDIRECT3DTEXTURE9 pTex = NULL;
+    pDevice->CreateTexture( nWidth, nHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &pTex, NULL );
+
+    if ( !pTex )
+      return NULL;
+
+    DX9Texture * tex = new DX9Texture();
+    tex->pTexture = pTex;
+    tex->width = nWidth;
+    tex->height = nHeight;
+    tex->type = TEXTURETYPE_2D;
+    return tex;
+
+  }
+
+  Texture * CreateRGBA8TextureFromFile( const char * szFilename )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
     D3DXIMAGE_INFO info;
     HRESULT h = D3DXCreateTextureFromFileExA(
       pDevice,
       szFilename,
-      D3DX_DEFAULT,
-      D3DX_DEFAULT,
+      D3DX_DEFAULT_NONPOW2,
+      D3DX_DEFAULT_NONPOW2,
       0,
       NULL,
       D3DFMT_FROM_FILE,
@@ -658,7 +697,7 @@ namespace Renderer
     return tex;
   }
 
-  void SetShaderTexture( char * szTextureName, Texture * tex )
+  void SetShaderTexture( const char * szTextureName, Texture * tex )
   {
     int idx = pConstantTable->GetSamplerIndex( szTextureName );
     if (idx >= 0)
@@ -682,7 +721,7 @@ namespace Renderer
     return true;
   }
 
-  Texture * CreateA8TextureFromData( int w, int h, unsigned char * data )
+  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data )
   {
     LPDIRECT3DTEXTURE9 pTex = NULL;
     pDevice->CreateTexture( w, h, 0, NULL, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTex, NULL );
@@ -692,11 +731,11 @@ namespace Renderer
 
     D3DLOCKED_RECT rect;
     pTex->LockRect( 0, &rect, NULL, NULL );
-    unsigned char * src = data;
+    const unsigned char * src = data;
     unsigned char * dst = (unsigned char *)rect.pBits;
     for (int i=0; i<h; i++)
     {
-      unsigned char * srcLine = src;
+      const unsigned char * srcLine = src;
       unsigned int * dstLine = (unsigned int *)dst;
       for (int j=0; j<w; j++)
       {
@@ -717,9 +756,26 @@ namespace Renderer
     return tex;
   }
 
+  void ReleaseTexture( Texture * tex )
+  {
+    ( (DX9Texture *) tex )->pTexture->Release();
+    delete tex;
+  }
+
+  void CopyBackbufferToTexture( Texture * tex )
+  {
+    LPDIRECT3DTEXTURE9 pTex = ( (DX9Texture *) tex )->pTexture;
+    LPDIRECT3DSURFACE9 pSurf = NULL;
+    pTex->GetSurfaceLevel( 0, &pSurf );
+    if ( pSurf )
+    {
+      HRESULT res = pDevice->StretchRect( pBackBuffer, NULL, pSurf, NULL, D3DTEXF_LINEAR );
+      pSurf->Release();
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////
   // text rendering
-
 
   void StartTextRendering()
   {
@@ -745,12 +801,6 @@ namespace Renderer
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE );
     pDevice->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE );
-  }
-
-  void ReleaseTexture( Texture * tex )
-  {
-    ((DX9Texture *)tex)->pTexture->Release();
-    delete tex;
   }
 
   int bufferPointer = 0;

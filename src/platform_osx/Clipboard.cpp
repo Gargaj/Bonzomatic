@@ -32,7 +32,7 @@ namespace Clipboard
 
   int GetContentsLength()
   {
-    return paste().size();
+    return (int)paste().size();
   }
 
   void GetContents( char * data, int len )

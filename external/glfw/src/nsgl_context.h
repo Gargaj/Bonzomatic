@@ -1,7 +1,7 @@
 //========================================================================
-// GLFW 3.2 OS X - www.glfw.org
+// GLFW 3.3 macOS - www.glfw.org
 //------------------------------------------------------------------------
-// Copyright (c) 2009-2016 Camilla Berglund <elmindreda@glfw.org>
+// Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -24,22 +24,28 @@
 //
 //========================================================================
 
-#ifndef _glfw3_nsgl_context_h_
-#define _glfw3_nsgl_context_h_
+// NOTE: Many Cocoa enum values have been renamed and we need to build across
+//       SDK versions where one is unavailable or the other deprecated
+//       We use the newer names in code and these macros to handle compatibility
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101400
+ #define NSOpenGLContextParameterSwapInterval NSOpenGLCPSwapInterval
+ #define NSOpenGLContextParameterSurfaceOpacity NSOpenGLCPSurfaceOpacity
+#endif
 
 #define _GLFW_PLATFORM_CONTEXT_STATE            _GLFWcontextNSGL nsgl
 #define _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE    _GLFWlibraryNSGL nsgl
+
+#include <stdatomic.h>
 
 
 // NSGL-specific per-context data
 //
 typedef struct _GLFWcontextNSGL
 {
-    id           pixelFormat;
-    id	         object;
+    id                pixelFormat;
+    id                object;
 
 } _GLFWcontextNSGL;
-
 
 // NSGL-specific global data
 //
@@ -58,4 +64,3 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
                                 const _GLFWfbconfig* fbconfig);
 void _glfwDestroyContextNSGL(_GLFWwindow* window);
 
-#endif // _glfw3_nsgl_context_h_

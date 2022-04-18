@@ -48,6 +48,41 @@
 #include <ExternalLexer.h>
 #endif
 
+enum AutoIndentationType {
+  aitNone,
+  aitPreserve,
+  aitSmart
+};
+
+struct SHADEREDITOR_THEME {
+  unsigned int text;
+  unsigned int comment;
+  unsigned int number;
+  unsigned int op;
+  unsigned int keyword;
+  unsigned int type;
+  unsigned int builtin;
+  unsigned int preprocessor;
+  unsigned int selection;
+  unsigned int charBackground;
+  bool bUseCharBackground;
+
+  SHADEREDITOR_THEME()
+  : text( 0xFFFFFFFF )
+  , comment( 0xFF00FF00 )
+  , number( 0xFF0080FF )
+  , op( 0xFF00CCFF )
+  , keyword( 0xFF0066FF )
+  , type( 0xFFFFFF00 )
+  , builtin( 0xFF88FF44 )
+  , preprocessor( 0xFFC0C0C0 )
+  , selection( 0xC0CC9966 )
+  , charBackground( 0xC0000000 )
+  , bUseCharBackground( false )
+  {
+  }
+};
+
 struct SHADEREDITOR_OPTIONS {
   std::string sFontPath;
   int nFontSize;
@@ -56,6 +91,8 @@ struct SHADEREDITOR_OPTIONS {
   bool bUseSpacesForTabs;
   int nTabSize;
   bool bVisibleWhitespace;
+  AutoIndentationType eAutoIndent;
+  SHADEREDITOR_THEME theme;
 };
 
 class ShaderEditor : public Scintilla::Editor
@@ -71,6 +108,8 @@ class ShaderEditor : public Scintilla::Editor
   bool bUseSpacesForTabs;
   int nTabSize;
   bool bVisibleWhitespace;
+  AutoIndentationType eAutoIndent;
+  SHADEREDITOR_THEME theme;
 
 public:
   ShaderEditor(Scintilla::Surface *surfaceWindow);
@@ -98,7 +137,7 @@ public:
   void FineTickerStart(TickReason, int, int);
   void FineTickerCancel(TickReason);
 
-  void SetText( char * buf );
+  void SetText( const char * buf );
   void GetText( char * buf, int len );
 
   void Paint();
@@ -113,4 +152,26 @@ public:
 
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
+    
+private:
+  enum IndentationStatus {
+    isNone,        // no effect on indentation
+    isBlockStart,  // indentation block begin such as "{" or VB "function"
+    isBlockEnd,    // indentation end indicator such as "}" or VB "end"
+    isKeyWordStart // Keywords that cause indentation
+  };
+  
+  int GetLineLength(int line);
+  int GetCurrentLineNumber();
+  Scintilla::Sci_CharacterRange GetSelection();
+  int GetLineIndentation(int line);
+  int GetLineIndentPosition(int line);
+  void SetLineIndentation(int line, int indent);
+  void PreserveIndentation(char ch);
+  std::vector<std::string> GetLinePartsInStyle(int line, int style);
+  bool isAStatementIndent(std::string &word);
+  IndentationStatus GetIndentState(int line);
+  int IndentOfBlock(int line);
+  bool RangeIsAllWhitespace(int start, int end);
+  void AutomaticIndentation(char ch);
 };

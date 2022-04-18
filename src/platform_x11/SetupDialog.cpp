@@ -1,11 +1,15 @@
 #include <iostream>
 #include "../Renderer.h"
+#include "../FFT.h"
+#include "../SetupDialog.h"
 
-bool Renderer::OpenSetupDialog( RENDERER_SETTINGS * settings )
+namespace SetupDialog
+{
+
+bool Open( SetupDialog::SETTINGS * settings )
 {
   std::cerr << __FUNCTION__ << " STUB" << std::endl;
-  settings->nWidth = 1280;
-  settings->nHeight = 720;
-  settings->windowMode = RENDERER_WINDOWMODE_WINDOWED;
   return true;
+}
+
 }

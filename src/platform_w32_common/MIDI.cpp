@@ -62,7 +62,7 @@ namespace MIDI
 
   float GetCCValue( unsigned char cc )
   {
-    return nCCValues[cc] / 127.0;
+    return nCCValues[cc] / 127.0f;
   }
 
 };

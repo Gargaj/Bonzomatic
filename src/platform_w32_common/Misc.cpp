@@ -1,11 +1,21 @@
 #include <string>
 #include <Windows.h>
 #include <tchar.h>
+#include <Shlobj.h>
+#include <Shlwapi.h>
 
 #include <map>
 
 namespace Misc
 {
+  void PlatformStartup()
+  {
+  }
+
+  void PlatformShutdown()
+  {
+  }
+
   std::map<std::string,std::string> keymaps;
   void InitKeymaps()
   {
@@ -32,16 +42,52 @@ namespace Misc
         LONG resultKey = RegQueryValueExA( hkSub, "Layout Text", NULL, &type, szValue, &nValue );
 
         CharLowerA( szKeyName );
-        keymaps.insert( std::make_pair( szKeyName, (char*)szValue ) );
+        keymaps[szKeyName] = (const char*)szValue;
       }
       idx++;
     }
   }
+
   void GetKeymapName( char * sz )
   {
     char szCode[KL_NAMELENGTH];
     ::GetKeyboardLayoutNameA(szCode);
     CharLowerA( szCode );
     strncpy( sz, keymaps.count(szCode) ? keymaps[szCode].c_str() : "<unknown>" ,255);
+  }
+
+  bool ExecuteCommand( const char * cmd, const char * param )
+  {
+    HINSTANCE hI = ShellExecute( NULL, NULL, cmd, param, NULL, SW_SHOW );
+    return (int)hI >= 32;
+  }
+
+  bool FileExists(const char * path)
+  {
+    return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
+  }
+
+  const char * GetDefaultFontPath()
+  {
+    char windowsPath[ MAX_PATH ];
+    if ( SHGetFolderPath( NULL, CSIDL_WINDOWS, NULL, 0, windowsPath ) != S_OK )
+    {
+      return NULL;
+    }
+    const char* fontPaths[] = 
+    {
+      "Fonts\\cour.ttf",
+      NULL
+    };
+    for (int i = 0; fontPaths[i]; ++i)
+    {
+      static char fullPath[ MAX_PATH ] = { 0 };
+      PathCombineA( fullPath, windowsPath, fontPaths[ i ] );
+      if (FileExists( fullPath ))
+      {
+        return fullPath;
+      }
+    }
+    return NULL;
   }
 }
