@@ -1,0 +1,5 @@
+name: build-release
+on: [workflow_dispatch]
+jobs:
+  build-release-w32:
+    runs-on: windows-2019
