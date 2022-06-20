@@ -256,6 +256,8 @@ int main( int argc, const char *argv[] )
           editorOptions.eAutoIndent = aitNone;
         }
       }
+      if (options.get<jsonxx::Object>("gui").has<jsonxx::Boolean>("autoCloseBlock"))
+        editorOptions.bAutoCloseBlock = options.get<jsonxx::Object>("gui").get<jsonxx::Boolean>("autoCloseBlock");
       if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("scrollXFactor"))
         fScrollXFactor = options.get<jsonxx::Object>("gui").get<jsonxx::Number>("scrollXFactor");
       if (options.get<jsonxx::Object>("gui").has<jsonxx::Number>("scrollYFactor"))

@@ -92,6 +92,7 @@ struct SHADEREDITOR_OPTIONS {
   int nTabSize;
   bool bVisibleWhitespace;
   AutoIndentationType eAutoIndent;
+  bool bAutoCloseBlock;
   SHADEREDITOR_THEME theme;
 };
 
@@ -109,6 +110,7 @@ class ShaderEditor : public Scintilla::Editor
   int nTabSize;
   bool bVisibleWhitespace;
   AutoIndentationType eAutoIndent;
+  bool bAutoCloseBlock;
   SHADEREDITOR_THEME theme;
 
 public:
