@@ -20,6 +20,9 @@ Fresh builds of Bonzomatic will always be available at https://github.com/Gargaj
 - F5 or Ctrl-R: recompile shader
 - F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4 or Shift+Escape: exbobolate your planet
+- Ctrl/Cmd + / or Ctrl/Cmd + K: comment or uncomment the selected lines of code
+- /: when text is selected, comment or uncomment every selected line
+- Shift + 8: when text is selected, perform a block comment between selected code 
 
 ## Requirements
 On Windows, both DirectX 9 and 11 are supported.
