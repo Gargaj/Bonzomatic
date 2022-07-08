@@ -97,12 +97,7 @@ void ShaderEditor::Initialise()
 
   //WndProc( SCI_SETLEXERLANGUAGE, SCLEX_CPP, 0 );
 
-  SetAStyle( STYLE_DEFAULT, 0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  WndProc( SCI_STYLECLEARALL, 0, 0 );
-  SetAStyle( STYLE_LINENUMBER, 0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  SetAStyle( STYLE_BRACELIGHT, 0xFF00FF00, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  SetAStyle( STYLE_BRACEBAD, 0xFF0000FF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  UpdateFont();
 
   WndProc( SCI_SETFOLDMARGINCOLOUR, 1, BACKGROUND( 0x1A1A1A ) );
   WndProc( SCI_SETFOLDMARGINHICOLOUR, 1, BACKGROUND( 0x1A1A1A ) );
@@ -136,37 +131,6 @@ void ShaderEditor::Initialise()
   lexState->PropSet( "lexer.cpp.track.preprocessor", "0" );
   // Colorize the content of the #defines (thx @blackle for finding it)
   lexState->PropSet( "styling.within.preprocessor", "1" );
-
-  SetAStyle( SCE_C_DEFAULT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
-  SetAStyle( SCE_C_WORD, theme.keyword, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_WORD2, theme.type, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_GLOBALCLASS, theme.builtin, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_PREPROCESSOR, theme.preprocessor, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_NUMBER, theme.number, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_OPERATOR, theme.op, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_COMMENT, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_COMMENTLINE, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-
-  // Misc chars to cover for standard text
-  SetAStyle( SCE_C_COMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_STRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_CHARACTER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_UUID, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_IDENTIFIER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_STRINGEOL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_VERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_REGEX, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_COMMENTLINEDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_COMMENTDOCKEYWORD, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_COMMENTDOCKEYWORDERROR, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_STRINGRAW, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_TRIPLEVERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_HASHQUOTEDSTRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_PREPROCESSORCOMMENT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_PREPROCESSORCOMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_USERLITERAL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_TASKMARKER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
-  SetAStyle( SCE_C_ESCAPESEQUENCE, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
 
   lexState->Colourise( 0, -1 );
 
@@ -397,6 +361,30 @@ void ShaderEditor::ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctr
 Font * ShaderEditor::GetTextFont()
 {
   return &vs.styles[ STYLE_DEFAULT ].font;
+}
+
+void ShaderEditor::SetFontSize( int newSize )
+{
+  nFontSize = newSize;
+  if ( nFontSize < 1 )
+  {
+    nFontSize = 1;
+  }
+  UpdateFont();
+}
+
+void ShaderEditor::SetOpacity( int newOpacity )
+{
+  if ( newOpacity < 0 )
+  {
+    newOpacity = 0;
+  }
+  if ( newOpacity > 255 )
+  {
+    newOpacity = 255;
+  }
+  nOpacity = newOpacity;
+  UpdateFont();
 }
 
 void ShaderEditor::SetPosition( Scintilla::PRectangle rect )
@@ -689,4 +677,48 @@ void ShaderEditor::AutomaticIndentation( char ch )
   {
     SetLineIndentation( curLine, indentBlock );
   }
+}
+
+void ShaderEditor::UpdateFont()
+{
+  SetAStyle( STYLE_DEFAULT, 0xFFFFFFFF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  WndProc( SCI_STYLECLEARALL, 0, 0 );
+
+  SetAStyle( STYLE_LINENUMBER, 0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_BRACELIGHT, 0xFF00FF00, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_BRACEBAD, 0xFF0000FF, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( STYLE_INDENTGUIDE, 0xFFC0C0C0, BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+
+  SetAStyle( SCE_C_DEFAULT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ), nFontSize, sFontFile.c_str() );
+  SetAStyle( SCE_C_WORD, theme.keyword, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_WORD2, theme.type, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_GLOBALCLASS, theme.builtin, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_PREPROCESSOR, theme.preprocessor, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_NUMBER, theme.number, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_OPERATOR, theme.op, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_COMMENT, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_COMMENTLINE, theme.comment, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+
+  // Misc chars to cover for standard text
+  SetAStyle( SCE_C_COMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_STRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_CHARACTER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_UUID, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_IDENTIFIER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_STRINGEOL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_VERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_REGEX, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_COMMENTLINEDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_COMMENTDOCKEYWORD, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_COMMENTDOCKEYWORDERROR, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_STRINGRAW, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_TRIPLEVERBATIM, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_HASHQUOTEDSTRING, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_PREPROCESSORCOMMENT, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_PREPROCESSORCOMMENTDOC, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_USERLITERAL, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_TASKMARKER, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+  SetAStyle( SCE_C_ESCAPESEQUENCE, theme.text, theme.bUseCharBackground ? theme.charBackground : BACKGROUND( 0x000000 ) );
+
+  lexState->Colourise( 0, -1 );
 }

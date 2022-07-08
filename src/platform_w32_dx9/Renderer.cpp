@@ -219,12 +219,23 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
           case VK_MENU:         sciKey = SCK_MENU;      break;
             //         case VK_SLASH:        sciKey = '/';           break;
             //         case VK_ASTERISK:     sciKey = '`';           break;
-            //         case VK_LEFTBRACKET:  sciKey = '[';           break;
             //         case VK_BACKSLASH:    sciKey = '\\';          break;
-            //         case VK_RIGHTBRACKET: sciKey = ']';           break;
-          case VK_F2:         sciKey = 283;      break;
-          case VK_F5:         sciKey = 286;      break;
-          case VK_F11:        sciKey = 292;      break;
+          case VK_OEM_4:        sciKey = '[';           break;
+          case VK_OEM_6:        sciKey = ']';           break;
+          case VK_F1:
+          case VK_F2:
+          case VK_F3:
+          case VK_F4:
+          case VK_F5:
+          case VK_F6:
+          case VK_F7:
+          case VK_F8:
+          case VK_F9:
+          case VK_F10:
+          case VK_F11:
+          case VK_F12:
+            sciKey = wParam - VK_F1 + 282;
+            break;
           case VK_SHIFT:
           case VK_LSHIFT:
           case VK_RSHIFT:
@@ -297,6 +308,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
     case WM_MOUSEWHEEL:
       {
         mouseEventBuffer[ mouseEventBufferCount ].eventType = MOUSEEVENTTYPE_SCROLL;
+        mouseEventBuffer[ mouseEventBufferCount ].ctrl = ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 ) || ( GetAsyncKeyState( VK_RCONTROL ) & 0x8000 );
         mouseEventBuffer[ mouseEventBufferCount ].x = 0.0f;
         mouseEventBuffer[ mouseEventBufferCount ].y = GET_WHEEL_DELTA_WPARAM( wParam ) / (float) WHEEL_DELTA;
         mouseEventBufferCount++;
@@ -305,6 +317,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
     case WM_MOUSEHWHEEL:
       {
         mouseEventBuffer[ mouseEventBufferCount ].eventType = MOUSEEVENTTYPE_SCROLL;
+        mouseEventBuffer[ mouseEventBufferCount ].ctrl = ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 ) || ( GetAsyncKeyState( VK_RCONTROL ) & 0x8000 );
         mouseEventBuffer[ mouseEventBufferCount ].x = -GET_WHEEL_DELTA_WPARAM( wParam ) / (float) WHEEL_DELTA;
         mouseEventBuffer[ mouseEventBufferCount ].y = 0.0f;
         mouseEventBufferCount++;

@@ -156,6 +156,11 @@ public:
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
 
+  const int GetFontSize() const { return nFontSize; }
+  void SetFontSize( int newSize );
+  const int GetOpacity() const { return nOpacity; }
+  void SetOpacity( int newOpacity );
+
 private:
   enum IndentationStatus
   {
@@ -178,4 +183,6 @@ private:
   int IndentOfBlock( int line );
   bool RangeIsAllWhitespace( int start, int end );
   void AutomaticIndentation( char ch );
+
+  void UpdateFont();
 };

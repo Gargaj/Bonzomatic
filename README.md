@@ -18,6 +18,7 @@ Fresh builds of Bonzomatic will always be available at https://github.com/Gargaj
 ## Keys
 - F2: toggle texture preview
 - F5 or Ctrl-R: recompile shader
+- Ctrl-[/]: adjust text background transparency
 - F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4 or Shift+Escape: exbobolate your planet
 

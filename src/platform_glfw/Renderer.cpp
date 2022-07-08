@@ -487,9 +487,9 @@ void key_callback( GLFWwindow * window, int key, int scancode, int action, int m
       case GLFW_KEY_MENU:         sciKey = SCK_MENU;      break;
         //           case GLFW_KEY_SLASH:        sciKey = '/';           break;
         //           case GLFW_KEY_ASTERISK:     sciKey = '`';           break;
-        //           case GLFW_KEY_LEFTBRACKET:  sciKey = '[';           break;
         //           case GLFW_KEY_BACKSLASH:    sciKey = '\\';          break;
-        //           case GLFW_KEY_RIGHTBRACKET: sciKey = ']';           break;
+      case GLFW_KEY_LEFT_BRACKET: sciKey = '[';           break;
+      case GLFW_KEY_RIGHT_BRACKET:sciKey = ']';           break;
       case GLFW_KEY_F1:           sciKey = 282;           break;
       case GLFW_KEY_F2:           sciKey = 283;           break;
       case GLFW_KEY_F3:           sciKey = 284;           break;
@@ -581,6 +581,7 @@ void mouse_button_callback( GLFWwindow * window, int button, int action, int mod
 void scroll_callback( GLFWwindow * window, double xoffset, double yoffset )
 {
   mouseEventBuffer[ mouseEventBufferCount ].eventType = MOUSEEVENTTYPE_SCROLL;
+  mouseEventBuffer[ mouseEventBufferCount ].ctrl = glfwGetKey( window, GLFW_KEY_LEFT_CONTROL ) || glfwGetKey( window, GLFW_KEY_RIGHT_CONTROL );
   mouseEventBuffer[ mouseEventBufferCount ].x = (float)xoffset;
   mouseEventBuffer[ mouseEventBufferCount ].y = (float)yoffset;
   mouseEventBufferCount++;

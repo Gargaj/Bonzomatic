@@ -46,6 +46,7 @@ enum MOUSEBUTTON
 struct MouseEvent
 {
   MOUSEEVENTTYPE eventType;
+  bool ctrl;
   float x;
   float y;
   MOUSEBUTTON button;

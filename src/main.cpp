@@ -427,7 +427,15 @@ int main( int argc, const char * argv[] )
             mShaderEditor.ButtonUp( Scintilla::Point( Renderer::mouseEventBuffer[ i ].x, Renderer::mouseEventBuffer[ i ].y ), time * 1000, false );
             break;
           case Renderer::MOUSEEVENTTYPE_SCROLL:
-            mShaderEditor.WndProc( SCI_LINESCROLL, (int) ( -Renderer::mouseEventBuffer[ i ].x * fScrollXFactor ), (int) ( -Renderer::mouseEventBuffer[ i ].y * fScrollYFactor ) );
+            if ( Renderer::mouseEventBuffer[ i ].ctrl )
+            {
+              int newFontSize = mShaderEditor.GetFontSize() + (int) Renderer::mouseEventBuffer[ i ].y;
+              mShaderEditor.SetFontSize( newFontSize );
+            }
+            else
+            {
+              mShaderEditor.WndProc( SCI_LINESCROLL, (int) ( -Renderer::mouseEventBuffer[ i ].x * fScrollXFactor ), (int) ( -Renderer::mouseEventBuffer[ i ].y * fScrollYFactor ) );
+            }
             break;
         }
       }
@@ -436,7 +444,8 @@ int main( int argc, const char * argv[] )
 
     for ( int i = 0; i < Renderer::keyEventBufferCount; i++ )
     {
-      if ( Renderer::keyEventBuffer[ i ].scanCode == 283 ) // F2
+#define FKEY(x) ((x)+281)
+      if ( Renderer::keyEventBuffer[ i ].scanCode == FKEY( 2 ) ) // F2
       {
         if ( bTexPreviewVisible )
         {
@@ -451,7 +460,7 @@ int main( int argc, const char * argv[] )
           bTexPreviewVisible = true;
         }
       }
-      else if ( Renderer::keyEventBuffer[ i ].scanCode == 286 || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'r' ) ) // F5
+      else if ( Renderer::keyEventBuffer[ i ].scanCode == FKEY( 5 ) || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'r' ) ) // F5
       {
         mShaderEditor.GetText( szShader, 65535 );
         if ( Renderer::ReloadShader( szShader, (int) strlen( szShader ), szError, 4096 ) )
@@ -465,7 +474,17 @@ int main( int argc, const char * argv[] )
           mDebugOutput.SetText( szError );
         }
       }
-      else if ( Renderer::keyEventBuffer[ i ].scanCode == 292 || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'f' ) ) // F11 or Ctrl/Cmd-f  
+      else if ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == '[' ) // ctrl-[
+      {
+        mShaderEditor.SetOpacity( mShaderEditor.GetOpacity() - 10 );
+        mDebugOutput.SetOpacity( mDebugOutput.GetOpacity() - 10 );
+      }
+      else if ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == ']' ) // ctrl-]
+      {
+        mShaderEditor.SetOpacity( mShaderEditor.GetOpacity() + 10 );
+        mDebugOutput.SetOpacity( mDebugOutput.GetOpacity() + 10 );
+      }
+      else if ( Renderer::keyEventBuffer[ i ].scanCode == FKEY( 11 ) || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'f' ) ) // F11 or Ctrl/Cmd-f  
       {
         bShowGui = !bShowGui;
       }
