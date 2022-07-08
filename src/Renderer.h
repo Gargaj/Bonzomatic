@@ -1,114 +1,128 @@
 #include <Platform.h>
 
-typedef enum {
-  RENDERER_WINDOWMODE_WINDOWED = 0,
-  RENDERER_WINDOWMODE_FULLSCREEN,
-  RENDERER_WINDOWMODE_BORDERLESS
-} RENDERER_WINDOWMODE;
+namespace Renderer
+{
+//////////////////////////////////////////////////////////////////////////
 
-typedef struct 
+enum WINDOWMODE 
+{
+  WINDOWMODE_WINDOWED = 0,
+  WINDOWMODE_FULLSCREEN,
+  WINDOWMODE_BORDERLESS
+};
+
+struct Settings
 {
   int nWidth;
   int nHeight;
-  RENDERER_WINDOWMODE windowMode;
+  WINDOWMODE windowMode;
   bool bVsync;
-} RENDERER_SETTINGS;
+};
 
-namespace Renderer
+struct KeyEvent
 {
-  extern const char * defaultShaderFilename;
-  extern const char defaultShader[65536];
+  int character;
+  int scanCode;
+  bool ctrl;
+  bool shift;
+  bool alt;
+};
 
-  extern int nWidth;
-  extern int nHeight;
+enum MOUSEEVENTTYPE
+{
+  MOUSEEVENTTYPE_DOWN = 0,
+  MOUSEEVENTTYPE_MOVE,
+  MOUSEEVENTTYPE_UP,
+  MOUSEEVENTTYPE_SCROLL
+};
 
-  bool OpenSetupDialog( RENDERER_SETTINGS * settings );
-  bool Open( RENDERER_SETTINGS * settings );
-  
-  void StartFrame();
-  void EndFrame();
-  bool WantsToQuit();
+enum MOUSEBUTTON
+{
+  MOUSEBUTTON_LEFT = 0,
+  MOUSEBUTTON_RIGHT,
+  MOUSEBUTTON_MIDDLE,
+};
 
-  void RenderFullscreenQuad();
+struct MouseEvent
+{
+  MOUSEEVENTTYPE eventType;
+  float x;
+  float y;
+  MOUSEBUTTON button;
+};
 
-  bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
-  void SetShaderConstant( const char * szConstName, float x );
-  void SetShaderConstant( const char * szConstName, float x, float y );
+enum TEXTURETYPE
+{
+  TEXTURETYPE_1D = 1,
+  TEXTURETYPE_2D = 2,
+};
 
-  void StartTextRendering();
-  void SetTextRenderingViewport( Scintilla::PRectangle rect );
-  void EndTextRendering();
+struct Texture
+{
+  int width;
+  int height;
+  TEXTURETYPE type;
+};
 
-  bool GrabFrame( void * pPixelBuffer ); // input buffer must be able to hold w * h * 4 bytes of 0xAABBGGRR data
+struct Vertex
+{
+  Vertex( float _x, float _y, unsigned int _c = 0xFFFFFFFF, float _u = 0.0, float _v = 0.0 ) :
+    x( _x ), y( _y ), c( _c ), u( _u ), v( _v ) {}
+  float x, y;
+  unsigned int c;
+  float u, v;
+};
 
-  void Close();
+extern const char * szDefaultShaderFilename;
+extern const char szDefaultShader[ 65536 ];
 
-  enum TEXTURETYPE
-  {
-    TEXTURETYPE_1D = 1,
-    TEXTURETYPE_2D = 2,
-  };
+extern const char * shaderKeyword;
+extern const char * shaderType;
+extern const char * shaderBuiltin;
 
-  struct Texture
-  {
-    int width;
-    int height;
-    TEXTURETYPE type;
-  };
+extern int nWidth;
+extern int nHeight;
 
-  Texture * CreateRGBA8Texture();
-  Texture * CreateRGBA8TextureFromFile( const char * szFilename );
-  Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data );
-  Texture * Create1DR32Texture( int w );
-  bool UpdateR32Texture( Texture * tex, float * data );
-  void SetShaderTexture( const char * szTextureName, Texture * tex );
-  void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
-  void ReleaseTexture( Texture * tex );
+bool OpenSetupDialog( Settings * settings );
+bool Open( Settings * settings );
 
-  void CopyBackbufferToTexture( Texture * tex );
+void StartFrame();
+void EndFrame();
+bool WantsToQuit();
 
-  struct Vertex
-  {
-    Vertex( float _x, float _y, unsigned int _c = 0xFFFFFFFF, float _u = 0.0, float _v = 0.0) : 
-      x(_x), y(_y), c(_c), u(_u), v(_v) {}
-    float x, y;
-    unsigned int c;
-    float u, v;
-  };
-  void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d );
-  void RenderLine( const Vertex & a, const Vertex & b );
+void RenderFullscreenQuad();
 
-  struct KeyEvent
-  {
-    int character;
-    int scanCode;
-    bool ctrl;
-    bool shift;
-    bool alt;
-  };
-  extern KeyEvent keyEventBuffer[512];
-  extern int keyEventBufferCount;
+bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
+void SetShaderConstant( const char * szConstName, float x );
+void SetShaderConstant( const char * szConstName, float x, float y );
 
-  enum MOUSEEVENTTYPE
-  {
-    MOUSEEVENTTYPE_DOWN = 0,
-    MOUSEEVENTTYPE_MOVE,
-    MOUSEEVENTTYPE_UP,
-    MOUSEEVENTTYPE_SCROLL
-  };
-  enum MOUSEBUTTON
-  {
-    MOUSEBUTTON_LEFT = 0,
-    MOUSEBUTTON_RIGHT,
-    MOUSEBUTTON_MIDDLE,
-  };
-  struct MouseEvent
-  {
-    MOUSEEVENTTYPE eventType;
-    float x;
-    float y;
-    MOUSEBUTTON button;
-  };
-  extern MouseEvent mouseEventBuffer[512];
-  extern int mouseEventBufferCount;
+void StartTextRendering();
+void SetTextRenderingViewport( Scintilla::PRectangle rect );
+void EndTextRendering();
+
+bool GrabFrame( void * pPixelBuffer ); // input buffer must be able to hold w * h * 4 bytes of 0xAABBGGRR data
+
+void Close();
+
+Texture * CreateRGBA8Texture();
+Texture * CreateRGBA8TextureFromFile( const char * szFilename );
+Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data );
+Texture * Create1DR32Texture( int w );
+bool UpdateR32Texture( Texture * tex, float * data );
+void SetShaderTexture( const char * szTextureName, Texture * tex );
+void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
+void ReleaseTexture( Texture * tex );
+
+void CopyBackbufferToTexture( Texture * tex );
+
+void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d );
+void RenderLine( const Vertex & a, const Vertex & b );
+
+extern KeyEvent keyEventBuffer[ 512 ];
+extern int keyEventBufferCount;
+
+extern MouseEvent mouseEventBuffer[ 512 ];
+extern int mouseEventBufferCount;
+
+//////////////////////////////////////////////////////////////////////////
 }
