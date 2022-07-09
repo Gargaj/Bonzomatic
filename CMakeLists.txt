@@ -98,7 +98,10 @@ else ()
     set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} Threads::Threads)
   endif ()
 
-  set(PLATFORM_LIBS GL asound fontconfig)
+  set(PLATFORM_LIBS GL fontconfig)
+  if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
+    list(APPEND PLATFORM_LIBS asound)
+  endif ()
 endif ()
 
 ##############################################################################
