@@ -98,7 +98,9 @@ else ()
     set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} Threads::Threads)
   endif ()
 
-  set(PLATFORM_LIBS GL fontconfig)
+  find_package(OpenGL COMPONENTS OpenGL REQUIRED)
+
+  set(PLATFORM_LIBS ${OPENGL_LIBRARIES} fontconfig)
   if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
     list(APPEND PLATFORM_LIBS asound)
   endif ()
