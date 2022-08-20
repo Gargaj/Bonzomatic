@@ -22,10 +22,20 @@ jobs:
   build_release_w32:
     runs-on: windows-2019
     needs: create_release
+    env:
+      NDI_SDK_DIR: c:/Program Files/NewTek/NewTek NDI SDK/
     steps:
     - name: Get date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Download and install NDI SDK
+      run: |
+        curl ${{ secrets.NDI_SDK_URL }} -o ndisdk.exe
+        echo "Installing NDI SDK..."
+        ./ndisdk.exe /VERYSILENT /ALLUSERS
+        echo "Waiting for NDI SDK to finish installing..."
+        Wait-Process -Name "ndisdk"
+        echo "Done!"
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create subdirs
@@ -35,19 +45,19 @@ jobs:
         mkdir ./dx11/
     - name: CMake GLFW
       working-directory: ./glfw
-      run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
     - name: Build GLFW
       working-directory: ./glfw
       run: cmake --build . --config Release
     - name: CMake DX9
       working-directory: ./dx9
-      run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
     - name: Build DX9
       working-directory: ./dx9
       run: cmake --build . --config Release
     - name: CMake DX11
       working-directory: ./dx11
-      run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
     - name: Build DX11
       working-directory: ./dx11
       run: cmake --build . --config Release
@@ -57,6 +67,7 @@ jobs:
         cp ../../glfw/Release/Bonzomatic.exe ./Bonzomatic_W32_GLFW.exe
         cp ../../dx9/Release/Bonzomatic.exe ./Bonzomatic_W32_DX9.exe
         cp ../../dx11/Release/Bonzomatic.exe ./Bonzomatic_W32_DX11.exe
+        cp "${{ env.NDI_SDK_DIR }}/Bin/x86/Processing.NDI.Lib.x86.dll" ./
         cp ../../LICENSE ./
         cp ../../README.md ./
         cp -r ../common/* ./
@@ -76,10 +87,20 @@ jobs:
   build_release_x64:
     runs-on: windows-2019
     needs: create_release
+    env:
+      NDI_SDK_DIR: c:/Program Files/NewTek/NewTek NDI SDK/
     steps:
     - name: Get date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Download and install NDI SDK
+      run: |
+        curl ${{ secrets.NDI_SDK_URL }} -o ndisdk.exe
+        echo "Installing NDI SDK..."
+        ./ndisdk.exe /VERYSILENT /ALLUSERS
+        echo "Waiting for NDI SDK to finish installing..."
+        Wait-Process -Name "ndisdk"
+        echo "Done!"
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create subdirs
@@ -89,19 +110,19 @@ jobs:
         mkdir ./dx11/
     - name: CMake GLFW
       working-directory: ./glfw
-      run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
     - name: Build GLFW
       working-directory: ./glfw
       run: cmake --build . --config Release
     - name: CMake DX9
       working-directory: ./dx9
-      run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
     - name: Build DX9
       working-directory: ./dx9
       run: cmake --build . --config Release
     - name: CMake DX11
       working-directory: ./dx11
-      run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
     - name: Build DX11
       working-directory: ./dx11
       run: cmake --build . --config Release
@@ -111,6 +132,7 @@ jobs:
         cp ../../glfw/Release/Bonzomatic.exe ./Bonzomatic_W64_GLFW.exe
         cp ../../dx9/Release/Bonzomatic.exe ./Bonzomatic_W64_DX9.exe
         cp ../../dx11/Release/Bonzomatic.exe ./Bonzomatic_W64_DX11.exe
+        cp "${{ env.NDI_SDK_DIR }}/Bin/x64/Processing.NDI.Lib.x64.dll" ./
         cp ../../LICENSE ./
         cp ../../README.md ./
         cp -r ../common/* ./
