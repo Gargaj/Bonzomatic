@@ -2,7 +2,7 @@ name: build-on-push
 on: [push]
 jobs:
   build_w32:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - name: Checkout
       uses: actions/checkout@v1
@@ -11,7 +11,7 @@ jobs:
     - name: Build
       run: cmake --build . --config Release
   build_w64:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - name: Checkout
       uses: actions/checkout@v1

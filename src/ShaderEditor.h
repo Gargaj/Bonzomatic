@@ -48,13 +48,15 @@
 #include <ExternalLexer.h>
 #endif
 
-enum AutoIndentationType {
+enum AutoIndentationType
+{
   aitNone,
   aitPreserve,
   aitSmart
 };
 
-struct SHADEREDITOR_THEME {
+struct SHADEREDITOR_THEME
+{
   unsigned int text;
   unsigned int comment;
   unsigned int number;
@@ -68,22 +70,23 @@ struct SHADEREDITOR_THEME {
   bool bUseCharBackground;
 
   SHADEREDITOR_THEME()
-  : text( 0xFFFFFFFF )
-  , comment( 0xFF00FF00 )
-  , number( 0xFF0080FF )
-  , op( 0xFF00CCFF )
-  , keyword( 0xFF0066FF )
-  , type( 0xFFFFFF00 )
-  , builtin( 0xFF88FF44 )
-  , preprocessor( 0xFFC0C0C0 )
-  , selection( 0xC0CC9966 )
-  , charBackground( 0xC0000000 )
-  , bUseCharBackground( false )
+    : text( 0xFFFFFFFF )
+    , comment( 0xFF00FF00 )
+    , number( 0xFF0080FF )
+    , op( 0xFF00CCFF )
+    , keyword( 0xFF0066FF )
+    , type( 0xFFFFFF00 )
+    , builtin( 0xFF88FF44 )
+    , preprocessor( 0xFFC0C0C0 )
+    , selection( 0xC0CC9966 )
+    , charBackground( 0xC0000000 )
+    , bUseCharBackground( false )
   {
   }
 };
 
-struct SHADEREDITOR_OPTIONS {
+struct SHADEREDITOR_OPTIONS
+{
   std::string sFontPath;
   int nFontSize;
   Scintilla::PRectangle rect;
@@ -97,7 +100,7 @@ struct SHADEREDITOR_OPTIONS {
 
 class ShaderEditor : public Scintilla::Editor
 {
-  Scintilla::Surface *surfaceWindow;
+  Scintilla::Surface * surfaceWindow;
   Scintilla::LexState * lexState;
   bool bReadOnly;
   bool bHasMouseCapture;
@@ -112,66 +115,74 @@ class ShaderEditor : public Scintilla::Editor
   SHADEREDITOR_THEME theme;
 
 public:
-  ShaderEditor(Scintilla::Surface *surfaceWindow);
+  ShaderEditor( Scintilla::Surface * surfaceWindow );
 
   void Initialise();
-  void Initialise(SHADEREDITOR_OPTIONS &options);
+  void Initialise( SHADEREDITOR_OPTIONS & options );
 
   void SetPosition( Scintilla::PRectangle rect );
 
   void SetVerticalScrollPos();
   void SetHorizontalScrollPos();
-  bool ModifyScrollBars(int nMax, int nPage);
+  bool ModifyScrollBars( int nMax, int nPage );
   void Copy();
   void Paste();
   void ClaimSelection();
   void NotifyChange();
-  void NotifyParent(Scintilla::SCNotification scn);
-  void CopyToClipboard(const Scintilla::SelectionText &selectedText);
-  void SetMouseCapture(bool on);
+  void NotifyParent( Scintilla::SCNotification scn );
+  void CopyToClipboard( const Scintilla::SelectionText & selectedText );
+  void SetMouseCapture( bool on );
   bool HaveMouseCapture();
-  sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+  sptr_t DefWndProc( unsigned int iMessage, uptr_t wParam, sptr_t lParam );
 
-  void SetTicking(bool on);
-  bool FineTickerRunning(TickReason);
-  void FineTickerStart(TickReason, int, int);
-  void FineTickerCancel(TickReason);
+  void SetTicking( bool on );
+  bool FineTickerRunning( TickReason );
+  void FineTickerStart( TickReason, int, int );
+  void FineTickerCancel( TickReason );
 
   void SetText( const char * buf );
   void GetText( char * buf, int len );
 
   void Paint();
-  void SetAStyle(int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back=0xFFFFFFFF, int size=-1, const char *face=0);
+  void SetAStyle( int style, Scintilla::ColourDesired fore, Scintilla::ColourDesired back = 0xFFFFFFFF, int size = -1, const char * face = 0 );
   void Tick();
-  int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed);
+  int KeyDown( int key, bool shift, bool ctrl, bool alt, bool * consumed );
   void ButtonDown( Scintilla::Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt );
   void ButtonMovePublic( Scintilla::Point pt );
   void ButtonUp( Scintilla::Point pt, unsigned int curTime, bool ctrl );
-  void AddCharUTF( const char *s, unsigned int len, bool treatAsDBCS=false );
-  void NotifyStyleToNeeded(int endStyleNeeded);
+  void AddCharUTF( const char * s, unsigned int len, bool treatAsDBCS = false );
+  void NotifyStyleToNeeded( int endStyleNeeded );
 
   void SetReadOnly( bool );
   Scintilla::Font * GetTextFont();
-    
+
+  const int GetFontSize() const { return nFontSize; }
+  void SetFontSize( int newSize );
+  const int GetOpacity() const { return nOpacity; }
+  void SetOpacity( int newOpacity );
+
 private:
-  enum IndentationStatus {
+  enum IndentationStatus
+  {
     isNone,        // no effect on indentation
     isBlockStart,  // indentation block begin such as "{" or VB "function"
     isBlockEnd,    // indentation end indicator such as "}" or VB "end"
     isKeyWordStart // Keywords that cause indentation
   };
-  
-  int GetLineLength(int line);
+
+  int GetLineLength( int line );
   int GetCurrentLineNumber();
   Scintilla::Sci_CharacterRange GetSelection();
-  int GetLineIndentation(int line);
-  int GetLineIndentPosition(int line);
-  void SetLineIndentation(int line, int indent);
-  void PreserveIndentation(char ch);
-  std::vector<std::string> GetLinePartsInStyle(int line, int style);
-  bool isAStatementIndent(std::string &word);
-  IndentationStatus GetIndentState(int line);
-  int IndentOfBlock(int line);
-  bool RangeIsAllWhitespace(int start, int end);
-  void AutomaticIndentation(char ch);
+  int GetLineIndentation( int line );
+  int GetLineIndentPosition( int line );
+  void SetLineIndentation( int line, int indent );
+  void PreserveIndentation( char ch );
+  std::vector<std::string> GetLinePartsInStyle( int line, int style );
+  bool isAStatementIndent( std::string & word );
+  IndentationStatus GetIndentState( int line );
+  int IndentOfBlock( int line );
+  bool RangeIsAllWhitespace( int start, int end );
+  void AutomaticIndentation( char ch );
+
+  void UpdateFont();
 };

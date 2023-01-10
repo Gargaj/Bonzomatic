@@ -1,0 +1,181 @@
+name: build-release
+on: [workflow_dispatch]
+jobs:
+  create_release:
+    runs-on: windows-2019
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      date: ${{ steps.date.outputs.date }}
+    steps:
+    - name: Get date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.date.outputs.date }}
+        release_name: ${{ steps.date.outputs.date }}
+        draft: true
+  build_release_w32:
+    runs-on: windows-2019
+    needs: create_release
+    env:
+      NDI_SDK_DIR: c:/Program Files/NewTek/NewTek NDI SDK/
+    steps:
+    - name: Get date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Download and install NDI SDK
+      run: |
+        curl ${{ secrets.NDI_SDK_URL }} -o ndisdk.exe
+        echo "Installing NDI SDK..."
+        ./ndisdk.exe /VERYSILENT /ALLUSERS
+        echo "Waiting for NDI SDK to finish installing..."
+        Wait-Process -Name "ndisdk"
+        echo "Done!"
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Create subdirs
+      run: |
+        mkdir ./glfw/
+        mkdir ./dx9/
+        mkdir ./dx11/
+    - name: CMake GLFW
+      working-directory: ./glfw
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+    - name: Build GLFW
+      working-directory: ./glfw
+      run: cmake --build . --config Release
+    - name: CMake DX9
+      working-directory: ./dx9
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+    - name: Build DX9
+      working-directory: ./dx9
+      run: cmake --build . --config Release
+    - name: CMake DX11
+      working-directory: ./dx11
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+    - name: Build DX11
+      working-directory: ./dx11
+      run: cmake --build . --config Release
+    - name: Collect package
+      working-directory: ./package/w32_x86/
+      run: |
+        cp ../../glfw/Release/Bonzomatic.exe ./Bonzomatic_W32_GLFW.exe
+        cp ../../dx9/Release/Bonzomatic.exe ./Bonzomatic_W32_DX9.exe
+        cp ../../dx11/Release/Bonzomatic.exe ./Bonzomatic_W32_DX11.exe
+        cp "${{ env.NDI_SDK_DIR }}/Bin/x86/Processing.NDI.Lib.x86.dll" ./
+        cp ../../LICENSE ./
+        cp ../../README.md ./
+        cp -r ../common/* ./
+    - name: ZIP package
+      working-directory: ./package/w32_x86/
+      run: 7z a -r -tzip archive.zip * -mx9
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ./package/w32_x86/archive.zip
+        asset_name: Bonzomatic_W32_${{ needs.create_release.outputs.date }}.zip
+        asset_content_type: application/zip
+  build_release_x64:
+    runs-on: windows-2019
+    needs: create_release
+    env:
+      NDI_SDK_DIR: c:/Program Files/NewTek/NewTek NDI SDK/
+    steps:
+    - name: Get date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Download and install NDI SDK
+      run: |
+        curl ${{ secrets.NDI_SDK_URL }} -o ndisdk.exe
+        echo "Installing NDI SDK..."
+        ./ndisdk.exe /VERYSILENT /ALLUSERS
+        echo "Waiting for NDI SDK to finish installing..."
+        Wait-Process -Name "ndisdk"
+        echo "Done!"
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Create subdirs
+      run: |
+        mkdir ./glfw/
+        mkdir ./dx9/
+        mkdir ./dx11/
+    - name: CMake GLFW
+      working-directory: ./glfw
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+    - name: Build GLFW
+      working-directory: ./glfw
+      run: cmake --build . --config Release
+    - name: CMake DX9
+      working-directory: ./dx9
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+    - name: Build DX9
+      working-directory: ./dx9
+      run: cmake --build . --config Release
+    - name: CMake DX11
+      working-directory: ./dx11
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+    - name: Build DX11
+      working-directory: ./dx11
+      run: cmake --build . --config Release
+    - name: Collect package
+      working-directory: ./package/w32_x64/
+      run: |
+        cp ../../glfw/Release/Bonzomatic.exe ./Bonzomatic_W64_GLFW.exe
+        cp ../../dx9/Release/Bonzomatic.exe ./Bonzomatic_W64_DX9.exe
+        cp ../../dx11/Release/Bonzomatic.exe ./Bonzomatic_W64_DX11.exe
+        cp "${{ env.NDI_SDK_DIR }}/Bin/x64/Processing.NDI.Lib.x64.dll" ./
+        cp ../../LICENSE ./
+        cp ../../README.md ./
+        cp -r ../common/* ./
+    - name: ZIP package
+      working-directory: ./package/w32_x64/
+      run: 7z a -r -tzip archive.zip * -mx9
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ./package/w32_x64/archive.zip
+        asset_name: Bonzomatic_W64_${{ needs.create_release.outputs.date }}.zip
+        asset_content_type: application/zip
+  build_release_osx:
+    runs-on: macOS-latest
+    needs: create_release
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build
+      run: cmake . && cmake --build .
+    - name: Create subdirs # There are no mac-specific resources currently
+      run: mkdir ./package/macos/
+    - name: Collect package
+      working-directory: ./package/macos/
+      run: |
+        cp -r ../../Bonzomatic.app ./
+        cp ../../LICENSE ./
+        cp ../../README.md ./
+        cp -r ../common/* ./
+    - name: ZIP package
+      working-directory: ./package/macos/
+      run: 7z a -r -tzip archive.zip * -mx9
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ./package/macos/archive.zip
+        asset_name: Bonzomatic_macOS_${{ needs.create_release.outputs.date }}.zip
+        asset_content_type: application/zip

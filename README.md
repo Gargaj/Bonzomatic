@@ -12,9 +12,13 @@ This is a live-coding tool, where you can write a 2D fragment/pixel shader while
 
 The tool was originally conceived and implemented after the Revision 2014 demoscene party's live coding competition where two contestants improv-code an effect in 25 minutes head-to-head. Wanna see how it looks in action? Check https://www.youtube.com/watch?v=KG_2q4OEhKc
 
+## Where to get? / Binary builds
+Fresh builds of Bonzomatic will always be available at https://github.com/Gargaj/Bonzomatic/releases
+
 ## Keys
 - F2: toggle texture preview
 - F5 or Ctrl-R: recompile shader
+- Ctrl-[/]: adjust text background transparency
 - F11 or Ctrl/Cmd-f: hide shader overlay
 - Alt-F4 or Shift+Escape: exbobolate your planet
 

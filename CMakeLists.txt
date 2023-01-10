@@ -98,7 +98,12 @@ else ()
     set(BZC_PROJECT_LIBS ${BZC_PROJECT_LIBS} Threads::Threads)
   endif ()
 
-  set(PLATFORM_LIBS GL asound fontconfig)
+  find_package(OpenGL COMPONENTS OpenGL REQUIRED)
+
+  set(PLATFORM_LIBS ${OPENGL_LIBRARIES} fontconfig)
+  if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
+    list(APPEND PLATFORM_LIBS asound)
+  endif ()
 endif ()
 
 ##############################################################################
@@ -332,12 +337,20 @@ elseif (UNIX)
   set(BZC_PLATFORM_SRCS
     ${CMAKE_SOURCE_DIR}/src/platform_glfw/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_common/FFT.cpp
-    ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Misc.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/SetupDialog.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Timer.cpp
     ${CMAKE_SOURCE_DIR}/src/platform_x11/Clipboard.cpp
   )
+  if ("${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
+    list(APPEND BZC_PLATFORM_SRCS
+      ${CMAKE_SOURCE_DIR}/src/platform_common/MIDIDummy.cpp
+    )
+  else ()
+    list(APPEND BZC_PLATFORM_SRCS
+      ${CMAKE_SOURCE_DIR}/src/platform_x11/MIDI.cpp
+    )
+  endif ()
   source_group("Bonzomatic\\Platform" FILES ${BZC_PLATFORM_SRCS})
 elseif (WIN32)
   if (${BONZOMATIC_WINDOWS_FLAVOR} MATCHES "DX11")

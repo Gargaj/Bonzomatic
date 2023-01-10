@@ -1,10 +1,14 @@
 namespace SetupDialog
 {
-  typedef struct 
-  {
-    RENDERER_SETTINGS sRenderer;
-    FFT_SETTINGS sFFT;
-  } SETTINGS;
+//////////////////////////////////////////////////////////////////////////
 
-  bool Open( SETTINGS * pSettings );
+typedef struct
+{
+  Renderer::Settings sRenderer;
+  FFT::Settings sFFT;
+} SETTINGS;
+
+bool Open( SETTINGS * pSettings );
+
+//////////////////////////////////////////////////////////////////////////
 }

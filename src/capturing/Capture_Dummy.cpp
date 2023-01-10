@@ -3,17 +3,21 @@
 
 namespace Capture
 {
-  void LoadSettings(jsonxx::Object & o)
-  {
-  }
-  bool Open(RENDERER_SETTINGS & settings)
-  {
-    return true;
-  }
-  void CaptureFrame()
-  {
-  }
-  void Close()
-  {
-  }
+//////////////////////////////////////////////////////////////////////////
+
+void LoadSettings( jsonxx::Object & o )
+{
+}
+bool Open( Renderer::Settings & settings )
+{
+  return true;
+}
+void CaptureFrame()
+{
+}
+void Close()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
 }
