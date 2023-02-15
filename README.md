@@ -1,9 +1,8 @@
 # Bonzomatic
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Gargaj/Bonzomatic/build-on-push?logo=github)](https://github.com/Gargaj/Bonzomatic/actions)
+[![Github workflow status](https://github.com/Gargaj/Bonzomatic/actions/workflows/main.yml/badge.svg)](https://github.com/Gargaj/Bonzomatic/actions/workflows/main.yml)
 [![Appveyor build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
 [![Travis build status](https://img.shields.io/travis/Gargaj/Bonzomatic?logo=travis)](https://travis-ci.org/Gargaj/Bonzomatic)
-[![Gitter chat](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
@@ -179,4 +178,4 @@ The remainder of this project code was (mostly, I guess) written by Gargaj / Con
 OSX / macOS maintenance and ports by Alkama / Tpolm + Calodox; Linux maintenance by PoroCYon / K2.
 
 ## Contact / discussion forum
-If you have anything to say, do it at https://www.pouet.net/topic.php?which=9881 or [![Join the chat at https://gitter.im/Gargaj/Bonzomatic](https://badges.gitter.im/Gargaj/Bonzomatic.svg)](https://gitter.im/Gargaj/Bonzomatic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+If you have anything to say, do it at https://www.pouet.net/topic.php?which=9881
