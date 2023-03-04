@@ -136,6 +136,9 @@ const char szDefaultShader[ 65536 ] =
 "{%midi:begin%}" // leave off \n here
 "uniform float {%midi:name%};\n"
 "{%midi:end%}" // leave off \n here
+"{%midiArray:begin%}" // leave off \n here
+"uniform float[127] {%midiArray:name%};\n"
+"{%midiArray:end%}" // leave off \n here
 "\n"
 "in vec2 out_texcoord;\n"
 "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
