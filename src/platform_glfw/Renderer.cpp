@@ -842,7 +842,7 @@ Texture * Create1DR32Texture( int w )
   glBindTexture( GL_TEXTURE_1D, glTexId );
 
   glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-  glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+  glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
   glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
   float * data = new float[ w ];
@@ -850,6 +850,7 @@ Texture * Create1DR32Texture( int w )
     data[ i ] = 0.0f;
 
   glTexImage1D( GL_TEXTURE_1D, 0, GL_R32F, w, 0, GL_RED, GL_FLOAT, data );
+  glGenerateMipmap(GL_TEXTURE_1D);
 
   delete[] data;
 
@@ -887,7 +888,7 @@ bool UpdateR32Texture( Texture * tex, float * data )
   glActiveTexture( GL_TEXTURE0 + ( (GLTexture *) tex )->unit );
   glBindTexture( GL_TEXTURE_1D, ( (GLTexture *) tex )->ID );
   glTexSubImage1D( GL_TEXTURE_1D, 0, 0, tex->width, GL_RED, GL_FLOAT, data );
-
+  glGenerateMipmap(GL_TEXTURE_1D);
   return true;
 }
 
