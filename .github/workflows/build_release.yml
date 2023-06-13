@@ -51,13 +51,13 @@ jobs:
       run: cmake --build . --config Release
     - name: CMake DX9
       working-directory: ./dx9
-      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A Win32 ../
     - name: Build DX9
       working-directory: ./dx9
       run: cmake --build . --config Release
     - name: CMake DX11
       working-directory: ./dx11
-      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A Win32 ../
     - name: Build DX11
       working-directory: ./dx11
       run: cmake --build . --config Release
@@ -116,13 +116,13 @@ jobs:
       run: cmake --build . --config Release
     - name: CMake DX9
       working-directory: ./dx9
-      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A x64 ../
     - name: Build DX9
       working-directory: ./dx9
       run: cmake --build . --config Release
     - name: CMake DX11
       working-directory: ./dx11
-      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 ../
+      run: cmake -DBONZOMATIC_NDI="ON" -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A x64 ../
     - name: Build DX11
       working-directory: ./dx11
       run: cmake --build . --config Release
