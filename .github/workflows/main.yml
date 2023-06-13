@@ -1,7 +1,7 @@
 name: build-on-push
 on: [push]
 jobs:
-  build_w32:
+  build_w32_glfw:
     runs-on: windows-2019
     steps:
     - name: Checkout
@@ -10,13 +10,49 @@ jobs:
       run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 .
     - name: Build
       run: cmake --build . --config Release
-  build_w64:
+  build_w64_glfw:
     runs-on: windows-2019
     steps:
     - name: Checkout
       uses: actions/checkout@v1
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 .
+    - name: Build
+      run: cmake --build . --config Release
+  build_w32_dx9:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: CMake
+      run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A Win32 .
+    - name: Build
+      run: cmake --build . --config Release
+  build_w64_dx9:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: CMake
+      run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A x64 .
+    - name: Build
+      run: cmake --build . --config Release
+  build_w32_dx11:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: CMake
+      run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A Win32 .
+    - name: Build
+      run: cmake --build . --config Release
+  build_w64_dx11:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: CMake
+      run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A x64 .
     - name: Build
       run: cmake --build . --config Release
   build_linux:
