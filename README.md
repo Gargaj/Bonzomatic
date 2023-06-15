@@ -171,6 +171,7 @@ https://github.com/Gargaj/Bonzomatic/wiki/How-to-set-up-a-Live-Coding-compo
 - GLFW by whoever made GLFW (https://www.glfw.org/faq.html)
 - JSON++ by Hong Jiang (https://github.com/hjiang/jsonxx)
 - NDI(tm) SDK by NewTek(tm) (https://www.newtek.com/ndi.html)
+- D3DX9 by Microsoft (https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dx)
 
 These software are available under their respective licenses.
 
