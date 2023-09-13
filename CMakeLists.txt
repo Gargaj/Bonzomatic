@@ -50,7 +50,12 @@ if (APPLE OR WIN32)
   ############################################################################
   # MacOS
   if (APPLE)
-    set(CMAKE_OSX_ARCHITECTURES x86_64)
+    if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+      set(CMAKE_OSX_ARCHITECTURES x86_64)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
+      set(CMAKE_OSX_ARCHITECTURES arm64)
+    endif()
+
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
