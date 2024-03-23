@@ -9,7 +9,8 @@ jobs:
     steps:
     - name: Get date
       id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      run: |
+        echo "date=$(date +"%Y-%m-%d")" >> $env:GITHUB_OUTPUT
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
