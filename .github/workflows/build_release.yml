@@ -38,7 +38,7 @@ jobs:
         Wait-Process -Name "ndisdk"
         echo "Done!"
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Create subdirs
       run: |
         mkdir ./glfw/
@@ -103,7 +103,7 @@ jobs:
         Wait-Process -Name "ndisdk"
         echo "Done!"
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Create subdirs
       run: |
         mkdir ./glfw/
@@ -155,7 +155,7 @@ jobs:
     needs: create_release
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: Build
       run: cmake . && cmake --build .
     - name: Create subdirs # There are no mac-specific resources currently
