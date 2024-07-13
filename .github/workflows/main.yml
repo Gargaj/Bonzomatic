@@ -5,7 +5,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A Win32 .
     - name: Build
@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="GLFW" -G "Visual Studio 16 2019" -A x64 .
     - name: Build
@@ -23,7 +23,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A Win32 .
     - name: Build
@@ -32,7 +32,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX9" -G "Visual Studio 16 2019" -A x64 .
     - name: Build
@@ -41,7 +41,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="NO" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A Win32 .
     - name: Build
@@ -50,7 +50,7 @@ jobs:
     runs-on: windows-2019
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: CMake
       run: cmake -DBONZOMATIC_64BIT="YES" -DBONZOMATIC_WINDOWS_FLAVOR:STRING="DX11" -G "Visual Studio 16 2019" -A x64 .
     - name: Build
@@ -61,13 +61,13 @@ jobs:
     - name: Install deps
       run: sudo apt-get update && sudo apt-get install -q -y xorg-dev libasound2-dev libfontconfig1-dev libgl1-mesa-dev libglu1-mesa-dev
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: Build
       run: cmake . && cmake --build .
   build_osx:
     runs-on: macOS-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: Build
       run: cmake . && cmake --build .
