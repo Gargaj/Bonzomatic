@@ -20,6 +20,7 @@
 #include "Capture.h"
 #include "SetupDialog.h"
 
+#include "CommandLineArgs.h"
 unsigned int ParseColor( const std::string & color )
 {
   if ( color.size() < 6 || color.size() > 8 ) return 0xFFFFFFFF;
@@ -71,9 +72,11 @@ int main( int argc, const char * argv[] )
   Misc::PlatformStartup();
 
   const char * configFile = "config.json";
+  
+  CommandLineArgs::parse_args(argc,argv);
   if ( argc > 1 )
   {
-    configFile = argv[ 1 ];
+    configFile = CommandLineArgs::Args.configFile;
     printf( "Loading config file '%s'...\n", configFile );
   }
   else
