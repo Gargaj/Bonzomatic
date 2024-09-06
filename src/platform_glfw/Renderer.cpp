@@ -254,7 +254,7 @@ bool Open( Renderer::Settings * settings )
 #endif
 
   // TODO: change in case of resize support
-  glfwWindowHint( GLFW_RESIZABLE, GLFW_FALSE );
+  glfwWindowHint( GLFW_RESIZABLE, GLFW_TRUE );
 
   // Prevent fullscreen window minimize on focus loss
   glfwWindowHint( GLFW_AUTO_ICONIFY, GL_FALSE );
