@@ -4,28 +4,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <Network.h>
 #define assert_tuple_arg (assert(i < argc && "Expecting value"))
 
 namespace CommandLineArgs
 {
-    enum NetworkMode {
-        SENDER,
-        GRABBER,
-        OFFLINE
-    };
+
     struct {
         bool skipDialog;
         const char* configFile;
         const char* shaderFile;
         const char* serverURL;
-        NetworkMode networkMode;
+        Network::NetworkMode networkMode;
     } Args;
 
     void parse_args(int argc,const char *argv[]) {
         Args.skipDialog = false;
         Args.configFile = "config.json";
         Args.shaderFile = "shader.glsl";
-        Args.networkMode = OFFLINE;
+        Args.networkMode = Network::NetworkMode::OFFLINE;
         Args.serverURL = "ws://drone.alkama.com:9000/roomname/username";
         for(size_t i=0;i<argc;++i) {
 
@@ -59,15 +56,15 @@ namespace CommandLineArgs
                 i++;
                 assert_tuple_arg;
                 if(strcmp(argv[i],"grabber")){
-                    Args.networkMode = GRABBER;
+                    Args.networkMode = Network::NetworkMode::GRABBER;
                     continue;
                 }
                 if(strcmp(argv[i],"sender")){
-                    Args.networkMode = SENDER;
+                    Args.networkMode = Network::NetworkMode::SENDER;
                     continue;
                 }
                 if(strcmp(argv[i],"offline")){
-                    Args.networkMode = OFFLINE;
+                    Args.networkMode = Network::NetworkMode::OFFLINE;
                     continue;
                 }
             }        

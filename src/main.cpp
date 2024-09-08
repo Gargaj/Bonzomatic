@@ -21,6 +21,8 @@
 #include "SetupDialog.h"
 
 #include "CommandLineArgs.h"
+#include "Network.h"
+
 unsigned int ParseColor( const std::string & color )
 {
   if ( color.size() < 6 || color.size() > 8 ) return 0xFFFFFFFF;
@@ -408,10 +410,12 @@ int main( int argc, const char * argv[] )
   Timer::Start();
   float fNextTick = 0.1f;
   float fLastTimeMS = Timer::GetTime();
+  Network::Init();
   while ( !Renderer::WantsToQuit() )
   {
     bool newShader = false;
     float time = Timer::GetTime() / 1000.0; // seconds
+
     Renderer::StartFrame();
 
     for ( int i = 0; i < Renderer::mouseEventBufferCount; i++ )
@@ -444,6 +448,9 @@ int main( int argc, const char * argv[] )
       }
     }
     Renderer::mouseEventBufferCount = 0;
+
+    // TODO: Netwokr Update here 
+    Network::UpdateShader(&mShaderEditor);
 
     for ( int i = 0; i < Renderer::keyEventBufferCount; i++ )
     {
@@ -514,7 +521,19 @@ int main( int argc, const char * argv[] )
       }
     }
     Renderer::keyEventBufferCount = 0;
-
+    if (Network::ReloadShader()) {
+      mShaderEditor.GetText(szShader, 65535);
+      if (Renderer::ReloadShader(szShader, (int)strlen(szShader), szError, 4096))
+      {
+        // Shader compilation successful; we set a flag to save if the frame render was successful
+        // (If there is a driver crash, don't save.)
+        newShader = true;
+      }
+      else
+      {
+        mDebugOutput.SetText(szError);
+      }
+   }
     Renderer::SetShaderConstant( "fGlobalTime", time );
     Renderer::SetShaderConstant( "v2Resolution", settings.sRenderer.nWidth, settings.sRenderer.nHeight );
 
