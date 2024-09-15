@@ -4,13 +4,25 @@
 #include "mongoose.h"
 #include <thread>
 namespace Network {
+  enum NetworkMode {
+      OFFLINE, 
+      SENDER,
+      GRABBER
+    };
+
     struct mg_mgr mgr;
     struct mg_connection* c;
     bool done = false;
     std::thread* tNetwork;
-    static const char* s_url = "ws://drone.alkama.com:9000/roomname/handle";
-
     bool NewShader = false;
+    char szShader[65535];
+    bool connected = false;
+    struct {
+       char* Url;
+      NetworkMode Mode;
+      float updateInterval = 0.3;
+    } NetworkConfig;
+
     struct {
         std::string Code;
         int CaretPosition;
@@ -19,12 +31,18 @@ namespace Network {
         bool NeedRecompile;
     } ShaderMessage;
 
+    void PrintConfig() {
+      std::cout << "******************* Network Config ********************" << std::endl;
+      std::cout << Network::NetworkConfig.Url << std::endl;
+      if (NetworkConfig.Mode == NetworkMode::OFFLINE) {
+        std::cout << "OFFLINE" << std::endl;
+      } else if (NetworkConfig.Mode == NetworkMode::SENDER) {
+        std::cout << "SENDER" << std::endl;
+      } else if (NetworkConfig.Mode == NetworkMode::GRABBER) {
+        std::cout << "GRABBER" << std::endl;
+      }
 
-    enum NetworkMode {
-        SENDER,
-        GRABBER,
-        OFFLINE
-    };
+    }
     bool HasNewShader() {
       if (NewShader) {
         NewShader = false;
@@ -87,6 +105,7 @@ namespace Network {
       }
       else if (ev == MG_EV_WS_OPEN) {
         fprintf(stdout, "[Network]: Connected\n");
+        connected = true;
         // When websocket handshake is successful, send message
         // mg_ws_send(c, "hello", 5, WEBSOCKET_OP_TEXT);
       }
@@ -104,10 +123,10 @@ namespace Network {
     }
     
     void Create(){
-            fprintf(stdout,"[Network]: Try to connect to %s\n", s_url);
+            fprintf(stdout,"[Network]: Try to connect to %s\n", NetworkConfig.Url);
 
             mg_mgr_init(&mgr);
-            c = mg_ws_connect(&mgr, s_url, fn, &done, NULL);
+            c = mg_ws_connect(&mgr, NetworkConfig.Url, fn, &done, NULL);
             if (c == NULL) {
               fprintf(stderr, "Invalid address\n");
               return;
@@ -132,8 +151,9 @@ namespace Network {
       return false;
     }
     void UpdateShader(ShaderEditor* mShaderEditor) {
-      if (Network::HasNewShader()) {
-     
+
+      if (NetworkConfig.Mode == Network::GRABBER && Network::HasNewShader()) { // Grabber mode
+          
           int PreviousTopLine = mShaderEditor->WndProc(SCI_GETFIRSTVISIBLELINE, 0, 0);
           int PreviousTopDocLine = mShaderEditor->WndProc(SCI_DOCLINEFROMVISIBLE, PreviousTopLine, 0);
           int PreviousTopLineTotal = PreviousTopDocLine;
@@ -149,7 +169,63 @@ namespace Network {
           //}
       
       
+      } else if(NetworkConfig.Mode == Network::SENDER) {
+        mShaderEditor->GetText(szShader, 65535);
+        ShaderMessage.Code = std::string(szShader);
+        ShaderMessage.NeedRecompile = true;
+        ShaderMessage.CaretPosition = mShaderEditor->WndProc(SCI_GETCURRENTPOS, 0, 0);
+        ShaderMessage.AnchorPosition = mShaderEditor->WndProc(SCI_GETANCHOR, 0, 0);
+        int TopLine = mShaderEditor->WndProc(SCI_GETFIRSTVISIBLELINE, 0, 0);
+        ShaderMessage.FirstVisibleLine = mShaderEditor->WndProc(SCI_DOCLINEFROMVISIBLE, TopLine, 0);
+        jsonxx::Object Data;
+        Data << "Code" << std::string(ShaderMessage.Code);
+        Data << "Compile" << ShaderMessage.NeedRecompile;
+        Data << "Caret" << ShaderMessage.CaretPosition;
+        Data << "Anchor" << ShaderMessage.AnchorPosition;
+        Data << "FirstVisibleLine" << ShaderMessage.FirstVisibleLine;
+        Data << "RoomName" << "RoomName";
+        Data << "NickName" << "NickName";
+        Data << "ShaderTime" << 1;
+
+        jsonxx::Object Message = jsonxx::Object("Data", Data);
+        std::string TextJson = Message.json();
+        if(connected){
+        mg_ws_send(c, TextJson.c_str(), TextJson.length() , WEBSOCKET_OP_TEXT);
+        }
       }
+    }
+
+    void ParseSettings(jsonxx::Object *options) {
+
+      if(options->has<jsonxx::Object>("network")) {
+        jsonxx::Object network = options->get<jsonxx::Object>("network");
+        if(network.has<jsonxx::String>("serverURL")){
+            NetworkConfig.Url = strdup(network.get<jsonxx::String>("serverURL").c_str());
+        }
+        if (network.get<jsonxx::Boolean>("enabled")) {
+      
+          if (network.has<jsonxx::String>("networkMode")) {
+            const char *  mode = network.get<jsonxx::String>("networkMode").c_str();
+            if (strcmp(mode, "sender") == 0) {
+              NetworkConfig.Mode = SENDER;
+            }
+            else if (strcmp(mode, "grabber") == 0) {
+              NetworkConfig.Mode = GRABBER;
+            }
+            else {
+              NetworkConfig.Mode = GRABBER;
+              printf("Can't find 'networkMode', set to 'GRABBER'\n");
+            }
+          } else {
+            printf("Can't find 'networkMode', set to 'OFFLINE'\n");
+          }
+        }
+
+        
+      } else {
+        NetworkConfig.Mode = OFFLINE;
+      }
+
     }
 }
 #endif

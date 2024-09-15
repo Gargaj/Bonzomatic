@@ -5,11 +5,15 @@
 #include <tchar.h>
 #include "../Renderer.h"
 #include "../FFT.h"
+
 #include "../SetupDialog.h"
+
 #include "resource.h"
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
+
 
 namespace SetupDialog
 {
@@ -86,6 +90,10 @@ public:
   }
   bool DialogProcedure( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
   {
+
+   
+
+
     switch ( uMsg ) 
     {
       case WM_INITDIALOG:
@@ -123,6 +131,7 @@ public:
             _sntprintf( s, 50, _T( "%d * %d" ), gaResolutions[ i ].nWidth, gaResolutions[ i ].nHeight );
             SendDlgItemMessage( hWnd, IDC_RESOLUTION, CB_ADDSTRING, 0, (LPARAM) s );
 
+
             if ( gaResolutions[ i ].nWidth == setup->sRenderer.nWidth && gaResolutions[ i ].nHeight == setup->sRenderer.nHeight )
             {
               SendDlgItemMessage( hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0 );
@@ -133,7 +142,13 @@ public:
               SendDlgItemMessage( hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0 );
             }
           }
-
+          
+          TCHAR s[50];
+          _sntprintf(s, 50, _T("SENDER"));
+          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
+          _sntprintf(s, 50, _T("GRABBER"));
+          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
+          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_SETCURSEL, 0, 0);
           if ( setup->sRenderer.windowMode == Renderer::WINDOWMODE_FULLSCREEN ) 
           {
             SendDlgItemMessage( hWnd, IDC_FULLSCREEN, BM_SETCHECK, 1, 1 );
@@ -143,6 +158,15 @@ public:
             SendDlgItemMessage( hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1 );
           }
 
+          std::string ServerName;
+          std::string RoomName;
+          std::string NickName;
+         // Network_Break_URL(network->ServerURL, ServerName, RoomName, NickName);
+
+          SetDlgItemText(hWnd, IDC_NETWORK_SERVER, "ws://drone.");
+          SetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, "roomname");
+          SetDlgItemText(hWnd, IDC_NETWORK_NICKNAME,  "handle");
+
           FFT::EnumerateDevices( FFTDeviceEnum, this );
 
           return true;
@@ -150,6 +174,7 @@ public:
 
       case WM_COMMAND:
         {
+
           switch ( LOWORD( wParam ) )
           {
             case IDOK:
@@ -161,7 +186,40 @@ public:
 
                 setup->sFFT.bUseRecordingDevice = gaAudioDevices[ SendDlgItemMessage( hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0 ) ].bIsCapture;
                 setup->sFFT.pDeviceID = gaAudioDevices[ SendDlgItemMessage( hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0 ) ].pDeviceID;
+
+                int ServerLen = SendDlgItemMessage(hWnd, IDC_NETWORK_SERVER, WM_GETTEXTLENGTH, 0, 0);
+                char ServerName[512];
+                GetDlgItemText(hWnd, IDC_NETWORK_SERVER, ServerName, min(ServerLen + 1, 511));
+
+                int RoomLen = SendDlgItemMessage(hWnd, IDC_NETWORK_ROOMNAME, WM_GETTEXTLENGTH, 0, 0);
+                char RoomName[512];
+                GetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, RoomName, min(RoomLen + 1, 511));
+
+                int NickLen = SendDlgItemMessage(hWnd, IDC_NETWORK_NICKNAME, WM_GETTEXTLENGTH, 0, 0);
+                char NickName[512];
+                GetDlgItemText(hWnd, IDC_NETWORK_NICKNAME, NickName, min(NickLen + 1, 511));
                 EndDialog( hWnd, TRUE );
+              } break;
+            case IDC_NETWORK: // Combo Box Click 
+              {         
+   
+                if (SendDlgItemMessage(hWnd, IDC_NETWORK, BM_GETCHECK, 0, 0)) {
+                   // Activate 
+
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_MODE), TRUE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_NICKNAME), TRUE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_ROOMNAME), TRUE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_SERVER), TRUE);
+;                }
+                else {
+                  // Desactivate
+
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_MODE), FALSE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_NICKNAME), FALSE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_ROOMNAME), FALSE);
+                  EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_SERVER), FALSE);
+                }
+
               } break;
             case IDCANCEL:
               {
@@ -188,7 +246,7 @@ INT_PTR CALLBACK DlgFunc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
   return pGlobal->DialogProcedure( hWnd, uMsg, wParam, lParam );
 }
 
-bool Open( SetupDialog::SETTINGS * settings )
+bool Open( SetupDialog::SETTINGS * settings)
 {
   CSetupDialog dlg;
   dlg.setup = settings;

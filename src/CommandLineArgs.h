@@ -14,16 +14,16 @@ namespace CommandLineArgs
         bool skipDialog;
         const char* configFile;
         const char* shaderFile;
-        const char* serverURL;
-        Network::NetworkMode networkMode;
+       
     } Args;
 
     void parse_args(int argc,const char *argv[]) {
         Args.skipDialog = false;
         Args.configFile = "config.json";
         Args.shaderFile = "shader.glsl";
-        Args.networkMode = Network::NetworkMode::OFFLINE;
-        Args.serverURL = "ws://drone.alkama.com:9000/roomname/username";
+        Network::NetworkConfig.Mode = Network::NetworkMode::OFFLINE;
+        Network::NetworkConfig.Url = "ws://drone.alkama.com:9000/roomname/username";
+
         for(size_t i=0;i<argc;++i) {
 
             if(strcmp(argv[i],"skipdialog")==0){
@@ -48,7 +48,7 @@ namespace CommandLineArgs
             if(strcmp(argv[i],"serverURL")==0) {
                 i++;
                 assert_tuple_arg;
-                Args.serverURL = argv[i];
+                //Network::NetworkConfig.Url = argv[i];
                 continue;
             }
 
@@ -56,15 +56,15 @@ namespace CommandLineArgs
                 i++;
                 assert_tuple_arg;
                 if(strcmp(argv[i],"grabber")){
-                    Args.networkMode = Network::NetworkMode::GRABBER;
+                    Network::NetworkConfig.Mode = Network::NetworkMode::GRABBER;
                     continue;
                 }
                 if(strcmp(argv[i],"sender")){
-                    Args.networkMode = Network::NetworkMode::SENDER;
+                    Network::NetworkConfig.Mode = Network::NetworkMode::SENDER;
                     continue;
                 }
                 if(strcmp(argv[i],"offline")){
-                    Args.networkMode = Network::NetworkMode::OFFLINE;
+                    Network::NetworkConfig.Mode = Network::NetworkMode::OFFLINE;
                     continue;
                 }
             }        
@@ -77,8 +77,6 @@ namespace CommandLineArgs
         fprintf(stdout,"skipDialog: %i\n",CommandLineArgs::Args.skipDialog);
         fprintf(stdout,"configFile: %s\n",CommandLineArgs::Args.configFile);
         fprintf(stdout,"shaderFile: %s\n",CommandLineArgs::Args.shaderFile);
-        fprintf(stdout,"serverURL: %s\n",CommandLineArgs::Args.serverURL);
-        fprintf(stdout,"networkMode: %i\n",CommandLineArgs::Args.networkMode);
 
     }
 }

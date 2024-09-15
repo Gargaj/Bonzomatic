@@ -1160,11 +1160,13 @@
 #define IDC_COMBO2                      1002
 #define IDC_MULTISAMPLE                 1002
 #define IDC_RESOLUTION2                 1002
+#define IDC_NETWORK_MODE                1002
 #define IDC_CHECK1                      1003
 #define IDC_FULLSCREEN                  1003
 #define IDC_CHECK2                      1004
 #define IDC_ONTOP                       1004
 #define IDC_FULLSCREEN2                 1004
+#define IDC_NETWORK                     1004
 #define IDC_CHECK3                      1005
 #define IDC_VSYNC                       1005
 #define IDC_COMBO3                      1006
@@ -1174,6 +1176,10 @@
 #define IDC_AUDIOSOURCE                 1006
 #define IDC_EDIT1                       1007
 #define IDC_RANDOMSEED                  1007
+#define IDC_NETWORK_SERVER              1007
+#define IDC_NETWORK_ROOMNAME            1008
+#define IDC_NETWORK_NICKNAME            1009
+#define IDC_NETWORK_GROUP               1010
 #define CF_GDIOBJLAST                   0x03FF
 #define _WIN32_WINNT_NT4                0x0400
 #define _WIN32_IE_IE40                  0x0400
@@ -1520,15 +1526,14 @@
 #define PWR_FAIL                        -1
 #define UNICODE_NOCHAR                  0xFFFF
 #define HTTRANSPARENT                   -1
-#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1008
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

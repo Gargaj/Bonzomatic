@@ -103,7 +103,7 @@ int main( int argc, const char * argv[] )
 
     options.parse( szConfig );
   }
-
+  Network::ParseSettings(&options);
   FFT::Create();
 
   bool skipSetupDialog = false;
@@ -410,7 +410,10 @@ int main( int argc, const char * argv[] )
   Timer::Start();
   float fNextTick = 0.1f;
   float fLastTimeMS = Timer::GetTime();
+
   Network::Init();
+
+  Network::PrintConfig();
   while ( !Renderer::WantsToQuit() )
   {
     bool newShader = false;
@@ -449,7 +452,7 @@ int main( int argc, const char * argv[] )
     }
     Renderer::mouseEventBufferCount = 0;
 
-    // TODO: Netwokr Update here 
+    // TODO: Network Update here 
     Network::UpdateShader(&mShaderEditor);
 
     for ( int i = 0; i < Renderer::keyEventBufferCount; i++ )
