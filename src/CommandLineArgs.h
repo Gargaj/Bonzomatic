@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <Network.h>
+
 #define assert_tuple_arg (assert(i < argc && "Expecting value"))
 
 namespace CommandLineArgs
@@ -21,8 +21,8 @@ namespace CommandLineArgs
         Args.skipDialog = false;
         Args.configFile = "config.json";
         Args.shaderFile = "shader.glsl";
-        Network::NetworkConfig.Mode = Network::NetworkMode::OFFLINE;
-        Network::NetworkConfig.Url = "ws://drone.alkama.com:9000/roomname/username";
+        //Network::config.Mode = Network::NetworkMode::OFFLINE;
+        //Network::config.Url = "ws://drone.alkama.com:9000/roomname/username";
 
         for(size_t i=0;i<argc;++i) {
 
@@ -56,15 +56,15 @@ namespace CommandLineArgs
                 i++;
                 assert_tuple_arg;
                 if(strcmp(argv[i],"grabber")){
-                    Network::NetworkConfig.Mode = Network::NetworkMode::GRABBER;
+                    //Network::config.Mode = Network::NetworkMode::GRABBER;
                     continue;
                 }
                 if(strcmp(argv[i],"sender")){
-                    Network::NetworkConfig.Mode = Network::NetworkMode::SENDER;
+                    //Network::config.Mode = Network::NetworkMode::SENDER;
                     continue;
                 }
                 if(strcmp(argv[i],"offline")){
-                    Network::NetworkConfig.Mode = Network::NetworkMode::OFFLINE;
+                   // Network::config.Mode = Network::NetworkMode::OFFLINE;
                     continue;
                 }
             }        

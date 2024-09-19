@@ -19,9 +19,9 @@
 #include "jsonxx.h"
 #include "Capture.h"
 #include "SetupDialog.h"
-
+#include <Network.h>
 #include "CommandLineArgs.h"
-#include "Network.h"
+
 
 unsigned int ParseColor( const std::string & color )
 {
@@ -412,8 +412,8 @@ int main( int argc, const char * argv[] )
   float fLastTimeMS = Timer::GetTime();
 
   Network::Init();
-
   Network::PrintConfig();
+
   while ( !Renderer::WantsToQuit() )
   {
     bool newShader = false;
@@ -452,9 +452,6 @@ int main( int argc, const char * argv[] )
     }
     Renderer::mouseEventBufferCount = 0;
 
-    // TODO: Network Update here 
-    Network::UpdateShader(&mShaderEditor);
-
     for ( int i = 0; i < Renderer::keyEventBufferCount; i++ )
     {
 #define FKEY(x) ((x)+281)
@@ -475,6 +472,7 @@ int main( int argc, const char * argv[] )
       }
       else if ( Renderer::keyEventBuffer[ i ].scanCode == FKEY( 5 ) || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'r' ) ) // F5
       {
+        //Network::shaderMessage.NeedRecompile= true;
         mShaderEditor.GetText( szShader, 65535 );
         if ( Renderer::ReloadShader( szShader, (int) strlen( szShader ), szError, 4096 ) )
         {
@@ -523,6 +521,10 @@ int main( int argc, const char * argv[] )
 
       }
     }
+    // Network Update here 
+
+    Network::UpdateShader(&mShaderEditor, time);
+
     Renderer::keyEventBufferCount = 0;
     if (Network::ReloadShader()) {
       mShaderEditor.GetText(szShader, 65535);

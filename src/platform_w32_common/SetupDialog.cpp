@@ -1,3 +1,4 @@
+#include "../Network.h"
 #include <windows.h>
 #ifdef __MINGW32__
 #include <stdio.h>
@@ -158,15 +159,19 @@ public:
             SendDlgItemMessage( hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1 );
           }
 
-          std::string ServerName;
-          std::string RoomName;
-          std::string NickName;
-         // Network_Break_URL(network->ServerURL, ServerName, RoomName, NickName);
-
-          SetDlgItemText(hWnd, IDC_NETWORK_SERVER, "ws://drone.");
-          SetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, "roomname");
-          SetDlgItemText(hWnd, IDC_NETWORK_NICKNAME,  "handle");
-
+     
+          { // Parsing url, could everthing be inside Network.h ? 
+            std::string FullUrl((const char*)Network::GetUrl());
+            std::size_t PathPartPtr = FullUrl.find('/',6);
+            std::size_t HandlePtr = FullUrl.find('/',PathPartPtr+1);
+            std::string HostPort = FullUrl.substr(0,PathPartPtr);
+            std::string RoomName = FullUrl.substr(PathPartPtr+1,HandlePtr-PathPartPtr-1);
+            std::string NickName = FullUrl.substr(HandlePtr+1,FullUrl.size()-HandlePtr);
+  
+            SetDlgItemText(hWnd, IDC_NETWORK_SERVER, HostPort.c_str());
+            SetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, RoomName.c_str());
+            SetDlgItemText(hWnd, IDC_NETWORK_NICKNAME, NickName.c_str());
+          }
           FFT::EnumerateDevices( FFTDeviceEnum, this );
 
           return true;
@@ -187,17 +192,23 @@ public:
                 setup->sFFT.bUseRecordingDevice = gaAudioDevices[ SendDlgItemMessage( hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0 ) ].bIsCapture;
                 setup->sFFT.pDeviceID = gaAudioDevices[ SendDlgItemMessage( hWnd, IDC_AUDIOSOURCE, CB_GETCURSEL, 0, 0 ) ].pDeviceID;
 
-                int ServerLen = SendDlgItemMessage(hWnd, IDC_NETWORK_SERVER, WM_GETTEXTLENGTH, 0, 0);
-                char ServerName[512];
-                GetDlgItemText(hWnd, IDC_NETWORK_SERVER, ServerName, min(ServerLen + 1, 511));
+                {// Network
+                  int ServerLen = SendDlgItemMessage(hWnd, IDC_NETWORK_SERVER, WM_GETTEXTLENGTH, 0, 0);
+                  char ServerName[512];
+                  GetDlgItemText(hWnd, IDC_NETWORK_SERVER, ServerName, min(ServerLen + 1, 511));
 
-                int RoomLen = SendDlgItemMessage(hWnd, IDC_NETWORK_ROOMNAME, WM_GETTEXTLENGTH, 0, 0);
-                char RoomName[512];
-                GetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, RoomName, min(RoomLen + 1, 511));
+                  int RoomLen = SendDlgItemMessage(hWnd, IDC_NETWORK_ROOMNAME, WM_GETTEXTLENGTH, 0, 0);
+                  char RoomName[512];
+                  GetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, RoomName, min(RoomLen + 1, 511));
 
-                int NickLen = SendDlgItemMessage(hWnd, IDC_NETWORK_NICKNAME, WM_GETTEXTLENGTH, 0, 0);
-                char NickName[512];
-                GetDlgItemText(hWnd, IDC_NETWORK_NICKNAME, NickName, min(NickLen + 1, 511));
+                  int NickLen = SendDlgItemMessage(hWnd, IDC_NETWORK_NICKNAME, WM_GETTEXTLENGTH, 0, 0);
+                  char NickName[512];
+                  GetDlgItemText(hWnd, IDC_NETWORK_NICKNAME, NickName, min(NickLen + 1, 511));
+                  std::string FullUrl = std::string(ServerName) + "/" + RoomName + "/" + NickName;
+                
+                  Network::SetUrl(strdup(FullUrl.c_str()));
+                
+                }
                 EndDialog( hWnd, TRUE );
               } break;
             case IDC_NETWORK: // Combo Box Click 

@@ -6,6 +6,7 @@ typedef struct
 {
   Renderer::Settings sRenderer;
   FFT::Settings sFFT;
+
 } SETTINGS;
 
 bool Open( SETTINGS * pSettings );
