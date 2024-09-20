@@ -1,5 +1,5 @@
 #include "Network.h"
-
+#define SHADER_FILENAME(mode) (std::string(mode)+ "_" + RoomName + "_" + NickName + ".glsl")
 namespace Network {
 
     Network::NetworkConfig config;
@@ -19,6 +19,12 @@ namespace Network {
   }
   void SetUrl( char* url) {
     config.Url =url;
+  }
+  Network::NetworkMode GetNetworkMode() {
+    return config.Mode;
+  }
+  void SetNetworkMode(NetworkMode mode) {
+    config.Mode = mode;
   }
   void PrintConfig() {
     std::cout << "******************* Network Config ********************" << std::endl;
@@ -130,9 +136,14 @@ namespace Network {
   }
 
   void Init() {
-    std::thread network(Create);
-    tNetwork = &network;
-    tNetwork->detach();
+    if(config.Mode != OFFLINE){
+      std::thread network(Create);
+      tNetwork = &network;
+      tNetwork->detach();
+    }
+    else {
+      fprintf(stdout, "[Network]: OFFLINE Mode, not starting Network loop\n");
+    }
   }
   bool ReloadShader() {
     if (config.Mode == GRABBER && shaderMessage.NeedRecompile) {
@@ -141,9 +152,31 @@ namespace Network {
     }
     return false;
   }
-
+  void SetNeedRecompile(bool needToRecompile) {
+    shaderMessage.NeedRecompile = needToRecompile;
+  }
+  void SplitUrl(std::string* host, std::string* roomname, std::string* name) {
+    std::string FullUrl((const char*)Network::GetUrl());
+    std::size_t PathPartPtr = FullUrl.find('/', 6);
+    std::size_t HandlePtr = FullUrl.find('/', PathPartPtr + 1);
+    *host = FullUrl.substr(0, PathPartPtr);
+    *roomname = FullUrl.substr(PathPartPtr + 1, HandlePtr - PathPartPtr - 1);
+    *name = FullUrl.substr(HandlePtr + 1, FullUrl.size() - HandlePtr);
+  }
+  void UpdateShaderFileName(const char** shaderName) {
+    if (config.Mode == OFFLINE) return;
+    std::string HostPort, RoomName, NickName, filename;
+    Network::SplitUrl(&HostPort, &RoomName, &NickName);
+    if (config.Mode == SENDER) {
+      filename = SHADER_FILENAME("sender");
+    }
+    else if(config.Mode == GRABBER) {
+      filename = SHADER_FILENAME("grabber");
+    }
+    *shaderName = strdup(filename.c_str());
+  }
   void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime) {
-    if (Network::config.Mode != Network::NetworkMode::OFFLINE) {
+    if (Network::config.Mode != Network::NetworkMode::OFFLINE) { // If we arn't offline mode
       if (config.Mode == Network::GRABBER && Network::HasNewShader()) { // Grabber mode
 
         int PreviousTopLine = mShaderEditor->WndProc(SCI_GETFIRSTVISIBLELINE, 0, 0);

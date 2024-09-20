@@ -328,6 +328,8 @@ int main( int argc, const char * argv[] )
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
 
+  // Overriding Name if we are in SENDER or GRABBER Network mode
+  Network::UpdateShaderFileName(&Renderer::szDefaultShaderFilename);
   bool shaderInitSuccessful = false;
   char szShader[ 65535 ];
   char szError[ 4096 ];
@@ -412,7 +414,6 @@ int main( int argc, const char * argv[] )
   float fLastTimeMS = Timer::GetTime();
 
   Network::Init();
-  Network::PrintConfig();
 
   while ( !Renderer::WantsToQuit() )
   {
@@ -472,7 +473,7 @@ int main( int argc, const char * argv[] )
       }
       else if ( Renderer::keyEventBuffer[ i ].scanCode == FKEY( 5 ) || ( Renderer::keyEventBuffer[ i ].ctrl && Renderer::keyEventBuffer[ i ].scanCode == 'r' ) ) // F5
       {
-        //Network::shaderMessage.NeedRecompile= true;
+        Network::SetNeedRecompile(true);
         mShaderEditor.GetText( szShader, 65535 );
         if ( Renderer::ReloadShader( szShader, (int) strlen( szShader ), szError, 4096 ) )
         {
@@ -521,7 +522,6 @@ int main( int argc, const char * argv[] )
 
       }
     }
-    // Network Update here 
 
     Network::UpdateShader(&mShaderEditor, time);
 

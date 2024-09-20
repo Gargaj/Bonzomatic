@@ -143,30 +143,53 @@ public:
               SendDlgItemMessage( hWnd, IDC_RESOLUTION, CB_SETCURSEL, i, 0 );
             }
           }
-          
-          TCHAR s[50];
-          _sntprintf(s, 50, _T("SENDER"));
-          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
-          _sntprintf(s, 50, _T("GRABBER"));
-          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
-          SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_SETCURSEL, 0, 0);
-          if ( setup->sRenderer.windowMode == Renderer::WINDOWMODE_FULLSCREEN ) 
-          {
-            SendDlgItemMessage( hWnd, IDC_FULLSCREEN, BM_SETCHECK, 1, 1 );
-          }
-          if ( setup->sRenderer.bVsync ) 
-          {
-            SendDlgItemMessage( hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1 );
-          }
+
+         
+            if ( setup->sRenderer.windowMode == Renderer::WINDOWMODE_FULLSCREEN ) 
+            {
+              SendDlgItemMessage( hWnd, IDC_FULLSCREEN, BM_SETCHECK, 1, 1 );
+            }
+            if ( setup->sRenderer.bVsync ) 
+            {
+              SendDlgItemMessage( hWnd, IDC_VSYNC, BM_SETCHECK, 1, 1 );
+            }
 
      
           { // Parsing url, could everthing be inside Network.h ? 
-            std::string FullUrl((const char*)Network::GetUrl());
-            std::size_t PathPartPtr = FullUrl.find('/',6);
-            std::size_t HandlePtr = FullUrl.find('/',PathPartPtr+1);
-            std::string HostPort = FullUrl.substr(0,PathPartPtr);
-            std::string RoomName = FullUrl.substr(PathPartPtr+1,HandlePtr-PathPartPtr-1);
-            std::string NickName = FullUrl.substr(HandlePtr+1,FullUrl.size()-HandlePtr);
+              TCHAR s[50];
+              _sntprintf(s, 50, _T("SENDER"));
+              SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
+              _sntprintf(s, 50, _T("GRABBER"));
+              SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
+
+              
+              SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_SETCURSEL, 0, 0);
+              switch (Network::GetNetworkMode()) {
+              case Network::OFFLINE:
+                SendDlgItemMessage(hWnd, IDC_NETWORK, BM_SETCHECK, 0, 0);
+                // Activate 
+                break;
+              case Network::SENDER:
+                SendDlgItemMessage(hWnd, IDC_NETWORK, BM_SETCHECK, 1, 1);
+                SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_SETCURSEL, 0, 0);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_MODE), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_NICKNAME), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_ROOMNAME), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_SERVER), TRUE);
+                break;
+              case Network::GRABBER:
+                SendDlgItemMessage(hWnd, IDC_NETWORK, BM_SETCHECK, 1, 1);
+                SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_SETCURSEL, 1, 0);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_MODE), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_NICKNAME), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_ROOMNAME), TRUE);
+                EnableWindow(GetDlgItem(hWnd, IDC_NETWORK_SERVER), TRUE);
+                break;
+              }
+            
+        
+            std::string HostPort, RoomName, NickName;
+            Network::SplitUrl(&HostPort, &RoomName, &NickName);
   
             SetDlgItemText(hWnd, IDC_NETWORK_SERVER, HostPort.c_str());
             SetDlgItemText(hWnd, IDC_NETWORK_ROOMNAME, RoomName.c_str());
@@ -207,7 +230,18 @@ public:
                   std::string FullUrl = std::string(ServerName) + "/" + RoomName + "/" + NickName;
                 
                   Network::SetUrl(strdup(FullUrl.c_str()));
-                
+                  if (SendDlgItemMessage(hWnd, IDC_NETWORK, BM_GETCHECK, 0, 0) == false) { // Offline
+                    Network::SetNetworkMode(Network::OFFLINE);
+                  }
+                  else {
+                    if (SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_GETCURSEL, 0, 0) == 0) { //SENDER
+                      Network::SetNetworkMode(Network::SENDER);
+                    }
+                    else {
+                      Network::SetNetworkMode(Network::GRABBER);
+                    }
+                  }
+                  
                 }
                 EndDialog( hWnd, TRUE );
               } break;

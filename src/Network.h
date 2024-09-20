@@ -7,6 +7,7 @@
 #include <jsonxx.h>
 #include "ShaderEditor.h"
 namespace Network {
+
   enum NetworkMode {
     OFFLINE,
     SENDER,
@@ -43,5 +44,11 @@ namespace Network {
     void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime);
     char* GetUrl();
     void SetUrl(char*);
+    Network::NetworkMode GetNetworkMode();
+    void SetNetworkMode(Network::NetworkMode mode);
+    void SetNeedRecompile(bool needToRecompile);
+    void UpdateShaderFileName( const char** shaderName);
+    void SplitUrl(std::string *host,std::string *roomname,std::string* name);
+
 }
 #endif // BONZOMATIC_NETWORK_H
