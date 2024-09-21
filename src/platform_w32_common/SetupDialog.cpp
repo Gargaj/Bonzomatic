@@ -69,7 +69,7 @@ public:
   void FFTDeviceEnum( const bool bIsCaptureDevice, const char * szDeviceName, void * pDeviceID )
   {
     TCHAR sz[ 512 ];
-    _sntprintf( sz, 512, _T( "[%hs] %hs" ), bIsCaptureDevice ? "in" : "out", szDeviceName );
+    _sntprintf_s( sz, 512, _T( "[%hs] %hs" ), bIsCaptureDevice ? "in" : "out", szDeviceName );
     SendDlgItemMessage( hWndSetupDialog, IDC_AUDIOSOURCE, CB_ADDSTRING, 0, (LPARAM) sz );
 
     if ( !pDeviceID )
@@ -129,7 +129,7 @@ public:
           for ( i = 0; i < gaResolutions.size(); i++ )
           {
             TCHAR s[ 50 ];
-            _sntprintf( s, 50, _T( "%d * %d" ), gaResolutions[ i ].nWidth, gaResolutions[ i ].nHeight );
+            _sntprintf_s( s, 50, _T( "%d * %d" ), gaResolutions[ i ].nWidth, gaResolutions[ i ].nHeight );
             SendDlgItemMessage( hWnd, IDC_RESOLUTION, CB_ADDSTRING, 0, (LPARAM) s );
 
 
@@ -157,9 +157,9 @@ public:
      
           { // Parsing url, could everthing be inside Network.h ? 
               TCHAR s[50];
-              _sntprintf(s, 50, _T("SENDER"));
+              _sntprintf_s(s, 50, _T("SENDER"));
               SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
-              _sntprintf(s, 50, _T("GRABBER"));
+              _sntprintf_s(s, 50, _T("GRABBER"));
               SendDlgItemMessage(hWnd, IDC_NETWORK_MODE, CB_ADDSTRING, 0, (LPARAM)s);
 
               
@@ -229,7 +229,7 @@ public:
                   GetDlgItemText(hWnd, IDC_NETWORK_NICKNAME, NickName, min(NickLen + 1, 511));
                   std::string FullUrl = std::string(ServerName) + "/" + RoomName + "/" + NickName;
                 
-                  Network::SetUrl(strdup(FullUrl.c_str()));
+                  Network::SetUrl(_strdup(FullUrl.c_str()));
                   if (SendDlgItemMessage(hWnd, IDC_NETWORK, BM_GETCHECK, 0, 0) == false) { // Offline
                     Network::SetNetworkMode(Network::OFFLINE);
                   }

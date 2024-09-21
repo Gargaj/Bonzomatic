@@ -1,6 +1,6 @@
 
 #include <cstdio>
-
+#include "Network.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -260,8 +260,9 @@ bool Open( Renderer::Settings * settings )
   glfwWindowHint( GLFW_AUTO_ICONIFY, GL_FALSE );
 
   GLFWmonitor * monitor = settings->windowMode == WINDOWMODE_FULLSCREEN ? glfwGetPrimaryMonitor() : NULL;
-
-  mWindow = glfwCreateWindow( nWidth, nHeight, "BONZOMATIC - GLFW edition", monitor, NULL );
+  char * windowsTitle = "BONZOMATIC - GLFW edition";
+  Network::GenerateWindowsTitle(&windowsTitle);
+  mWindow = glfwCreateWindow( nWidth, nHeight, windowsTitle, monitor, NULL );
   if ( !mWindow )
   {
     printf( "[GLFW] Window creation failed\n" );

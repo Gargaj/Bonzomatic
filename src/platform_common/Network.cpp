@@ -1,5 +1,7 @@
 #include "Network.h"
+#include "MIDI.h"
 #define SHADER_FILENAME(mode) (std::string(mode)+ "_" + RoomName + "_" + NickName + ".glsl")
+#define LOG(header,message) printf("[" header "] " message " \n")
 namespace Network {
 
     Network::NetworkConfig config;
@@ -173,9 +175,9 @@ namespace Network {
     else if(config.Mode == GRABBER) {
       filename = SHADER_FILENAME("grabber");
     }
-    *shaderName = strdup(filename.c_str());
+    *shaderName = _strdup(filename.c_str());
   }
-  void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime) {
+  void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime, std::map<int, std::string> *midiRoutes) {
     if (Network::config.Mode != Network::NetworkMode::OFFLINE) { // If we arn't offline mode
       if (config.Mode == Network::GRABBER && Network::HasNewShader()) { // Grabber mode
 
@@ -216,10 +218,18 @@ namespace Network {
         Data << "NickName" << "NickName";
         Data << "ShaderTime" << shaderMessage.shaderTime;
 
+        if(config.sendMidiControls) { // Sending Midi Controls
+          jsonxx::Object networkShaderParameters;
+          for (std::map<int, std::string>::iterator it = midiRoutes->begin(); it != midiRoutes->end(); it++)
+          {
+            networkShaderParameters << it->second << MIDI::GetCCValue(it->first);
+          }
+          Data << "Parameters" << networkShaderParameters;
+        }
         jsonxx::Object Message = jsonxx::Object("Data", Data);
         std::string TextJson = Message.json();
-        if (connected) {
 
+        if (connected) {
           mg_ws_send(c, TextJson.c_str(), TextJson.length(), WEBSOCKET_OP_TEXT);
           shaderMessage.NeedRecompile = false;
         }
@@ -227,39 +237,139 @@ namespace Network {
       }
     }
   }
-
-  void ParseSettings(jsonxx::Object* options) {
-
-    if (options->has<jsonxx::Object>("network")) {
-      jsonxx::Object network = options->get<jsonxx::Object>("network");
-      if (network.has<jsonxx::String>("serverURL")) {
-        config.Url = strdup(network.get<jsonxx::String>("serverURL").c_str());
-      }
-      if (network.get<jsonxx::Boolean>("enabled")) {
-
-        if (network.has<jsonxx::String>("networkMode")) {
-          const char* mode = network.get<jsonxx::String>("networkMode").c_str();
-          if (strcmp(mode, "sender") == 0) {
-            config.Mode = SENDER;
-          }
-          else if (strcmp(mode, "grabber") == 0) {
-            config.Mode = GRABBER;
-          }
-          else {
-            config.Mode = GRABBER;
-            printf("Can't find 'networkMode', set to 'GRABBER'\n");
-          }
-        }
-        else {
-          printf("Can't find 'networkMode', set to 'OFFLINE'\n");
-        }
-      }
-
-
+  bool IsGrabber() {
+    return config.Mode == GRABBER;
+  }
+  bool IsSender() {
+    return config.Mode = SENDER;
+  }
+  bool IsOffline() {
+    return config.Mode = OFFLINE;
+  }
+  void GenerateWindowsTitle(char** originalTitle) {
+    if (config.Mode == OFFLINE) {
+      return;
     }
-    else {
+    std::string host, roomname, user, title(*originalTitle), newName;
+    Network::SplitUrl(&host, &roomname, &user);
+    if (config.Mode == GRABBER) {
+      newName = title + " grabber " + user;
+    } 
+    if (config.Mode == SENDER) {
+      newName = title + " sender " + user;
+    }
+    *originalTitle = _strdup(newName.c_str());
+  }
+  /* From here are methods for parsing json */
+  void ParseNetworkGrabMidiControls(jsonxx::Object * network) {
+    if (!network->has<jsonxx::Boolean>("grabMidiControls")) {
+      LOG("Network Configuration", "Can't find 'grabMidiControls', set to false");
+      config.grabMidiControls = false;
+      return;
+    }
+    config.grabMidiControls = network->get<jsonxx::Boolean>("grabMidiControls");
+  }
+  void ParseNetworkSendMidiControls(jsonxx::Object* network) {
+    if (!network->has<jsonxx::Boolean>("sendMidiControls")) {
+      LOG("Network Configuration", "Can't find 'sendMidiControls', set to false");
+      config.sendMidiControls = false;
+      return;
+    }
+    config.sendMidiControls = network->get<jsonxx::Boolean>("sendMidiControls");
+  }
+  void ParseNetworkUpdateInterval(jsonxx::Object* network) {
+    if (!network->has<jsonxx::Boolean>("updateInterval")) {
+      LOG("Network Configuration", "Can't find 'updateInterval', set to 0.3");
+      config.updateInterval = 0.3f;
+      return;
+    }
+    
+    config.updateInterval = network->get<jsonxx::Number>("updateInterval");
+  }
+  void ParseNetworkMode(jsonxx::Object* network) {
+    if (!network->has<jsonxx::String>("networkMode")) {
+      LOG("Network Configuration", "Can't find 'networkMode' Set to OFFLINE");
       config.Mode = OFFLINE;
+      return;
     }
+
+    const char* mode = network->get<jsonxx::String>("networkMode").c_str();
+    bool isSenderMode = strcmp(mode, "sender");
+    bool isGrabberMode = strcmp(mode, "grabber");
+    if (!isSenderMode && !isGrabberMode) {
+      LOG("Network Configuration", "networkMode is neither SENDER or GRABBER, fallback config to OFFLINE");
+      config.Mode = OFFLINE;
+      return;
+    }
+    if(isSenderMode){
+      config.Mode = SENDER;
+    }
+    if(isGrabberMode){
+      config.Mode = GRABBER;
+    }
+
+    // From now on, we have a minimal config working we can try to parse extra option
+    ParseNetworkGrabMidiControls(network);
+    ParseNetworkSendMidiControls(network);
+    ParseNetworkUpdateInterval(network);
+  }
+  void ParseNetworkUrl(jsonxx::Object* network) {
+    if (!network->has<jsonxx::String>("serverURL")) {
+      LOG("Network Configuration", "Can't find 'serverURL', set to 'OFFLINE'");
+      config.Mode = OFFLINE;
+      config.Url = "";
+      return;
+    }
+   
+    config.Url = _strdup(network->get<jsonxx::String>("serverURL").c_str());
+
+    ParseNetworkMode(network);
+
+  }
+  void ParseNetworkEnabled(jsonxx::Object* network) {
+ 
+    if (!network->has<jsonxx::Boolean>("enabled")) {
+      LOG("Network Configuration", "Can't find 'enabled', set to 'OFFLINE'");
+      config.Mode = OFFLINE;
+      config.Url = "";
+      return;
+    }
+
+    if (!network->get<jsonxx::Boolean>("enabled")) {
+      LOG("Network Configuration", "Set to 'OFFLINE'");
+      config.Mode = OFFLINE;
+      config.Url = "";
+      // As we can activate this on setup dialog, let's try to get serverURL
+      if (network->has<jsonxx::String>("serverURL")) {
+        config.Url = _strdup(network->get<jsonxx::String>("serverURL").c_str());
+      }
+      return;
+    }
+    ParseNetworkUrl(network);
+
+
+  }
+  /*
+    Parse the json settings. Cascading calls, not perfect but keep clear code
+    - Check that Network block exists on json
+    - Check that 'enabled' exists and is true
+    - Check that 'serverUrl' exists
+    - Check that 'networkMode' exists
+
+    If something doesn't match above path, will fallback to OFFLINE Mode
+    */
+  void ParseSettings(jsonxx::Object* options) {
+    
+    LOG("Network Configuration", "Parsing network configuration data from json");
+    if (!options->has<jsonxx::Object>("network")) {
+      LOG("Network Configuration", "Can't find 'network' block, set to 'OFFLINE'");
+      config.Mode = OFFLINE;
+      config.Url = "";
+      return;
+    }
+    jsonxx::Object network = options->get<jsonxx::Object>("network");
+    ParseNetworkEnabled(&network);
+
 
   }
 }

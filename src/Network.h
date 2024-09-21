@@ -2,6 +2,7 @@
 #define BONZOMATIC_NETWORK_H
 #pragma once
 #include <string>
+
 #include "mongoose.h"
 #include <thread>
 #include <jsonxx.h>
@@ -14,10 +15,13 @@ namespace Network {
     GRABBER
   };
 
+
   struct NetworkConfig {
     char* Url;
     NetworkMode Mode;
-    float updateInterval = 0.3;
+    float updateInterval = 0.3f;
+    bool sendMidiControls;
+    bool grabMidiControls;
   };
   struct ShaderMessage {
     std::string Code;
@@ -41,7 +45,7 @@ namespace Network {
     void Init();
 
     void ParseSettings(jsonxx::Object* options);
-    void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime);
+    void UpdateShader(ShaderEditor* mShaderEditor, float shaderTime, std::map<int, std::string> *midiRoutes);
     char* GetUrl();
     void SetUrl(char*);
     Network::NetworkMode GetNetworkMode();
@@ -49,6 +53,9 @@ namespace Network {
     void SetNeedRecompile(bool needToRecompile);
     void UpdateShaderFileName( const char** shaderName);
     void SplitUrl(std::string *host,std::string *roomname,std::string* name);
-
+    bool IsGrabber();
+    bool IsSender();
+    bool IsOffline();
+    void GenerateWindowsTitle(char** originalTitle);
 }
 #endif // BONZOMATIC_NETWORK_H
