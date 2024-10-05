@@ -2,7 +2,6 @@
 
 [![Github workflow status](https://github.com/Gargaj/Bonzomatic/actions/workflows/main.yml/badge.svg)](https://github.com/Gargaj/Bonzomatic/actions/workflows/main.yml)
 [![Appveyor build status](https://ci.appveyor.com/api/projects/status/ix6fwi6nym1tu4e7?svg=true)](https://ci.appveyor.com/project/Gargaj/bonzomatic)
-[![Travis build status](https://img.shields.io/travis/Gargaj/Bonzomatic?logo=travis)](https://travis-ci.org/Gargaj/Bonzomatic)
 
 ## What's this?
 This is a live-coding tool, where you can write a 2D fragment/pixel shader while it is running in the background.
