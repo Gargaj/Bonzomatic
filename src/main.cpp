@@ -318,7 +318,8 @@ int main( int argc, const char * argv[] )
     return 0;
   }
 
-  Renderer::Texture * texPreviousFrame = Renderer::CreateRGBA8Texture();
+  Renderer::Texture * texFrontBuffer = Renderer::CreateBackbufferTexture();
+  Renderer::Texture * texBackBuffer = Renderer::CreateBackbufferTexture();
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -549,16 +550,27 @@ int main( int argc, const char * argv[] )
     Renderer::SetShaderTexture( "texFFT", texFFT );
     Renderer::SetShaderTexture( "texFFTSmoothed", texFFTSmoothed );
     Renderer::SetShaderTexture( "texFFTIntegrated", texFFTIntegrated );
-    Renderer::SetShaderTexture( "texPreviousFrame", texPreviousFrame );
+    Renderer::SetShaderTexture( "texPreviousFrame", texFrontBuffer );
 
     for ( std::map<std::string, Renderer::Texture *>::iterator it = textures.begin(); it != textures.end(); it++ )
     {
       Renderer::SetShaderTexture( it->first.c_str(), it->second );
     }
 
-    Renderer::RenderFullscreenQuad();
 
-    Renderer::CopyBackbufferToTexture( texPreviousFrame );
+    Renderer::AttachBackbufferTexture(texBackBuffer);
+    Renderer::BindFramebuffer();
+
+    Renderer::RenderFullscreenQuad();
+    
+    Renderer::UnbindFramebuffer();
+    
+    Renderer::BlitFramebufferToScreen();
+
+    // swap front and back buffer:
+    Renderer::Texture * temp = texBackBuffer;
+    texBackBuffer = texFrontBuffer;
+    texFrontBuffer = temp;
 
     Renderer::StartTextRendering();
 
@@ -633,7 +645,8 @@ int main( int argc, const char * argv[] )
   MIDI::Close();
   FFT::Close();
 
-  Renderer::ReleaseTexture( texPreviousFrame );
+  Renderer::ReleaseTexture( texBackBuffer );
+  Renderer::ReleaseTexture( texFrontBuffer );
   Renderer::ReleaseTexture( texFFT );
   Renderer::ReleaseTexture( texFFTSmoothed );
   for ( std::map<std::string, Renderer::Texture *>::iterator it = textures.begin(); it != textures.end(); it++ )
