@@ -136,6 +136,9 @@ const char szDefaultShader[ 65536 ] =
 "{%midi:begin%}" // leave off \n here
 "uniform float {%midi:name%};\n"
 "{%midi:end%}" // leave off \n here
+"{%midiArray:begin%}" // leave off \n here
+"uniform float[127] {%midiArray:name%};\n"
+"{%midiArray:end%}" // leave off \n here
 "\n"
 "in vec2 out_texcoord;\n"
 "layout(location = 0) out vec4 out_color; // out_color must be written in order to see anything\n"
@@ -176,9 +179,19 @@ GLuint glhFullscreenQuadVA = 0;
 GLuint glhGUIVB = 0;
 GLuint glhGUIVA = 0;
 GLuint glhGUIProgram = 0;
+GLuint glhFramebuffer = 0;
 
 int nWidth = 0;
 int nHeight = 0;
+
+void checkError()
+{
+  GLenum err;
+  while((err = glGetError()) != GL_NO_ERROR)
+  {
+    printf( "GL error %d\n", err );
+  }
+}
 
 void MatrixOrthoOffCenterLH( float * pout, float l, float r, float b, float t, float zn, float zf )
 {
@@ -327,6 +340,8 @@ bool Open( Renderer::Settings * settings )
   glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
   glGenVertexArrays( 1, &glhFullscreenQuadVA );
+
+  glGenFramebuffers(1, &glhFramebuffer);
 
   glhVertexShader = glCreateShader( GL_VERTEX_SHADER );
 
@@ -643,6 +658,14 @@ void RenderFullscreenQuad()
   glUseProgram( 0 );
 }
 
+void BlitFramebufferToScreen()
+{
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, glhFramebuffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(0, 0, nWidth, nHeight, 0, 0, nWidth, nHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  checkError();
+}
+
 bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize )
 {
   GLuint prg = glCreateProgram();
@@ -699,6 +722,15 @@ void SetShaderConstant( const char * szConstName, float x, float y )
   }
 }
 
+void SetShaderConstant( const char * szConstName, unsigned int num, float* data )
+{
+  GLint location = glGetUniformLocation( theShader, szConstName );
+  if ( location != -1 )
+  {
+    glProgramUniform1fv( theShader, location, num, data);
+  }
+}
+
 struct GLTexture : public Texture
 {
   GLuint ID;
@@ -729,6 +761,34 @@ Texture * CreateRGBA8Texture()
   tex->ID = glTexId;
   tex->type = TEXTURETYPE_2D;
   tex->unit = textureUnit++;
+  return tex;
+}
+
+Texture * CreateBackbufferTexture()
+{
+  void * data = NULL;
+  GLenum internalFormat = GL_RGBA32F;
+  GLenum srcFormat = GL_RGBA;
+  GLenum format = GL_FLOAT;
+
+  GLuint glTexId = 0;
+  glGenTextures( 1, &glTexId );
+  glBindTexture( GL_TEXTURE_2D, glTexId );
+
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+  glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, nWidth, nHeight, 0, srcFormat, format, nullptr );
+
+  GLTexture * tex = new GLTexture();
+  tex->width = nWidth;
+  tex->height = nHeight;
+  tex->ID = glTexId;
+  tex->type = TEXTURETYPE_2D;
+  tex->unit = textureUnit++;
+  checkError();
   return tex;
 }
 
@@ -782,7 +842,7 @@ Texture * Create1DR32Texture( int w )
   glBindTexture( GL_TEXTURE_1D, glTexId );
 
   glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-  glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+  glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
   glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
   float * data = new float[ w ];
@@ -790,6 +850,7 @@ Texture * Create1DR32Texture( int w )
     data[ i ] = 0.0f;
 
   glTexImage1D( GL_TEXTURE_1D, 0, GL_R32F, w, 0, GL_RED, GL_FLOAT, data );
+  glGenerateMipmap(GL_TEXTURE_1D);
 
   delete[] data;
 
@@ -827,7 +888,7 @@ bool UpdateR32Texture( Texture * tex, float * data )
   glActiveTexture( GL_TEXTURE0 + ( (GLTexture *) tex )->unit );
   glBindTexture( GL_TEXTURE_1D, ( (GLTexture *) tex )->ID );
   glTexSubImage1D( GL_TEXTURE_1D, 0, 0, tex->width, GL_RED, GL_FLOAT, data );
-
+  glGenerateMipmap(GL_TEXTURE_1D);
   return true;
 }
 
@@ -955,6 +1016,26 @@ void BindTexture( Texture * tex )
 
     }
   }
+}
+
+void BindFramebuffer()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, glhFramebuffer);
+  checkError();
+}
+
+void UnbindFramebuffer()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  checkError();
+}
+
+void AttachBackbufferTexture( Texture * tex )
+{
+  BindFramebuffer();
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ( (GLTexture *) tex )->ID, 0);
+  checkError();
+  UnbindFramebuffer();
 }
 
 void RenderQuad( const Vertex & a, const Vertex & b, const Vertex & c, const Vertex & d )
