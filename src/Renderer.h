@@ -96,6 +96,7 @@ void RenderFullscreenQuad();
 bool ReloadShader( const char * szShaderCode, int nShaderCodeSize, char * szErrorBuffer, int nErrorBufferSize );
 void SetShaderConstant( const char * szConstName, float x );
 void SetShaderConstant( const char * szConstName, float x, float y );
+void SetShaderConstant( const char * szConstName, unsigned int num, float* data );
 
 void StartTextRendering();
 void SetTextRenderingViewport( Scintilla::PRectangle rect );
@@ -106,6 +107,7 @@ bool GrabFrame( void * pPixelBuffer ); // input buffer must be able to hold w * 
 void Close();
 
 Texture * CreateRGBA8Texture();
+Texture * CreateBackbufferTexture();
 Texture * CreateRGBA8TextureFromFile( const char * szFilename );
 Texture * CreateA8TextureFromData( int w, int h, const unsigned char * data );
 Texture * Create1DR32Texture( int w );
@@ -113,6 +115,11 @@ bool UpdateR32Texture( Texture * tex, float * data );
 void SetShaderTexture( const char * szTextureName, Texture * tex );
 void BindTexture( Texture * tex ); // temporary function until all the quad rendering is moved to the renderer
 void ReleaseTexture( Texture * tex );
+
+void BindFramebuffer();
+void UnbindFramebuffer();
+void AttachBackbufferTexture( Texture * tex );
+void BlitFramebufferToScreen();
 
 void CopyBackbufferToTexture( Texture * tex );
 
