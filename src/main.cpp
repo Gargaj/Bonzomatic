@@ -162,6 +162,7 @@ int main( int argc, const char * argv[] )
 
   std::map<std::string, Renderer::Texture *> textures;
   std::map<int, std::string> midiRoutes;
+  bool useMidiArray;
 
   const char * szDefaultFontPath = Misc::GetDefaultFontPath();
 
@@ -301,6 +302,10 @@ int main( int argc, const char * argv[] )
         midiRoutes[ it->second->number_value_ ] = it->first;
       }
     }
+    
+    if ( options.has<jsonxx::Boolean>( "useMidiArray" ) )
+      useMidiArray = options.get<jsonxx::Boolean>( "useMidiArray" );
+
     if ( options.has<jsonxx::String>( "postExitCmd" ) )
     {
       sPostExitCmd = options.get<jsonxx::String>( "postExitCmd" );
@@ -318,7 +323,8 @@ int main( int argc, const char * argv[] )
     return 0;
   }
 
-  Renderer::Texture * texPreviousFrame = Renderer::CreateRGBA8Texture();
+  Renderer::Texture * texFrontBuffer = Renderer::CreateBackbufferTexture();
+  Renderer::Texture * texBackBuffer = Renderer::CreateBackbufferTexture();
   Renderer::Texture * texFFT = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTSmoothed = Renderer::Create1DR32Texture( FFT_SIZE );
   Renderer::Texture * texFFTIntegrated = Renderer::Create1DR32Texture( FFT_SIZE );
@@ -358,6 +364,12 @@ int main( int argc, const char * argv[] )
     for ( std::map<int, std::string>::iterator it = midiRoutes.begin(); it != midiRoutes.end(); it++ )
       tokens.push_back( it->second );
     ReplaceTokens( sDefShader, "{%midi:begin%}", "{%midi:name%}", "{%midi:end%}", tokens );
+
+    tokens.clear();
+    if (useMidiArray) {
+      tokens.push_back("fMidi");
+    }
+    ReplaceTokens( sDefShader, "{%midiArray:begin%}", "{%midiArray:name%}", "{%midiArray:end%}", tokens );
 
     strncpy( szShader, sDefShader.c_str(), 65535 );
     if ( !Renderer::ReloadShader( szShader, (int) strlen( szShader ), szError, 4096 ) )
@@ -524,6 +536,13 @@ int main( int argc, const char * argv[] )
       Renderer::SetShaderConstant( it->second.c_str(), MIDI::GetCCValue( it->first ) );
     }
 
+    if (useMidiArray) {
+      static std::vector<float> values(127);
+      for (unsigned char cc = 0; cc < 127; ++cc) {
+        values[cc] = MIDI::GetCCValue( cc );
+      }
+      Renderer::SetShaderConstant( "fMidi", 127, values.data());
+    }
 
     if ( FFT::GetFFT( fftData ) )
     {
@@ -549,16 +568,27 @@ int main( int argc, const char * argv[] )
     Renderer::SetShaderTexture( "texFFT", texFFT );
     Renderer::SetShaderTexture( "texFFTSmoothed", texFFTSmoothed );
     Renderer::SetShaderTexture( "texFFTIntegrated", texFFTIntegrated );
-    Renderer::SetShaderTexture( "texPreviousFrame", texPreviousFrame );
+    Renderer::SetShaderTexture( "texPreviousFrame", texFrontBuffer );
 
     for ( std::map<std::string, Renderer::Texture *>::iterator it = textures.begin(); it != textures.end(); it++ )
     {
       Renderer::SetShaderTexture( it->first.c_str(), it->second );
     }
 
-    Renderer::RenderFullscreenQuad();
 
-    Renderer::CopyBackbufferToTexture( texPreviousFrame );
+    Renderer::AttachBackbufferTexture(texBackBuffer);
+    Renderer::BindFramebuffer();
+
+    Renderer::RenderFullscreenQuad();
+    
+    Renderer::UnbindFramebuffer();
+    
+    Renderer::BlitFramebufferToScreen();
+
+    // swap front and back buffer:
+    Renderer::Texture * temp = texBackBuffer;
+    texBackBuffer = texFrontBuffer;
+    texFrontBuffer = temp;
 
     Renderer::StartTextRendering();
 
@@ -633,7 +663,8 @@ int main( int argc, const char * argv[] )
   MIDI::Close();
   FFT::Close();
 
-  Renderer::ReleaseTexture( texPreviousFrame );
+  Renderer::ReleaseTexture( texBackBuffer );
+  Renderer::ReleaseTexture( texFrontBuffer );
   Renderer::ReleaseTexture( texFFT );
   Renderer::ReleaseTexture( texFFTSmoothed );
   for ( std::map<std::string, Renderer::Texture *>::iterator it = textures.begin(); it != textures.end(); it++ )

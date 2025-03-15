@@ -69,6 +69,7 @@ The file can have the following contents: (all fields are optional)
   "midi":{ // the keys below will become the shader variable names, the values are the CC numbers
     "fMidiKnob": 16, // e.g. this would be CC#16, i.e. by default the leftmost knob on a nanoKONTROL 2
   },
+  "useMidiArray": false, // alterntaive to the above. if true, all 127 midi values will be provided in a single uniform float array (uniform float[127] fMidi;)
   // this section is if you want to enable NDI streaming; otherwise just ignore it
   "ndi":{
     "enabled": true,
